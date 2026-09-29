@@ -1,0 +1,18 @@
+{
+  "users": {
+    "ps+file@example.com": {
+      "name": "ps-file",
+      "passwordHash": "cefe93e9d13f6ec6c29f06bc82bc5fd4bd4abe5caacc731d0131b9c9f94570fa"
+    }
+  },
+  "sessions": {
+    "1264bfb2-e32f-4bb7-9f6e-8130a2653eff": {
+      "email": "ps+file@example.com",
+      "name": "ps-file"
+    },
+    "3e2c31c9-8351-4cb5-bacf-793ad61d225d": {
+      "email": "ps+file@example.com",
+      "name": "ps-file"
+    }
+  }
+}

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-fixed": "#ffdbd1", "on-primary": "#ffffff", "background": "#fdf8ff", "surface-container": "#f1ecf7", "on-secondary-container": "#684000", "secondary": "#855300", "on-tertiary-container": "#fffbff", "tertiary": "#4648d4", "primary-container": "#ca4a28", "surface-container-lowest": "#ffffff", "on-surface-variant": "#59413b", "outline": "#8c716a", "tertiary-container": "#6063ee", "on-surface": "#1c1b22", "surface-container-highest": "#e6e0eb", "on-primary-fixed": "#3c0800", "surface-bright": "#fdf8ff", "outline-variant": "#e0bfb7", "inverse-surface": "#312f37", "on-tertiary-fixed": "#07006c", "error": "#ba1a1a", "primary-fixed-dim": "#ffb4a1", "surface-variant": "#e6e0eb", "tertiary-fixed-dim": "#c0c1ff", "inverse-primary": "#ffb4a1", "on-tertiary": "#ffffff", "secondary-fixed": "#ffddb8", "secondary-fixed-dim": "#ffb95f", "surface": "#fdf8ff", "on-tertiary-fixed-variant": "#2f2ebe", "on-secondary": "#ffffff", "on-background": "#1c1b22", "inverse-on-surface": "#f4effa", "on-primary-container": "#fffbff", "surface-container-low": "#f7f1fc", "on-error": "#ffffff", "error-container": "#ffdad6", "surface-tint": "#ab3513", "secondary-container": "#fea619", "primary": "#a83211", "on-error-container": "#93000a", "surface-container-high": "#ebe6f1", "on-secondary-fixed-variant": "#653e00", "tertiary-fixed": "#e1e0ff", "on-primary-fixed-variant": "#881f00", "on-secondary-fixed": "#2a1700", "surface-dim": "#ddd8e3" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter-mobile": "0.75rem", "margin": "1.5rem", "margin-mobile": "1rem", "space-2xl": "3rem", "space-xl": "2rem", "gutter": "1rem", "space-md": "1rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem" }, "fontFamily": { "body-md": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "display-lg": ["Plus Jakarta Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "title-md": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"] }, "fontSize": { "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "700" }], "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800" }], "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "title-md": ["16px", { "lineHeight": "22px", "fontWeight": "700" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }], "label-lg": ["14px", { "lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "700" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-on-surface flex flex-col min-h-screen antialiased selection:bg-primary-fixed selection:text-on-primary-fixed"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.03)] pt-safe"><div class="h-20 max-w-[480px] mx-auto px-margin-mobile flex items-center justify-between gap-space-xs"><div class="flex items-center gap-space-xs"><img alt="LARAS App Brand Icon" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X8JIjzgq6XU_2pvC06NnE0qQhIPmut8WcMfLSTHnv92WmvICf7L7xsqeWJDcvlwSp44pjK_l5NPAqP2o2ExgkWq2fFluwEngcz_cbDKBQ2-rc-137zt0wdrHGE63TVJxSXV_eL6EuE2sqEto0tQZjueaPsr31ngqYLE0izFJVPImJHB7J8FaK8XJgBH1SDUStfbYFtf7Et_7S6_vod4NWeK9LPsKXK9Oo8gKI0Qs6LRiFGWVp0cODAwnNW"/><div class="flex flex-col"><span class="font-title-md text-title-md text-primary font-extrabold tracking-tight leading-none">LARAS</span><div class="inline-flex items-center gap-1 bg-surface-container-high px-2 py-0.5 rounded-full mt-0.5"><span class="material-symbols-outlined text-[12px] text-primary">explore</span><span class="font-label-sm text-label-sm text-on-surface-variant font-bold truncate max-w-[90px]">Kaili</span></div></div></div><div class="flex items-center gap-space-xs"><div class="flex items-center gap-1 bg-primary-fixed/40 px-2.5 py-1 rounded-full"><span class="material-symbols-outlined text-primary text-[16px]">local_fire_department</span><span class="font-label-md text-label-md text-primary font-bold">6</span></div><div class="flex items-center gap-1 bg-secondary-fixed/50 px-2.5 py-1 rounded-full"><span class="material-symbols-outlined text-secondary text-[16px]">bolt</span><span class="font-label-md text-label-md text-on-secondary-container font-bold">340</span></div><button class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:scale-95 transition-transform p-0.5"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGXJCaWtLEzb1dXuDmgt0pbDQ8SdBZP3gLdv6usC1FxWHGwx_JD6GxgvlwneUaG1Ij4zwo0urU6UWywu7Na7FYC3amy1_IXofFaaO3oh5kQjXCmFDyYUzqdXozNlVw5NEHu4SKmISmeSoGiT0LrEGeTa6grpULYLasvLBxyXTcC-c2aI9FpXeymcSwEtMU4gr_itPjfhbwu-6gbYHuGeK95UM-ZyXnjgD1JgFOC1EvKZ-NQAUym2GYdQ"/></button></div></div></header><main class="flex flex-col relative w-full max-w-[480px] mx-auto pt-20 pb-28 min-h-screen bg-surface"><div class="flex flex-col w-full px-margin-mobile pb-12 select-none">
+<!-- Header: Culture Title & Overall Progress -->
+<section class="mt-2 mb-4 bg-surface-container-lowest p-space-md rounded-xl shadow-[0_4px_20px_-4px_rgba(202,74,40,0.08)] relative overflow-hidden">
+<div class="absolute -right-10 -bottom-10 w-36 h-36 bg-primary-fixed/20 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-start justify-between gap-3 relative z-10">
+<div class="flex flex-col min-w-0">
+<div class="inline-flex items-center gap-1.5 mb-1 text-primary">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">Modul Resmi</span>
+</div>
+<h1 class="font-headline-sm text-headline-sm text-on-surface font-extrabold tracking-tight truncate">Budaya Kaili</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span>Sulawesi Tengah</span>
+<span class="inline-block w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="text-secondary font-semibold">Dialek Ledo & Tara</span>
+</p>
+</div>
+<!-- Milestone Badge -->
+<div class="flex flex-col items-center justify-center px-3 py-2 bg-secondary-fixed/30 rounded-xl">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary text-[20px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="font-label-md text-label-md text-on-secondary-container font-extrabold">Rank 3</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-secondary-container/80 text-[10px] uppercase font-bold mt-0.5">Penjelajah</span>
+</div>
+</div>
+<!-- Dual Mastery Progress Track -->
+<div class="mt-4 pt-3 border-t-0 relative z-10">
+<div class="flex items-center justify-between mb-1.5 font-label-md text-label-md">
+<span class="text-on-surface font-bold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary-container inline-block"></span>
+          Bab 2 dari 6 Aktif
+        </span>
+<span class="text-primary font-extrabold">34% Tuntas</span>
+</div>
+<!-- Progress Bar Track -->
+<div class="w-full h-3 bg-surface-container rounded-full overflow-hidden p-0.5 shadow-inner flex">
+<div class="h-full bg-gradient-to-r from-secondary-container to-primary-container rounded-full relative transition-all duration-700 ease-out" style="width: 34%;">
+<div class="absolute inset-0 bg-white/20 rounded-full animate-pulse"></div>
+</div>
+</div>
+<div class="flex items-center justify-between mt-2 text-on-surface-variant font-label-sm text-label-sm">
+<span class="flex items-center gap-1 text-[11px]">
+<span class="material-symbols-outlined text-[14px] text-primary">menu_book</span> Bahasa: 5/18 Sub-bab
+        </span>
+<span class="flex items-center gap-1 text-[11px]">
+<span class="material-symbols-outlined text-[14px] text-tertiary">theater_comedy</span> Adat: 2/6 Artefak
+        </span>
+</div>
+</div>
+</section>
+<!-- Interactive Visual Roadmap Path -->
+<div class="relative w-full py-4 flex flex-col items-center">
+<!-- Curved Dotted SVG Path Line -->
+<svg class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[880px] pointer-events-none z-0" fill="none" preserveaspectratio="none" viewbox="0 0 360 880">
+<!-- Path from Bab 1 -> Bab 2 -> Bab 3 -> Bab 4 -> Bab 5 -> Bab 6 -> Final -->
+<path d="M 180 50 C 240 80, 260 140, 200 185 C 130 230, 90 290, 150 340 C 220 390, 270 460, 200 510 C 130 550, 110 620, 180 670 C 250 710, 250 770, 180 810" stroke="#e0bfb7" stroke-dasharray="8 8" stroke-linecap="round" stroke-width="5"></path>
+<!-- Completed Line Portion -->
+<path d="M 180 50 C 240 80, 260 140, 200 185" stroke="#ca4a28" stroke-dasharray="8 8" stroke-linecap="round" stroke-width="5"></path>
+</svg>
+<!-- NODE 1: BAB 1 (COMPLETED) -->
+<div class="relative z-10 flex flex-col items-center mb-10 w-full">
+<div class="flex items-center justify-center">
+<!-- Node Pressable -->
+<button aria-label="Bab 1 Tuntas" class="group relative flex flex-col items-center active:scale-95 transition-transform duration-150" type="button">
+<div class="w-16 h-16 rounded-full bg-secondary-container text-on-secondary shadow-[0_5px_0_0_#855300] flex items-center justify-center relative cursor-pointer">
+<span class="material-symbols-outlined text-[32px] text-on-secondary font-black">check</span>
+<!-- Floating Mini Badge -->
+<div class="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-surface-container-lowest shadow-md flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-secondary-container" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</button>
+</div>
+<!-- Node Card Details -->
+<div class="mt-2.5 px-3 py-1.5 bg-surface-container-lowest/90 backdrop-blur-sm rounded-full shadow-sm flex items-center gap-1.5 max-w-[240px]">
+<span class="material-symbols-outlined text-[16px] text-secondary">task_alt</span>
+<span class="font-label-md text-label-md text-on-surface font-extrabold truncate">Bab 1: Mengenal Awal</span>
+<span class="text-secondary font-bold text-[11px] font-label-sm">(3/3)</span>
+</div>
+</div>
+<!-- NODE 2: BAB 2 (CURRENT ACTIVE NODE) -->
+<div class="relative z-20 flex flex-col items-center mb-12 w-full">
+<!-- Animated Speech Bubble / Tooltip -->
+<div class="mb-3 animate-bounce shadow-md bg-primary-container text-on-primary-container px-3.5 py-1.5 rounded-full flex items-center gap-2 cursor-pointer active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[18px] text-primary-fixed" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span class="font-label-sm text-label-sm font-extrabold tracking-wide uppercase">Lanjutkan: Kosakata & Mendengar</span>
+</div>
+<!-- Pulse Effect & Main Active Node Button -->
+<div class="relative flex items-center justify-center">
+<!-- Outer Glowing Pulse Rings -->
+<span class="absolute w-24 h-24 rounded-full bg-primary/20 animate-ping opacity-75 pointer-events-none"></span>
+<span class="absolute w-20 h-20 rounded-full bg-primary-fixed-dim/40 pointer-events-none"></span>
+<button aria-label="Bab 2 Aktif" class="relative w-18 h-18 w-[72px] h-[72px] rounded-full bg-primary text-on-primary shadow-[0_6px_0_0_#881f00] flex flex-col items-center justify-center cursor-pointer active:translate-y-1 active:shadow-[0_2px_0_0_#881f00] transition-all" type="button">
+<span class="material-symbols-outlined text-[36px]" style="font-variation-settings: 'FILL' 1;">record_voice_over</span>
+</button>
+</div>
+<!-- Active Label Card with Progress Meter -->
+<div class="mt-3.5 bg-surface-container-lowest p-3 rounded-xl shadow-[0_4px_16px_rgba(202,74,40,0.12)] flex flex-col items-center max-w-[280px] w-full text-center">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm mb-1">
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span>Sedang Berjalan</span>
+</div>
+<h2 class="font-title-md text-title-md text-on-surface font-extrabold leading-tight">Bab 2: Sapaan Sehari-hari</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">3 dari 5 Pelajaran Selesai</p>
+<!-- Internal Micro Steps -->
+<div class="flex items-center gap-1.5 mt-2">
+<div class="w-6 h-1.5 rounded-full bg-primary"></div>
+<div class="w-6 h-1.5 rounded-full bg-primary"></div>
+<div class="w-6 h-1.5 rounded-full bg-primary"></div>
+<div class="w-6 h-1.5 rounded-full bg-surface-container-high"></div>
+<div class="w-6 h-1.5 rounded-full bg-surface-container-high"></div>
+</div>
+</div>
+</div>
+<!-- NODE 3: BAB 3 (LOCKED - EVERYDAY WORDS) -->
+<div class="relative z-10 flex flex-col items-center mb-10 w-full opacity-85">
+<div class="flex items-center justify-center">
+<button aria-label="Bab 3 Terkunci" class="relative w-16 h-16 rounded-full bg-surface-container-highest text-outline shadow-[0_4px_0_0_#8c716a] flex items-center justify-center cursor-not-allowed" disabled="" type="button">
+<span class="material-symbols-outlined text-[28px] text-outline">lock</span>
+</button>
+</div>
+<div class="mt-2.5 px-3 py-1.5 bg-surface-container/70 rounded-full shadow-none flex items-center gap-1.5 max-w-[240px]">
+<span class="font-label-md text-label-md text-on-surface-variant font-bold truncate">Bab 3: Kosakata Kehidupan</span>
+<span class="material-symbols-outlined text-[14px] text-outline">lock</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant/75 text-[10px] mt-0.5 font-semibold">Buka setelah Bab 2 tuntas</span>
+</div>
+<!-- NODE 4: BAB 4 (LOCKED - TRADITIONAL CLOTHING / BAJU NGGEMBE) -->
+<div class="relative z-10 flex flex-col items-center mb-10 w-full opacity-85">
+<div class="flex items-center justify-center relative">
+<!-- Floating Cultural Artifact Teaser -->
+<div class="absolute -top-3 -right-6 px-2 py-0.5 bg-secondary-fixed rounded-md shadow-xs flex items-center gap-1 transform rotate-6">
+<span class="material-symbols-outlined text-[13px] text-secondary">styler</span>
+<span class="font-label-sm text-label-sm text-on-secondary-fixed text-[9px] font-extrabold uppercase">Baju Nggembe</span>
+</div>
+<button aria-label="Bab 4 Terkunci" class="relative w-16 h-16 rounded-full bg-surface-container-highest text-outline shadow-[0_4px_0_0_#8c716a] flex items-center justify-center cursor-not-allowed" disabled="" type="button">
+<span class="material-symbols-outlined text-[28px] text-outline">checkroom</span>
+<span class="absolute bottom-1.5 right-2 material-symbols-outlined text-[14px] text-outline">lock</span>
+</button>
+</div>
+<div class="mt-2.5 px-3 py-1.5 bg-surface-container/70 rounded-full flex items-center gap-1.5 max-w-[240px]">
+<span class="font-label-md text-label-md text-on-surface-variant font-bold truncate">Bab 4: Busana Adat Kaili</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant/75 text-[10px] mt-0.5 font-semibold">Tersedia di Bab 4</span>
+</div>
+<!-- NODE 5: BAB 5 (LOCKED - MEANING & CULTURAL CONTEXT) -->
+<div class="relative z-10 flex flex-col items-center mb-10 w-full opacity-85">
+<div class="flex items-center justify-center">
+<button aria-label="Bab 5 Terkunci" class="relative w-16 h-16 rounded-full bg-surface-container-highest text-outline shadow-[0_4px_0_0_#8c716a] flex items-center justify-center cursor-not-allowed" disabled="" type="button">
+<span class="material-symbols-outlined text-[28px] text-outline">auto_stories</span>
+<span class="absolute bottom-1.5 right-2 material-symbols-outlined text-[14px] text-outline">lock</span>
+</button>
+</div>
+<div class="mt-2.5 px-3 py-1.5 bg-surface-container/70 rounded-full flex items-center gap-1.5 max-w-[240px]">
+<span class="font-label-md text-label-md text-on-surface-variant font-bold truncate">Bab 5: Makna & Konteks Budaya</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant/75 text-[10px] mt-0.5 font-semibold">Eksplorasi Ritual & Nilai Adat</span>
+</div>
+<!-- NODE 6: BAB 6 (SPECIAL DIAMOND / COMBINED CHALLENGE) -->
+<div class="relative z-10 flex flex-col items-center mb-12 w-full opacity-90">
+<div class="flex items-center justify-center relative">
+<!-- Special Glow for Signature Capstone -->
+<div class="absolute inset-0 bg-tertiary-container/20 rounded-2xl blur-md scale-125"></div>
+<button aria-label="Bab 6 Terpadu" class="relative w-18 h-18 w-[70px] h-[70px] rounded-2xl bg-tertiary text-on-tertiary shadow-[0_5px_0_0_#2f2ebe] rotate-45 flex items-center justify-center cursor-not-allowed transition-all" disabled="" type="button">
+<div class="-rotate-45 flex flex-col items-center justify-center">
+<span class="material-symbols-outlined text-[30px] text-tertiary-fixed" style="font-variation-settings: 'FILL' 1;">hub</span>
+<span class="material-symbols-outlined text-[14px] text-tertiary-fixed mt-[-2px]">lock</span>
+</div>
+</button>
+</div>
+<div class="mt-4 px-3.5 py-1.5 bg-tertiary-fixed rounded-xl flex items-center gap-1.5 max-w-[260px] shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-tertiary">diamond</span>
+<span class="font-label-md text-label-md text-on-tertiary-fixed font-extrabold truncate">Bab 6: Culture Connection</span>
+</div>
+<span class="font-label-sm text-label-sm text-tertiary font-bold text-[10px] mt-1 uppercase tracking-wider">Tantangan Skenario Terpadu</span>
+</div>
+<!-- FINAL NODE: GRAND TROPHY (CULTURE MASTER CHALLENGE) -->
+<div class="relative z-10 flex flex-col items-center mb-6 w-full opacity-80">
+<div class="relative flex items-center justify-center">
+<div class="w-20 h-20 rounded-full bg-secondary-fixed/50 shadow-[0_5px_0_0_#855300] flex flex-col items-center justify-center cursor-not-allowed">
+<span class="material-symbols-outlined text-[42px] text-secondary" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+<span class="material-symbols-outlined text-[16px] text-secondary absolute bottom-2 right-4">lock</span>
+</div>
+</div>
+<div class="mt-3 px-3 py-1 bg-surface-container-highest rounded-full flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-secondary">workspace_premium</span>
+<span class="font-label-md text-label-md text-on-surface font-black">Gelar Master Budaya Kaili</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px] mt-0.5">Sertifikat Digital & Pin Adat Fisik</p>
+</div>
+</div>
+<!-- Verification Authority Banner -->
+<section class="mt-4 mb-20 bg-surface-container-low p-space-md rounded-xl shadow-sm flex items-start gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary-fixed/60 flex items-center justify-center shrink-0 text-primary">
+<span class="material-symbols-outlined text-[24px]">gavel</span>
+</div>
+<div class="flex flex-col min-w-0">
+<h3 class="font-label-md text-label-md text-on-surface font-extrabold">Kurikulum Terakreditasi</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[12px] leading-relaxed mt-0.5">
+        Semua materi diverifikasi oleh 
+        <strong class="font-bold text-on-surface">Lembaga Adat Kaili</strong> & 
+        <strong class="font-bold text-on-surface">Balai Bahasa Sulawesi Tengah</strong>.
+      </p>
+</div>
+</section>
+<!-- Sticky Bottom Floating Quick Action Pill -->
+<aside class="fixed bottom-20 left-0 right-0 z-40 px-margin-mobile flex justify-center pointer-events-none">
+<button aria-label="Mulai Bab 2 Sapaan" class="pointer-events-auto max-w-[440px] w-full bg-primary text-on-primary py-3.5 px-space-md rounded-full shadow-[0_6px_0_0_#881f00] active:translate-y-1 active:shadow-[0_2px_0_0_#881f00] flex items-center justify-between transition-all group" onclick="startActiveLesson()" type="button">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white text-[22px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+<div class="flex flex-col text-left">
+<span class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-wider font-extrabold text-[10px]">Lanjutkan Belajar</span>
+<span class="font-label-lg text-label-lg text-white font-extrabold">Bab 2: Sapaan Sehari-hari</span>
+</div>
+</div>
+<div class="flex items-center gap-1 bg-black/15 px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-[16px] text-secondary-container" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-label-md text-label-md text-white font-black">+25 XP</span>
+</div>
+</button>
+</aside>
+</div>
+<script>
+  function startActiveLesson() {
+    const feedbackPill = document.createElement('div');
+    feedbackPill.className = 'fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-inverse-surface text-inverse-on-surface px-4 py-2 rounded-full font-label-md text-label-md shadow-xl flex items-center gap-2 transition-all transform duration-300';
+    feedbackPill.innerHTML = '<span class="material-symbols-outlined text-[18px] text-secondary-container">auto_read_play</span> Membuka Latihan Bab 2...';
+    document.body.appendChild(feedbackPill);
+
+    setTimeout(() => {
+      feedbackPill.classList.add('opacity-0', '-translate-y-2');
+      setTimeout(() => feedbackPill.remove(), 300);
+    }, 1500);
+  }
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(0,0,0,0.04)]" data-active-classes="text-primary font-bold"><div class="max-w-[480px] mx-auto h-16 px-space-xs flex items-center justify-around"><a class="flex-1 flex flex-col items-center justify-center min-h-[48px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="home" href="#"><span class="material-symbols-outlined text-[24px]">home</span><span class="font-label-sm text-label-sm mt-0.5">Beranda</span></a><a aria-current="page" class="flex-1 flex flex-col items-center justify-center min-h-[48px] py-1 transition-colors text-primary font-bold" data-path="jalur-belajar" href="#"><span class="material-symbols-outlined text-[24px]">conversion_path</span><span class="font-label-sm text-label-sm mt-0.5">Belajar</span></a><a class="flex-1 flex flex-col items-center justify-center min-h-[48px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="paspor-budaya" href="#"><span class="material-symbols-outlined text-[24px]">workspace_premium</span><span class="font-label-sm text-label-sm mt-0.5">Paspor</span></a><a class="flex-1 flex flex-col items-center justify-center min-h-[48px] py-1 text-on-surface-variant hover:text-on-surface transition-colors" data-path="profil" href="#"><span class="material-symbols-outlined text-[24px]">person</span><span class="font-label-sm text-label-sm mt-0.5">Profil</span></a></div></nav></body></html>

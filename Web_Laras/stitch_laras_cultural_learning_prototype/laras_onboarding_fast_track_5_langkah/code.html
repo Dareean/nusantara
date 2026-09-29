@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_blank" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"tertiary-fixed":"#e1e0ff","background":"#fdf8ff","tertiary-container":"#6063ee","secondary-container":"#fea619","on-primary":"#ffffff","secondary-fixed-dim":"#ffb95f","inverse-primary":"#ffb4a1","on-tertiary-container":"#fffbff","inverse-surface":"#312f37","surface-container-highest":"#e6e0eb","surface-container-low":"#f7f1fc","on-error-container":"#93000a","surface-tint":"#ab3513","on-error":"#ffffff","on-secondary":"#ffffff","on-tertiary":"#ffffff","surface-container-high":"#ebe6f1","on-tertiary-fixed-variant":"#2f2ebe","surface-bright":"#fdf8ff","on-surface":"#1c1b22","outline":"#8c716a","primary":"#a83211","on-secondary-fixed":"#2a1700","error":"#ba1a1a","tertiary":"#4648d4","primary-fixed-dim":"#ffb4a1","error-container":"#ffdad6","on-primary-fixed-variant":"#881f00","secondary-fixed":"#ffddb8","tertiary-fixed-dim":"#c0c1ff","on-background":"#1c1b22","surface":"#fdf8ff","outline-variant":"#e0bfb7","primary-fixed":"#ffdbd1","on-secondary-fixed-variant":"#653e00","on-surface-variant":"#59413b","surface-container":"#f1ecf7","surface-container-lowest":"#ffffff","surface-variant":"#e6e0eb","primary-container":"#ca4a28","on-primary-container":"#fffbff","inverse-on-surface":"#f4effa","surface-dim":"#ddd8e3","on-tertiary-fixed":"#07006c","on-primary-fixed":"#3c0800","secondary":"#855300","on-secondary-container":"#684000"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-xs":"0.25rem","space-2xl":"3rem","gutter":"1rem","space-md":"1rem","space-lg":"1.5rem","margin-mobile":"1rem","margin":"1.5rem","gutter-mobile":"0.75rem","space-xl":"2rem","space-sm":"0.5rem"},fontFamily:{"display-lg":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"title-md":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"label-sm":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"]},fontSize:{"display-lg":["36px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"800"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"headline-lg-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"title-md":["16px",{"lineHeight":"22px","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"headline-lg":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.04em","fontWeight":"700"}],"headline-sm":["18px",{"lineHeight":"24px","fontWeight":"600"}],"label-lg":["14px",{"lineHeight":"18px","letterSpacing":"0.02em","fontWeight":"700"}]}}}};</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><main class="min-h-screen w-full flex items-center justify-center p-space-md bg-surface"><div class="flex flex-col w-full">
+<div class="w-full max-w-2xl mx-auto py-space-md sm:py-space-xl px-margin-mobile">
+<!-- Top Progress Indicator Shell -->
+<div class="bg-surface-container-lowest rounded-xl shadow-md p-space-md mb-space-lg">
+<div class="flex items-center justify-between gap-space-sm mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-on-primary font-label-sm text-label-sm">
+<span id="step-number-badge">1</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface" id="step-title-display">Langkah 1 dari 5 • Kenali LARAS</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm shadow-sm">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span>&lt; 1 Menit</span>
+</span>
+</div>
+</div>
+<!-- Segmented Bar Progress -->
+<div class="grid grid-cols-5 gap-1.5 h-2">
+<div class="h-full rounded-full bg-primary transition-all duration-300" id="seg-1"></div>
+<div class="h-full rounded-full bg-surface-container-highest transition-all duration-300" id="seg-2"></div>
+<div class="h-full rounded-full bg-surface-container-highest transition-all duration-300" id="seg-3"></div>
+<div class="h-full rounded-full bg-surface-container-highest transition-all duration-300" id="seg-4"></div>
+<div class="h-full rounded-full bg-surface-container-highest transition-all duration-300" id="seg-5"></div>
+</div>
+</div>
+<!-- Main Dynamic Steps Container -->
+<div class="bg-surface-container-lowest rounded-xl shadow-md p-space-md sm:p-space-xl overflow-hidden relative">
+<!-- STEP 1: Welcome & Value Proposition -->
+<div class="step-pane flex flex-col transition-all duration-300" id="step-pane-1">
+<div class="relative w-full h-48 sm:h-56 rounded-xl overflow-hidden mb-space-lg shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Vibrant modern digital artwork showcasing young Indonesian youth wearing stylized modern Kaili Sulawesi woven textiles while learning via a smartphone interface, surrounded by warm terracotta, honey gold light, and festive cultural geometry" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkOZOv0GDEWk4IMFp792zU39KD8AYSpgq8ccW7iXA5xFmh437opfrrBhzmV4eGyuqMMYoMcFuT5E8WQy2LoKHTUNUc23QVrC1WZkV21cKjeZCShE7t-9nfRBlmoourVAgUrLEtWXOlRvYZR5kl7YNb84BGRvAVvkyQHjyqUHRKKAtnk1SVK7c3ayugUpWP_I8l07BQbqX_8aH8l82NzsLjKTm9ruqggo0N2DVRyGqyIAmgsEG71Y6vNQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-inverse-surface/80 via-inverse-surface/20 to-transparent flex flex-col justify-end p-space-md">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm self-start mb-1 shadow-sm">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span>
+              Kultur Interaktif Generasi Baru
+            </span>
+<p class="font-headline-md text-headline-md text-on-primary">Learn the Language. Wear the Culture.</p>
+</div>
+</div>
+<div class="text-left mb-space-lg">
+<h2 class="font-display-lg text-headline-lg-mobile sm:text-headline-lg text-on-surface tracking-tight mb-space-xs">
+            Selamat Datang di <span class="text-primary font-display-lg">LARAS</span>!
+          </h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Kuasai bahasa daerah Nusantara beriringan dengan filosofi busana adat otentik dalam modul interaktif cuma 5 menit setiap hari.
+          </p>
+</div>
+<!-- 3 Feature Highlights (Bento Chips) -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm mb-space-xl">
+<div class="bg-surface-container-low rounded-xl p-space-sm flex sm:flex-col items-center sm:items-start gap-space-xs">
+<div class="w-9 h-9 rounded-full bg-primary-fixed flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">record_voice_over</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Audio Native</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Pelafalan otentik penutur asli</p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-sm flex sm:flex-col items-center sm:items-start gap-space-xs">
+<div class="w-9 h-9 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary shrink-0">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">styler</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Busana &amp; Tenun</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Filosofi ornamen &amp; tata busana</p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-sm flex sm:flex-col items-center sm:items-start gap-space-xs">
+<div class="w-9 h-9 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Streak &amp; Level</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Buka Paspor Budaya tiap bab</p>
+</div>
+</div>
+</div>
+<button class="w-full py-3.5 px-space-lg rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-md hover:bg-primary-container active:scale-[0.99] transition-all flex items-center justify-center gap-space-xs" onclick="goToStep(2)">
+<span>Mulai Setup Kilat (45 Detik)</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+<!-- STEP 2: Domain Interest Picker -->
+<div class="step-pane hidden flex-col transition-all duration-300" id="step-pane-2">
+<div class="mb-space-lg text-left">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider">Langkah 2 / 5</span>
+<h2 class="font-headline-lg-mobile sm:text-headline-lg text-on-surface mt-1">Apa fokus utama belajarmu?</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Kami sesuaikan rasio latihan kosakata dan eksplorasi artefak kultural di berandamu.</p>
+</div>
+<div class="flex flex-col gap-space-sm mb-space-xl" id="interest-options-group">
+<!-- Choice 1 -->
+<div class="interest-card cursor-pointer bg-surface-container-low hover:bg-surface-container transition-all p-space-md rounded-xl flex items-center justify-between shadow-sm" onclick="toggleInterest(this, 'bahasa')">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[26px]">translate</span>
+</div>
+<div class="text-left">
+<p class="font-title-md text-title-md text-on-surface">Bahasa Daerah</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Kosa kata tematik, percakapan sehari-hari, pelafalan audio native.</p>
+</div>
+</div>
+<div class="check-box w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-primary shrink-0 ml-space-sm transition-all">
+<span class="material-symbols-outlined text-[16px] hidden">check</span>
+</div>
+</div>
+<!-- Choice 2 -->
+<div class="interest-card cursor-pointer bg-surface-container-low hover:bg-surface-container transition-all p-space-md rounded-xl flex items-center justify-between shadow-sm" onclick="toggleInterest(this, 'busana')">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-tertiary-fixed flex items-center justify-center text-tertiary shrink-0">
+<span class="material-symbols-outlined text-[26px]">checkroom</span>
+</div>
+<div class="text-left">
+<p class="font-title-md text-title-md text-on-surface">Busana Adat</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Makna motif tenun, anatomi busana adat &amp; etika pemakaian.</p>
+</div>
+</div>
+<div class="check-box w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-on-primary shrink-0 ml-space-sm transition-all">
+<span class="material-symbols-outlined text-[16px] hidden">check</span>
+</div>
+</div>
+<!-- Choice 3 (Default Recommended) -->
+<div class="interest-card cursor-pointer bg-primary-fixed/30 hover:bg-primary-fixed/40 transition-all p-space-md rounded-xl flex items-center justify-between shadow-sm selected-state" onclick="toggleInterest(this, 'keduanya')">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-on-primary shrink-0">
+<span class="material-symbols-outlined text-[26px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="text-left">
+<div class="flex items-center gap-space-xs flex-wrap">
+<p class="font-title-md text-title-md text-on-surface">Keduanya (Culture Connection)</p>
+<span class="px-2 py-0.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm">Rekomendasi Utama</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Skenario terpadu: bertutur sopan sembari memahami filosofi busana.</p>
+</div>
+</div>
+<div class="check-box w-6 h-6 rounded-full bg-primary flex items-center justify-center text-on-primary shrink-0 ml-space-sm transition-all">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between gap-space-sm">
+<button class="py-3 px-space-md rounded-full bg-surface-container text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container-high transition-all flex items-center gap-1" onclick="goToStep(1)">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span>Kembali</span>
+</button>
+<button class="py-3 px-space-xl rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-md hover:bg-primary-container transition-all flex items-center gap-1" onclick="goToStep(3)">
+<span>Lanjut: Pilih Wilayah</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- STEP 3: Regional Culture Selection -->
+<div class="step-pane hidden flex-col transition-all duration-300" id="step-pane-3">
+<div class="mb-space-lg text-left">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider">Langkah 3 / 5</span>
+<h2 class="font-headline-lg-mobile sm:text-headline-lg text-on-surface mt-1">Pilih Budaya Daerah Perjalananmu</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Pilih etnis awal pembelajaranmu. Kamu bebas berpindah wilayah kapan saja di masa mendatang.</p>
+</div>
+<div class="flex flex-col gap-space-sm mb-space-xl">
+<!-- Card A: Sulawesi Tengah - Suku Kaili (ACTIVE) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm cursor-pointer relative bg-gradient-to-r from-primary-fixed/20 via-surface-container-lowest to-surface-container-lowest">
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-14 h-14 rounded-xl overflow-hidden shrink-0 shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Traditional Sulawesi Tengah Kaili woman dressed in bright mustard yellow and terracotta Baju Nggembe adorned with ornate golden filigree chest jewelry and beaded headdress" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvFLvRF65loMr_Vczn19v_1F3Z73sE1BylGOZ0bDTh4uBktuj2TGd3sxPbtWoGpu9k5OXH9z4CU0g9TBNAwMmLvd0mT66jSfeMjrsBP6H0PHZJqbsFaSjAwODjlu-Luey63YVKrh4BawxtIKHgL2iiP0N9CK7lbHU-R-QgIy_NVo-FvBwiHxFswYtmycPNU7WeoczfqDsa9001ySZNvNDuvDqolG7dHFLZDCB9bdOtYDRydxRWrQ6HMg"/>
+</div>
+<div class="text-left">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-title-md text-title-md text-on-surface">Sulawesi Tengah — Suku Kaili</span>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">Tersedia • 6 Bab</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Dialek Ledo &amp; Tara • Baju Nggembe &amp; Tenun Donggala</p>
+<p class="font-label-sm text-label-sm text-secondary mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+                    Terakreditasi Kurikulum Balai Bahasa Prov. Sulteng
+                  </p>
+</div>
+</div>
+<div class="flex items-center gap-space-xs self-end sm:self-center">
+<span class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Card B: Sumatera Barat - Minangkabau (COMING SOON) -->
+<div class="bg-surface-container-low opacity-60 rounded-xl p-space-md flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<div class="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[24px]">museum</span>
+</div>
+<div class="text-left">
+<div class="flex items-center gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface">Sumatera Barat — Minangkabau</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm">Riset Kurikulum</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Baso Minang Halus • Suntiang &amp; Songket Pandai Sikek</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">lock</span>
+</div>
+<!-- Card C: DI Yogyakarta - Jawa Mataram (COMING SOON) -->
+<div class="bg-surface-container-low opacity-60 rounded-xl p-space-md flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<div class="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[24px]">temple_buddhist</span>
+</div>
+<div class="text-left">
+<div class="flex items-center gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface">DI Yogyakarta — Jawa Mataram</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm">Riset Kurikulum</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Unggah-ungguh Basa Krama • Surjan &amp; Jarik Sidomukti</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">lock</span>
+</div>
+</div>
+<div class="flex items-center justify-between gap-space-sm">
+<button class="py-3 px-space-md rounded-full bg-surface-container text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container-high transition-all flex items-center gap-1" onclick="goToStep(2)">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span>Kembali</span>
+</button>
+<button class="py-3 px-space-xl rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-md hover:bg-primary-container transition-all flex items-center gap-1" onclick="goToStep(4)">
+<span>Lanjut: Target Harian</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- STEP 4: Daily Goal Commitment -->
+<div class="step-pane hidden flex-col transition-all duration-300" id="step-pane-4">
+<div class="mb-space-lg text-left">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider">Langkah 4 / 5</span>
+<h2 class="font-headline-lg-mobile sm:text-headline-lg text-on-surface mt-1">Tentukan Target Harianmu</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Kunci penguasaan bahasa daerah adalah konsistensi ritme, bukan durasi maraton yang melelahkan.</p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm mb-space-xl" id="pace-group">
+<!-- Pace 1: Santai -->
+<div class="pace-card cursor-pointer p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col justify-between text-left shadow-sm" onclick="selectPace(this, 'santai')">
+<div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface mb-space-sm">
+<span class="material-symbols-outlined text-[20px]">self_improvement</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface">Santai</h3>
+<p class="font-label-md text-label-md text-secondary mt-0.5">3 Menit / Hari</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">1 pelajaran mikro. Cocok bagi yang sangat sibuk.</p>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>+10 XP / hari</span>
+<span class="pace-check material-symbols-outlined text-[18px] text-primary opacity-0">check_circle</span>
+</div>
+</div>
+<!-- Pace 2: Serius (Default Selected) -->
+<div class="pace-card cursor-pointer p-space-md rounded-xl bg-primary-fixed/20 hover:bg-primary-fixed/30 transition-all flex flex-col justify-between text-left shadow-sm active-pace relative overflow-hidden" onclick="selectPace(this, 'serius')">
+<div class="absolute -right-6 top-3 bg-primary text-on-primary text-[10px] font-bold px-7 py-0.5 rotate-45 uppercase tracking-tighter">
+              Pilihan Favorit
+            </div>
+<div>
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary mb-space-sm">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface">Serius</h3>
+<p class="font-label-md text-label-md text-primary mt-0.5 font-bold">5 Menit / Hari</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">2 pelajaran interaktif + 1 kuis audio santai.</p>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span class="text-primary font-bold">+25 XP / hari</span>
+<span class="pace-check material-symbols-outlined text-[18px] text-primary opacity-100">check_circle</span>
+</div>
+</div>
+<!-- Pace 3: Ambisius -->
+<div class="pace-card cursor-pointer p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col justify-between text-left shadow-sm" onclick="selectPace(this, 'ambisius')">
+<div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface mb-space-sm">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface">Ambisius</h3>
+<p class="font-label-md text-label-md text-secondary mt-0.5">10 Menit / Hari</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">4 pelajaran + ujian skenario simulasi kultural.</p>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>+50 XP / hari</span>
+<span class="pace-check material-symbols-outlined text-[18px] text-primary opacity-0">check_circle</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between gap-space-sm">
+<button class="py-3 px-space-md rounded-full bg-surface-container text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container-high transition-all flex items-center gap-1" onclick="goToStep(3)">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span>Kembali</span>
+</button>
+<button class="py-3 px-space-xl rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-md hover:bg-primary-container transition-all flex items-center gap-1" onclick="goToStep(5)">
+<span>Lanjut: Konfirmasi</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- STEP 5: Launch / Ready to Begin CTA -->
+<div class="step-pane hidden flex-col transition-all duration-300" id="step-pane-5">
+<!-- Badge / Reward Card Pre-Unlock -->
+<div class="bg-gradient-to-br from-primary-fixed/40 via-surface-container-low to-secondary-fixed/30 rounded-xl p-space-md sm:p-space-lg mb-space-lg text-center relative overflow-hidden shadow-sm">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm mb-space-sm shadow-sm">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+            Profil Pembelajar Siap!
+          </div>
+<h2 class="font-headline-lg-mobile sm:text-headline-lg text-on-surface tracking-tight mb-space-xs">
+            Petualangan Kaili Menantimu!
+          </h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-md mx-auto mb-space-md">
+            Kurikulum harianmu telah dipersonalisasi. Selesaikan pelajaran pertamamu hari ini untuk menyalakan <strong class="text-primary">Streak Hari ke-1</strong>!
+          </p>
+<!-- Passport Preview Badge Mini -->
+<div class="bg-surface-container-lowest max-w-sm mx-auto rounded-xl p-space-sm flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<div class="text-left">
+<p class="font-label-lg text-label-lg text-on-surface">Bonus Streak Day 1</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">+50 XP Selamat Datang</p>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-primary-fixed text-primary font-label-md text-label-md">Tersedia</span>
+</div>
+</div>
+<!-- Summary Specs Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-xs mb-space-xl">
+<div class="bg-surface-container-low rounded-xl p-space-sm text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Wilayah</span>
+<span class="font-label-lg text-label-lg text-primary block mt-0.5">Suku Kaili</span>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-sm text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Fokus</span>
+<span class="font-label-lg text-label-lg text-on-surface block mt-0.5 truncate">Terpadu</span>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-sm text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Komitmen</span>
+<span class="font-label-lg text-label-lg text-on-surface block mt-0.5">5 Mnt/Hari</span>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-sm text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Modul Awal</span>
+<span class="font-label-lg text-label-lg text-secondary block mt-0.5 truncate">Bab 1: Sapaan</span>
+</div>
+</div>
+<!-- Launch Actions -->
+<div class="flex flex-col gap-space-sm">
+<button class="w-full py-4 px-space-lg rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-md hover:bg-primary-container active:scale-[0.99] transition-all flex items-center justify-center gap-space-xs text-base" onclick="launchFirstLesson()">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+<span>Mulai Pelajaran Pertama Sekarang (Bab 1)</span>
+</button>
+<button class="w-full py-2.5 px-space-md text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-all text-center" onclick="skipToDashboard()">
+            Lewati dan jelajahi Beranda dulu
+          </button>
+</div>
+</div>
+</div>
+<!-- Micro Privacy & Institutional Trust Footer -->
+<div class="mt-space-md text-center flex items-center justify-center gap-space-sm flex-wrap text-on-surface-variant font-label-sm text-label-sm opacity-80">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+        Tanpa Registrasi Rumit
+      </span>
+<span>•</span>
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+        Didukung Komunitas Adat Kaili
+      </span>
+<span>•</span>
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+        100% Gratis Akses Dasar
+      </span>
+</div>
+</div>
+</div>
+<script>
+  let currentStep = 1;
+
+  const stepTitles = {
+    1: 'Langkah 1 dari 5 • Kenali LARAS',
+    2: 'Langkah 2 dari 5 • Personalisasi Belajar',
+    3: 'Langkah 3 dari 5 • Pilih Budaya Nusantara',
+    4: 'Langkah 4 dari 5 • Target Ritme Harian',
+    5: 'Langkah 5 dari 5 • Mulai Perjalanan'
+  };
+
+  function goToStep(step) {
+    if (step < 1 || step > 5) return;
+    
+    // Hide all panes
+    for (let i = 1; i <= 5; i++) {
+      const pane = document.getElementById('step-pane-' + i);
+      const seg = document.getElementById('seg-' + i);
+      if (pane) {
+        if (i === step) {
+          pane.classList.remove('hidden');
+          pane.classList.add('flex');
+        } else {
+          pane.classList.remove('flex');
+          pane.classList.add('hidden');
+        }
+      }
+      if (seg) {
+        if (i <= step) {
+          seg.classList.remove('bg-surface-container-highest');
+          seg.classList.add('bg-primary');
+        } else {
+          seg.classList.remove('bg-primary');
+          seg.classList.add('bg-surface-container-highest');
+        }
+      }
+    }
+
+    currentStep = step;
+    
+    // Update Header
+    const badge = document.getElementById('step-number-badge');
+    const titleText = document.getElementById('step-title-display');
+    if (badge) badge.innerText = step;
+    if (titleText) titleText.innerText = stepTitles[step] || ('Langkah ' + step + ' dari 5');
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function toggleInterest(elem, type) {
+    const parent = document.getElementById('interest-options-group');
+    if (!parent) return;
+    const cards = parent.querySelectorAll('.interest-card');
+    cards.forEach(c => {
+      c.classList.remove('bg-primary-fixed/30', 'selected-state');
+      c.classList.add('bg-surface-container-low');
+      const box = c.querySelector('.check-box');
+      if (box) {
+        box.classList.remove('bg-primary');
+        box.classList.add('bg-surface-container-highest');
+        const icon = box.querySelector('.material-symbols-outlined');
+        if (icon) icon.classList.add('hidden');
+      }
+    });
+
+    elem.classList.remove('bg-surface-container-low');
+    elem.classList.add('bg-primary-fixed/30', 'selected-state');
+    const activeBox = elem.querySelector('.check-box');
+    if (activeBox) {
+      activeBox.classList.remove('bg-surface-container-highest');
+      activeBox.classList.add('bg-primary');
+      const activeIcon = activeBox.querySelector('.material-symbols-outlined');
+      if (activeIcon) activeIcon.classList.remove('hidden');
+    }
+  }
+
+  function selectPace(elem, paceKey) {
+    const parent = document.getElementById('pace-group');
+    if (!parent) return;
+    const cards = parent.querySelectorAll('.pace-card');
+    cards.forEach(c => {
+      c.classList.remove('bg-primary-fixed/20', 'active-pace');
+      c.classList.add('bg-surface-container-low');
+      const checkIcon = c.querySelector('.pace-check');
+      if (checkIcon) {
+        checkIcon.classList.remove('opacity-100');
+        checkIcon.classList.add('opacity-0');
+      }
+    });
+
+    elem.classList.remove('bg-surface-container-low');
+    elem.classList.add('bg-primary-fixed/20', 'active-pace');
+    const currentCheck = elem.querySelector('.pace-check');
+    if (currentCheck) {
+      currentCheck.classList.remove('opacity-0');
+      currentCheck.classList.add('opacity-100');
+    }
+  }
+
+  function launchFirstLesson() {
+    alert('Memulai Bab 1: Sapaan Dasar Kaili Ledo (Tabe & Nggembe). Menghubungkan ke ruang belajar...');
+  }
+
+  function skipToDashboard() {
+    alert('Navigasi ke Beranda LARAS. Petualangan budaya tersimpan.');
+  }
+</script></main></body></html>
