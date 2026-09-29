@@ -13,7 +13,7 @@ interface TopBarProps {
 const navItems = [
   { href: "/dashboard/belajar", label: "Jalur Belajar" },
   { href: "/dashboard/arcade", label: "Arcade" },
-  { href: "/dashboard/paspor", label: "Paspor" },
+  { href: "/dashboard/paspor", label: "Achievement" },
   { href: "/dashboard/profil", label: "Profil" },
 ];
 

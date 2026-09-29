@@ -127,11 +127,31 @@ export default function ArcadePage() {
     setAnswerStatus(null);
   };
 
+  const advanceQuestion = () => {
+    setSelectedOption(null);
+    setAnswerStatus(null);
+    setTimeLeft(15);
+
+    setCurrentIdx((prev) => {
+      const nextIdx = prev + 1;
+      if (nextIdx >= quizData.length) {
+        setGameState("victory");
+        return prev;
+      }
+      return nextIdx;
+    });
+  };
+
   const handleSelectOption = (idx: number) => {
     if (selectedOption !== null || gameState !== "playing") return;
 
-    setSelectedOption(idx);
     const currentQ = quizData[currentIdx];
+    if (!currentQ) {
+      setGameState("victory");
+      return;
+    }
+
+    setSelectedOption(idx);
     const isCorrect = idx === currentQ.correctIndex;
 
     if (isCorrect) {
@@ -146,11 +166,7 @@ export default function ArcadePage() {
       }
 
       setTimeout(() => {
-        if (currentIdx + 1 < quizData.length) {
-          nextQuestion();
-        } else {
-          setGameState("victory");
-        }
+        advanceQuestion();
       }, 1400);
     } else {
       setAnswerStatus("incorrect");
@@ -161,7 +177,7 @@ export default function ArcadePage() {
           if (nextLives <= 0) {
             setGameState("gameover");
           } else {
-            nextQuestion();
+            advanceQuestion();
           }
           return nextLives;
         });
@@ -170,13 +186,10 @@ export default function ArcadePage() {
   };
 
   const nextQuestion = () => {
-    setCurrentIdx((prev) => prev + 1);
-    setSelectedOption(null);
-    setAnswerStatus(null);
-    setTimeLeft(15);
+    advanceQuestion();
   };
 
-  const currentQ = quizData[currentIdx] || quizData[0];
+  const currentQ = quizData[currentIdx] ?? quizData[quizData.length - 1] ?? null;
 
   return (
     <main className="w-full min-w-0 max-w-4xl mx-auto space-y-6 pb-20 overflow-x-clip">
@@ -316,7 +329,8 @@ export default function ArcadePage() {
       )}
 
       {/* PLAYING STATE */}
-      {gameState === "playing" && (
+      {gameState === "playing" && !currentQ && null}
+      {gameState === "playing" && currentQ && (
         <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl border border-outline-variant/30 shadow-sm space-y-6">
           {/* Game Stats Bar */}
           <div className="flex items-center justify-between gap-4 p-3 rounded-xl bg-surface-container-low border border-outline-variant/20">

@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { path: "/dashboard", icon: "home", label: "Beranda" },
-  { path: "/dashboard/belajar", icon: "conversion_path", label: "Belajar" },
-  { path: "/dashboard/paspor", icon: "workspace_premium", label: "Paspor" },
+  { path: "/dashboard", icon: "home", label: "Home" },
+  { path: "/dashboard/belajar", icon: "conversion_path", label: "Quest" },
+  { path: "/dashboard/paspor", icon: "workspace_premium", label: "Achievement" },
   { path: "/dashboard/profil", icon: "person", label: "Profil" },
 ];
 
