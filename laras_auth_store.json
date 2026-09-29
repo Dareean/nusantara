@@ -27,12 +27,6 @@
       "name": "Demo User",
       "createdAt": 1790683423879,
       "expiresAt": 1791288223879
-    },
-    "0b239d1d-fe77-4ba2-941c-72528ad81536": {
-      "email": "demo@gmail.com",
-      "name": "Demo User",
-      "createdAt": 1790684085123,
-      "expiresAt": 1791288885123
     }
   }
 }
