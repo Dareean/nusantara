@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function AuthPage() {
+function AuthPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = (searchParams && searchParams.get('redirect')) || '/dashboard';
+  const redirectTo = (searchParams && searchParams.get("redirect")) || "/dashboard";
 
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [showPassword, setShowPassword] = useState(false);
@@ -338,5 +338,19 @@ export default function AuthPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen w-full flex items-center justify-center p-4 bg-surface">
+          <div className="text-label-lg text-on-surface-variant">Memuat autentikasi…</div>
+        </main>
+      }
+    >
+      <AuthPageContent />
+    </Suspense>
   );
 }

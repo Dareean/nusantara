@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Sidebar from "../components/Sidebar";
 import BottomNav from "../components/BottomNav";
 import PageTransition from "../components/PageTransition";
 
@@ -30,11 +29,8 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background text-on-surface antialiased flex flex-col">
-      <Sidebar />
-      <div className="lg:pl-[260px] flex-1 flex flex-col pb-20 lg:pb-8">
-        <PageTransition>{children}</PageTransition>
-      </div>
+    <div className="min-h-screen bg-background text-on-surface antialiased">
+      <PageTransition>{children}</PageTransition>
       <BottomNav />
     </div>
   );

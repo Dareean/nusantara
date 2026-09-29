@@ -3,16 +3,36 @@
     "ps+file@example.com": {
       "name": "ps-file",
       "passwordHash": "cefe93e9d13f6ec6c29f06bc82bc5fd4bd4abe5caacc731d0131b9c9f94570fa"
+    },
+    "demo@gmail.com": {
+      "name": "Demo User",
+      "passwordHash": "ad5561d2f2034f7a6b73ee5760cbc612cb04480866df0b322bc2af34e31bd3bc"
     }
   },
   "sessions": {
     "1264bfb2-e32f-4bb7-9f6e-8130a2653eff": {
       "email": "ps+file@example.com",
-      "name": "ps-file"
+      "name": "ps-file",
+      "createdAt": 1790683423862,
+      "expiresAt": 1791288223862
     },
     "3e2c31c9-8351-4cb5-bacf-793ad61d225d": {
       "email": "ps+file@example.com",
-      "name": "ps-file"
+      "name": "ps-file",
+      "createdAt": 1790683423862,
+      "expiresAt": 1791288223862
+    },
+    "eea75010-1879-4d84-9bb6-117e719741e7": {
+      "email": "demo@gmail.com",
+      "name": "Demo User",
+      "createdAt": 1790683423879,
+      "expiresAt": 1791288223879
+    },
+    "0b239d1d-fe77-4ba2-941c-72528ad81536": {
+      "email": "demo@gmail.com",
+      "name": "Demo User",
+      "createdAt": 1790684085123,
+      "expiresAt": 1791288885123
     }
   }
 }
