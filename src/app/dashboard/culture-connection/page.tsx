@@ -1,9 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TopBar from "../../components/TopBar";
+import {
+  Sparkles,
+  Navigation,
+  BookOpen,
+  BadgeCheck,
+  MapPin,
+  Volume2,
+  AudioWaveform,
+  Play,
+  Pause,
+  CheckCircle2,
+  ShieldCheck,
+  Brain,
+  Quote,
+  Trophy,
+  Award,
+  Zap,
+  RotateCw,
+  ArrowRight,
+} from "lucide-react";
 
 export default function CultureConnectionPage() {
   const router = useRouter();
@@ -17,6 +36,7 @@ export default function CultureConnectionPage() {
   const handleClaim = () => {
     setIsClaiming(true);
     setTimeout(() => {
+      setIsClaiming(false);
       router.push("/dashboard/paspor");
     }, 1200);
   };
@@ -27,20 +47,18 @@ export default function CultureConnectionPage() {
         title="Culture Connection Studio"
         subtitle="Simulasi Peristiwa Kontekstual Adat"
       />
-      <main className="relative pt-20 px-4 lg:px-8 w-full min-h-screen overflow-x-clip">
+      <main className="relative pt-20 px-4 lg:px-8 w-full min-h-screen overflow-x-clip font-sans">
         <div className="w-full max-w-6xl mx-auto pb-16 flex flex-col gap-6">
           {/* Top Banner / Scenario Sub-header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-6 rounded-2xl shadow-xs border border-outline-variant/30">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-label-sm uppercase tracking-wider font-bold">
-                  <span className="material-symbols-outlined text-sm">stars</span>
+                  <Sparkles className="w-4 h-4" />
                   SIGNATURE CHALLENGE • SKENARIO TERPADU
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold">
-                  <span className="material-symbols-outlined text-sm">
-                    navigation
-                  </span>
+                  <Navigation className="w-4 h-4" />
                   Lembah Palu • 3 Tahapan Keputusan
                 </span>
               </div>
@@ -100,9 +118,7 @@ export default function CultureConnectionPage() {
               <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-xs flex flex-col gap-4 border border-outline-variant/30">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary shrink-0">
-                    <span className="material-symbols-outlined text-[24px]">
-                      import_contacts
-                    </span>
+                    <BookOpen className="w-5 h-5" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-label-sm uppercase tracking-wider text-secondary font-bold">
@@ -124,9 +140,7 @@ export default function CultureConnectionPage() {
                 {/* Etiquette Tips Mini Box */}
                 <div className="bg-surface-container-low p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/20">
                   <div className="flex items-center gap-1.5 text-primary text-label-md font-bold">
-                    <span className="material-symbols-outlined text-sm">
-                      verified_user
-                    </span>
+                    <BadgeCheck className="w-4 h-4" />
                     Adab Utama Kaili (Kabilasa &amp; Maradika)
                   </div>
                   <p className="text-body-sm text-on-surface-variant leading-relaxed">
@@ -147,9 +161,7 @@ export default function CultureConnectionPage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-5 text-white">
                     <span className="inline-flex items-center gap-1 text-secondary-fixed text-label-sm uppercase tracking-wider mb-1 font-bold">
-                      <span className="material-symbols-outlined text-sm">
-                        pin_drop
-                      </span>
+                      <MapPin className="w-4 h-4" />
                       Palu Barat, Sulawesi Tengah
                     </span>
                     <span className="text-title-md text-white font-bold leading-snug">
@@ -169,9 +181,11 @@ export default function CultureConnectionPage() {
                     className="w-full flex items-center justify-between px-4 py-3 rounded-full bg-tertiary-fixed text-on-tertiary-fixed transition-all hover:bg-tertiary-fixed-dim cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-[24px] text-tertiary">
-                        {isPlayingAudio ? "graphic_eq" : "volume_up"}
-                      </span>
+                      {isPlayingAudio ? (
+                        <AudioWaveform className="w-6 h-6 text-tertiary animate-pulse" />
+                      ) : (
+                        <Volume2 className="w-6 h-6 text-tertiary" />
+                      )}
                       <div className="flex flex-col text-left">
                         <span className="text-label-md font-bold">
                           Dengarkan Suasana Lalove &amp; Ganda
@@ -183,9 +197,11 @@ export default function CultureConnectionPage() {
                         </span>
                       </div>
                     </div>
-                    <span className="material-symbols-outlined text-[20px]">
-                      {isPlayingAudio ? "pause" : "play_arrow"}
-                    </span>
+                    {isPlayingAudio ? (
+                      <Pause className="w-5 h-5" />
+                    ) : (
+                      <Play className="w-5 h-5 fill-current" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -193,9 +209,7 @@ export default function CultureConnectionPage() {
               {/* Cultural Authority Validation */}
               <div className="bg-surface-container-low p-4 rounded-xl flex items-center gap-3 border border-outline-variant/20">
                 <div className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary shrink-0">
-                  <span className="material-symbols-outlined text-[22px]">
-                    verified
-                  </span>
+                  <BadgeCheck className="w-6 h-6" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">
@@ -228,9 +242,7 @@ export default function CultureConnectionPage() {
                     </div>
                   </div>
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-label-sm font-bold">
-                    <span className="material-symbols-outlined text-[16px]">
-                      check_circle
-                    </span>
+                    <CheckCircle2 className="w-4 h-4" />
                     Selesai
                   </span>
                 </div>
@@ -248,9 +260,7 @@ export default function CultureConnectionPage() {
                         className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-xs hover:scale-105 active:scale-95 transition-transform shrink-0 cursor-pointer"
                         title="Dengarkan Pelafalan Asli"
                       >
-                        <span className="material-symbols-outlined text-[20px]">
-                          volume_up
-                        </span>
+                        <Volume2 className="w-5 h-5" />
                       </button>
                       <div className="flex flex-col">
                         <span className="text-headline-md text-primary tracking-tight font-bold">
@@ -267,9 +277,7 @@ export default function CultureConnectionPage() {
                     </span>
                   </div>
                   <div className="bg-surface-container-lowest p-3 rounded-lg flex items-center gap-2 text-on-surface mt-1 border border-outline-variant/20">
-                    <span className="material-symbols-outlined text-secondary text-[20px]">
-                      auto_awesome
-                    </span>
+                    <Sparkles className="w-5 h-5 text-secondary shrink-0" />
                     <span className="text-body-sm">
                       <strong>Konteks Ledo:</strong> Kata{" "}
                       <em>&ldquo;Tabe&rdquo;</em> adalah gestur kerendahan hati
@@ -297,9 +305,7 @@ export default function CultureConnectionPage() {
                     </div>
                   </div>
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-label-sm font-bold">
-                    <span className="material-symbols-outlined text-[16px]">
-                      check_circle
-                    </span>
+                    <CheckCircle2 className="w-4 h-4" />
                     Selesai
                   </span>
                 </div>
@@ -323,9 +329,7 @@ export default function CultureConnectionPage() {
                       Sabe)
                     </h3>
                     <div className="flex items-center gap-1.5 text-on-surface-variant text-body-sm">
-                      <span className="material-symbols-outlined text-secondary text-[18px]">
-                        shield_with_heart
-                      </span>
+                      <ShieldCheck className="text-secondary w-4 h-4" />
                       <span>
                         Aksesoris: <strong>Sampa (Kalung Dada) Kuningan Resmi</strong>
                       </span>
@@ -366,18 +370,14 @@ export default function CultureConnectionPage() {
                     </div>
                   </div>
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-bold">
-                    <span className="material-symbols-outlined text-[16px]">
-                      psychology
-                    </span>
+                    <Brain className="w-4 h-4" />
                     Refleksi Budaya
                   </span>
                 </div>
 
                 <div className="bg-surface-container p-5 rounded-xl flex flex-col gap-3 border border-outline-variant/20">
                   <div className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-primary text-[28px] shrink-0">
-                      format_quote
-                    </span>
+                    <Quote className="text-primary w-7 h-7 shrink-0" />
                     <p className="text-body-lg text-on-surface leading-relaxed">
                       Kata <strong>&ldquo;Tabe&rdquo;</strong> membuka adab luhur
                       dengan merendahkan hati, sementara{" "}
@@ -388,9 +388,7 @@ export default function CultureConnectionPage() {
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20 text-on-surface-variant text-body-sm flex-wrap gap-2">
                     <span className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm text-secondary">
-                        workspace_premium
-                      </span>
+                      <Trophy className="w-4 h-4 text-secondary" />
                       Nilai Kearifan:{" "}
                       <em>Katura (Keseimbangan Penghormatan Sosial)</em>
                     </span>
@@ -405,9 +403,7 @@ export default function CultureConnectionPage() {
               <div className="bg-surface-container-highest p-6 rounded-2xl shadow-md flex flex-col md:flex-row items-center justify-between gap-6 border border-outline-variant/30">
                 <div className="flex items-center gap-4 w-full md:w-auto">
                   <div className="w-14 h-14 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shrink-0 shadow-xs">
-                    <span className="material-symbols-outlined text-[32px]">
-                      military_tech
-                    </span>
+                    <Award className="w-8 h-8" />
                   </div>
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
@@ -420,16 +416,12 @@ export default function CultureConnectionPage() {
                     </div>
                     <div className="flex items-center gap-3 mt-0.5 text-body-sm flex-wrap">
                       <span className="inline-flex items-center gap-1 text-label-md text-secondary font-bold">
-                        <span className="material-symbols-outlined text-sm">
-                          bolt
-                        </span>
+                        <Zap className="w-4 h-4" />
                         +50 XP Kemahiran
                       </span>
                       <span>•</span>
                       <span className="inline-flex items-center gap-1 text-label-md text-tertiary font-bold">
-                        <span className="material-symbols-outlined text-sm">
-                          verified
-                        </span>
+                        <BadgeCheck className="w-4 h-4" />
                         Cap Paspor Adat &ldquo;Lembah Palu&rdquo;
                       </span>
                     </div>
@@ -444,17 +436,13 @@ export default function CultureConnectionPage() {
                 >
                   {isClaiming ? (
                     <>
-                      <span className="material-symbols-outlined text-[20px] animate-spin">
-                        refresh
-                      </span>
+                      <RotateCw className="w-5 h-5 animate-spin" />
                       <span>Menyimpan ke Paspor...</span>
                     </>
                   ) : (
                     <>
                       <span>Klaim Hadiah &amp; Simpan ke Paspor</span>
-                      <span className="material-symbols-outlined text-[20px]">
-                        arrow_forward
-                      </span>
+                      <ArrowRight className="w-5 h-5" />
                     </>
                   )}
                 </button>

@@ -2,18 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  Home,
+  Compass,
+  Gamepad2,
+  Sparkles,
+  BookOpen,
+  User,
+  Flame,
+  ChevronsUpDown,
+  ShieldAlert,
+  ArrowRight,
+} from "lucide-react";
 
 const navItems = [
-  { path: "/dashboard", icon: "home", label: "Beranda" },
-  { path: "/dashboard/belajar", icon: "route", label: "Jalur Belajar" },
-  { path: "/dashboard/arcade", icon: "sports_esports", label: "Arcade Budaya" },
+  { path: "/dashboard", Icon: Home, label: "Beranda" },
+  { path: "/dashboard/belajar", Icon: Compass, label: "Jalur Belajar" },
+  { path: "/dashboard/arcade", Icon: Gamepad2, label: "Arcade Budaya" },
   {
     path: "/dashboard/culture-connection",
-    icon: "theater_comedy",
+    Icon: Sparkles,
     label: "Scenario Studio",
   },
-  { path: "/dashboard/paspor", icon: "menu_book", label: "Paspor Budaya" },
-  { path: "/dashboard/profil", icon: "account_circle", label: "Profil & Pengaturan" },
+  { path: "/dashboard/paspor", Icon: BookOpen, label: "Paspor Budaya" },
+  { path: "/dashboard/profil", Icon: User, label: "Profil & Pengaturan" },
 ];
 
 export default function Sidebar() {
@@ -30,7 +42,7 @@ export default function Sidebar() {
             src="/logo/logo_laras.png"
           />
           <div className="flex flex-col">
-            <span className="text-headline-md text-primary tracking-tight">
+            <span className="text-headline-md text-primary tracking-tight font-black">
               LARAS
             </span>
             <span className="text-label-sm text-secondary uppercase font-bold tracking-wider">
@@ -46,19 +58,18 @@ export default function Sidebar() {
               item.path === "/dashboard"
                 ? pathname === "/dashboard"
                 : pathname.startsWith(item.path);
+            const { Icon } = item;
             return (
               <Link
                 key={item.path}
                 href={item.path}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all ${
                   isActive
-                    ? "bg-primary-container text-on-primary-container font-bold shadow-[0_4px_0_0_#881f00]"
-                    : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
+                    ? "bg-primary-container text-on-primary-container font-black shadow-[0_4px_0_0_#881f00]"
+                    : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-bold"
                 }`}
               >
-                <span className="material-symbols-outlined text-[16px]">
-                  {item.icon}
-                </span>
+                <Icon className="w-5 h-5 shrink-0" />
                 <span className="text-label-lg">{item.label}</span>
               </Link>
             );
@@ -68,12 +79,10 @@ export default function Sidebar() {
 
       {/* Bottom Info */}
       <div className="flex flex-col gap-2">
-        <div className="bg-surface-container p-2 rounded-xl flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-headline-sm">
-            local_fire_department
-          </span>
+        <div className="bg-surface-container p-3 rounded-2xl flex items-center gap-3">
+          <Flame className="w-7 h-7 text-primary shrink-0" />
           <div className="flex flex-col">
-            <span className="text-label-md text-on-surface font-bold">
+            <span className="text-label-md text-on-surface font-black">
               6 Hari Berturut-turut
             </span>
             <span className="text-body-sm text-on-surface-variant">
@@ -81,13 +90,11 @@ export default function Sidebar() {
             </span>
           </div>
         </div>
-        <div className="bg-surface-container-low p-2 rounded-xl flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-tertiary text-[16px]">
-              explore
-            </span>
+        <div className="bg-surface-container-low p-3 rounded-2xl flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Compass className="w-5 h-5 text-tertiary shrink-0" />
             <div className="flex flex-col">
-              <span className="text-label-sm text-on-surface-variant">
+              <span className="text-xs text-on-surface-variant">
                 Fokus Wilayah
               </span>
               <span className="text-label-md text-on-surface font-bold">
@@ -95,24 +102,18 @@ export default function Sidebar() {
               </span>
             </div>
           </div>
-          <span className="material-symbols-outlined text-on-surface-variant text-body-md">
-            unfold_more
-          </span>
+          <ChevronsUpDown className="w-4 h-4 text-on-surface-variant" />
         </div>
 
         <Link
           href="/admin"
-          className="flex items-center justify-between px-3 py-2 rounded-xl bg-surface-container-high/60 hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all group"
+          className="flex items-center justify-between px-3 py-2.5 rounded-2xl bg-surface-container-high/60 hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all group font-bold"
         >
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-primary">
-              admin_panel_settings
-            </span>
-            <span className="text-label-sm font-bold">Panel Kurator CMS</span>
+            <ShieldAlert className="w-5 h-5 text-primary" />
+            <span className="text-label-sm">Panel Kurator CMS</span>
           </div>
-          <span className="material-symbols-outlined text-[16px] text-outline group-hover:translate-x-0.5 transition-transform">
-            arrow_forward
-          </span>
+          <ArrowRight className="w-4 h-4 text-outline group-hover:translate-x-0.5 transition-transform" />
         </Link>
       </div>
     </aside>

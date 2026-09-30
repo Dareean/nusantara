@@ -2,29 +2,42 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import TopBar from "../../components/TopBar";
+import {
+  BadgeCheck,
+  Award,
+  Sparkles,
+  Flame,
+  Landmark,
+  Plus,
+  History,
+  CheckCircle2,
+  Volume2,
+  AudioWaveform,
+  Play,
+  Pause,
+  ArrowRight,
+  BookOpen,
+  Trophy,
+} from "lucide-react";
 
-export default function PerayaanSelesaiPage() {
-  const router = useRouter();
+export default function SelesaiLatihanPage() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   const handleAudio = () => {
-    if (!isPlayingAudio) {
-      setIsPlayingAudio(true);
-      setTimeout(() => {
-        setIsPlayingAudio(false);
-      }, 4000);
-    }
+    setIsPlayingAudio(true);
+    setTimeout(() => {
+      setIsPlayingAudio(false);
+    }, 2000);
   };
 
   return (
     <>
       <TopBar
-        title="Pelajaran Selesai!"
+        title="Ringkasan Sesi Belajar"
         subtitle="Prestasi Pembelajaran Adat Hari Ini"
       />
-      <main className="relative pt-20 px-4 lg:px-8 w-full min-h-screen overflow-hidden">
+      <main className="relative pt-20 px-4 lg:px-8 w-full min-h-screen overflow-hidden font-sans">
         <div className="relative w-full max-w-5xl mx-auto py-8">
           {/* Ambient Glows */}
           <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-40 h-40 sm:w-56 md:w-96 bg-secondary-container/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
@@ -34,9 +47,7 @@ export default function PerayaanSelesaiPage() {
             {/* Hero Celebration Banner */}
             <div className="relative z-10 w-full rounded-2xl bg-gradient-to-br from-surface-container-low via-surface-container-lowest to-surface-container-high/60 p-6 lg:p-10 overflow-hidden text-center flex flex-col items-center border border-outline-variant/20">
               <div className="inline-flex max-w-full items-center justify-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-surface-container-lowest shadow-xs mb-4">
-                <span className="material-symbols-outlined text-secondary text-[18px]">
-                  verified
-                </span>
+                <BadgeCheck className="text-secondary w-4 h-4" />
                 <span className="text-label-sm sm:text-label-md text-secondary uppercase tracking-widest font-bold text-center">
                   Pelajaran Tuntas • Bab 2: Sapaan Sehari-hari (Tabe)
                 </span>
@@ -45,19 +56,13 @@ export default function PerayaanSelesaiPage() {
               {/* Medal / Trophy Icon */}
               <div className="relative my-3 flex items-center justify-center">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-secondary-container to-secondary-fixed flex items-center justify-center shadow-lg relative z-10 ring-4 ring-secondary-fixed-dim">
-                  <span className="material-symbols-outlined text-surface-container-lowest text-[46px] sm:text-[54px]">
-                    military_tech
-                  </span>
+                  <Award className="text-surface-container-lowest w-12 h-12 sm:w-14 sm:h-14" />
                 </div>
                 <div className="absolute -top-2 -right-3 bg-surface-container-lowest rounded-full p-1 sm:p-2 shadow-md float-lift">
-                  <span className="material-symbols-outlined text-secondary-container text-[18px] sm:text-[20px] leading-none">
-                    auto_awesome
-                  </span>
+                  <Sparkles className="text-secondary-container w-4 h-4" />
                 </div>
                 <div className="absolute -bottom-1 -left-3 bg-surface-container-lowest rounded-full p-2 shadow-md">
-                  <span className="material-symbols-outlined text-primary text-[18px]">
-                    local_fire_department
-                  </span>
+                  <Flame className="text-primary w-4 h-4" />
                 </div>
               </div>
 
@@ -75,9 +80,7 @@ export default function PerayaanSelesaiPage() {
 
               <div className="flex max-w-full flex-wrap items-center justify-center gap-2 px-3 sm:px-4 py-1.5 mt-4 rounded-full bg-surface-container shadow-xs">
                 <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-primary text-sm">
-                    temple_buddhist
-                  </span>
+                  <Landmark className="text-primary w-4 h-4" />
                   <span className="text-label-sm text-primary font-bold">
                     Suku Kaili, Sulawesi Tengah
                   </span>
@@ -98,15 +101,11 @@ export default function PerayaanSelesaiPage() {
                   <span className="text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">
                     Kemahiran Bahasa
                   </span>
-                  <span className="material-symbols-outlined text-secondary-container text-[20px]">
-                    stars
-                  </span>
+                  <Sparkles className="text-secondary-container w-5 h-5" />
                 </div>
                 <div className="my-4 flex flex-col items-center">
                   <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-secondary-fixed text-on-secondary-fixed rounded-full shadow-xs">
-                    <span className="material-symbols-outlined text-secondary-container text-xl">
-                      add
-                    </span>
+                    <Plus className="text-secondary-container w-5 h-5" />
                     <span className="text-headline-md sm:text-headline-lg font-extrabold">20 XP</span>
                   </div>
                   <span className="text-headline-sm text-on-surface font-bold mt-2">
@@ -129,9 +128,7 @@ export default function PerayaanSelesaiPage() {
                   <span className="text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">
                     Ritme Harian
                   </span>
-                  <span className="material-symbols-outlined text-primary text-[20px]">
-                    local_fire_department
-                  </span>
+                  <Flame className="text-primary w-5 h-5" />
                 </div>
                 <div className="my-4 flex flex-col items-center">
                   <div className="flex items-center gap-1.5">
@@ -164,9 +161,7 @@ export default function PerayaanSelesaiPage() {
                               : "bg-primary-container text-on-primary-container"
                           }`}
                         >
-                          <span className="material-symbols-outlined text-[12px]">
-                            local_fire_department
-                          </span>
+                          <Flame className="w-3.5 h-3.5" />
                         </div>
                       </div>
                     ))}
@@ -180,15 +175,11 @@ export default function PerayaanSelesaiPage() {
                   <span className="text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">
                     Paspor Budaya
                   </span>
-                  <span className="material-symbols-outlined text-tertiary text-[20px]">
-                    verified_user
-                  </span>
+                  <BadgeCheck className="text-tertiary w-5 h-5" />
                 </div>
                 <div className="my-4 flex flex-col items-center w-full">
                   <div className="inline-flex items-center gap-1 px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-full mb-1">
-                    <span className="material-symbols-outlined text-sm">
-                      history_edu
-                    </span>
+                    <History className="w-3.5 h-3.5" />
                     <span className="text-label-sm font-bold">
                       Cap Adab &amp; Nilai
                     </span>
@@ -197,9 +188,7 @@ export default function PerayaanSelesaiPage() {
                     Sapaan &amp; Adab Sopan Santun (Tabe)
                   </span>
                   <span className="text-label-sm text-secondary font-bold flex items-center gap-1 mt-1">
-                    <span className="material-symbols-outlined text-sm">
-                      check_circle
-                    </span>{" "}
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                     Terverifikasi
                   </span>
                 </div>
@@ -226,9 +215,11 @@ export default function PerayaanSelesaiPage() {
             <div className="w-full p-4 rounded-2xl bg-surface-container-high/60 flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 border border-outline-variant/20">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-secondary-container/20 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-secondary text-[24px]">
-                    {isPlayingAudio ? "graphic_eq" : "volume_up"}
-                  </span>
+                  {isPlayingAudio ? (
+                    <AudioWaveform className="w-6 h-6 text-secondary animate-pulse" />
+                  ) : (
+                    <Volume2 className="w-6 h-6 text-secondary" />
+                  )}
                 </div>
                 <div className="flex flex-col text-left">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -240,9 +231,7 @@ export default function PerayaanSelesaiPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-1 text-on-surface-variant text-body-sm mt-0.5">
-                    <span className="material-symbols-outlined text-sm">
-                      record_voice_over
-                    </span>
+                    <Volume2 className="w-3.5 h-3.5" />
                     <span>
                       Penutur Asli: Tetua Adat Banawa • Dialek Kaili Ledo
                     </span>
@@ -255,9 +244,11 @@ export default function PerayaanSelesaiPage() {
                 onClick={handleAudio}
                 className="flex items-center gap-2 px-5 py-2.5 bg-surface-container-lowest text-on-surface font-label-lg rounded-xl shadow-xs hover:bg-surface-container-low transition-all cursor-pointer font-bold whitespace-nowrap"
               >
-                <span className="material-symbols-outlined text-primary text-[18px]">
-                  {isPlayingAudio ? "pause" : "play_arrow"}
-                </span>
+                {isPlayingAudio ? (
+                  <Pause className="w-4 h-4 text-primary" />
+                ) : (
+                  <Play className="w-4 h-4 text-primary fill-current" />
+                )}
                 <span>
                   {isPlayingAudio ? "Memutar... (0:02)" : "Putar Audio (0:04)"}
                 </span>
@@ -277,25 +268,19 @@ export default function PerayaanSelesaiPage() {
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-full font-label-lg bg-primary text-on-primary shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all cursor-pointer font-bold"
               >
                 <span>Lanjut Pelajaran Berikutnya</span>
-                <span className="material-symbols-outlined text-[20px]">
-                  arrow_forward
-                </span>
+                <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
 
             {/* Bottom info */}
             <div className="mt-8 pt-4 border-t border-surface-container flex items-center justify-between text-on-surface-variant text-label-sm flex-wrap gap-2">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm">
-                  menu_book
-                </span>
+                <BookOpen className="w-3.5 h-3.5" />
                 <span>Modul 2 dari 8 • Kebudayaan Lembah Palu</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm text-secondary-container">
-                    workspace_premium
-                  </span>
+                  <Trophy className="w-3.5 h-3.5 text-secondary-container" />
                   Lencana &ldquo;Penyapa Kaili&rdquo; Tersemat
                 </span>
                 <span>•</span>

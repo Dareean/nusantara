@@ -31,12 +31,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className={`${plusJakartaSans.variable} h-full`}>
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-          rel="stylesheet"
-        />
-      </head>
       <body className="min-h-full font-sans bg-surface text-body-md text-on-surface antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
         {children}
       </body>

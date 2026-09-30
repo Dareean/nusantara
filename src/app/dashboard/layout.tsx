@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import BottomNav from "../components/BottomNav";
+import DuolingoSidebar from "../components/DuolingoSidebar";
 import PageTransition from "../components/PageTransition";
 
 const immersiveRoutes = [
@@ -29,8 +30,16 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background text-on-surface antialiased">
-      <PageTransition>{children}</PageTransition>
+    <div className="min-h-screen bg-surface text-on-surface antialiased">
+      {/* Desktop Fixed Left Sidebar */}
+      <DuolingoSidebar />
+
+      {/* Main Content Area indented for desktop sidebar */}
+      <div className="md:pl-64 min-h-screen pb-20 md:pb-8">
+        <PageTransition>{children}</PageTransition>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
       <BottomNav />
     </div>
   );

@@ -1,8 +1,19 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Flame,
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Compass,
+  ArrowRight,
+  BadgeCheck,
+} from "lucide-react";
 
 function AuthPageContent() {
   const router = useRouter();
@@ -51,9 +62,7 @@ function AuthPageContent() {
             {/* Header / Brand */}
             <div className="flex flex-col items-center text-center gap-1 relative">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed">
-                <span className="material-symbols-outlined text-[16px] fill-current">
-                  local_fire_department
-                </span>
+                <Flame className="w-4 h-4 fill-current" />
                 <span className="text-label-sm uppercase tracking-wider font-bold">
                   Nusantara — Before It&apos;s Gone
                 </span>
@@ -152,9 +161,7 @@ function AuthPageContent() {
                     Nama Lengkap
                   </label>
                   <div className="relative flex items-center">
-                    <span className="material-symbols-outlined absolute left-3.5 text-outline text-[20px] pointer-events-none">
-                      person
-                    </span>
+                    <User className="absolute left-3.5 text-outline w-5 h-5 pointer-events-none" />
                     <input
                       id="userName"
                       type="text"
@@ -176,9 +183,7 @@ function AuthPageContent() {
                   Email
                 </label>
                 <div className="relative flex items-center">
-                  <span className="material-symbols-outlined absolute left-3.5 text-outline text-[20px] pointer-events-none">
-                    mail
-                  </span>
+                  <Mail className="absolute left-3.5 text-outline w-5 h-5 pointer-events-none" />
                   <input
                     id="userEmail"
                     type="email"
@@ -209,9 +214,7 @@ function AuthPageContent() {
                   )}
                 </div>
                 <div className="relative flex items-center">
-                  <span className="material-symbols-outlined absolute left-3.5 text-outline text-[20px] pointer-events-none">
-                    lock
-                  </span>
+                  <Lock className="absolute left-3.5 text-outline w-5 h-5 pointer-events-none" />
                   <input
                     id="userPassword"
                     type={showPassword ? "text" : "password"}
@@ -226,9 +229,11 @@ function AuthPageContent() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 text-outline hover:text-on-surface flex items-center justify-center p-1 cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-[20px]">
-                      {showPassword ? "visibility_off" : "visibility"}
-                    </span>
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -239,9 +244,7 @@ function AuthPageContent() {
                     Minat Budaya &amp; Dialek Pertama
                   </span>
                   <div className="p-3 rounded-xl bg-primary-fixed/40 flex items-start gap-3 border border-primary/20">
-                    <span className="material-symbols-outlined text-primary text-[20px] mt-0.5">
-                      explore
-                    </span>
+                    <Compass className="text-primary w-5 h-5 mt-0.5 shrink-0" />
                     <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                       <span className="text-label-md text-on-primary-fixed-variant font-bold truncate">
                         Suku Kaili (Ledo &amp; Tara)
@@ -281,9 +284,7 @@ function AuthPageContent() {
                     ? "Masuk ke Akun Belajar"
                     : "Mulai Petualangan Budaya"}
                 </span>
-                <span className="material-symbols-outlined text-[18px]">
-                  arrow_forward
-                </span>
+                <ArrowRight className="w-5 h-5" />
               </button>
             </form>
 
@@ -316,9 +317,7 @@ function AuthPageContent() {
               </p>
 
               <div className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-surface-container-low text-on-surface-variant max-w-sm">
-                <span className="material-symbols-outlined text-secondary text-[18px] shrink-0">
-                  verified_user
-                </span>
+                <BadgeCheck className="text-secondary w-5 h-5 shrink-0" />
                 <span className="text-body-sm text-left">
                   Data kemajuan belajar dan Paspor Budaya Anda tersimpan aman dan
                   terenkripsi.

@@ -1,32 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  X,
+  Heart,
+  MapPin,
+  Flame,
+  Info,
+  Volume2,
+  Play,
+  Pause,
+  BadgeCheck,
+  Hand,
+  Check,
+  ShieldAlert,
+  ArrowRight,
+} from "lucide-react";
 
 export default function EvaluasiJawabanPage() {
   const router = useRouter();
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [timerCount, setTimerCount] = useState(4);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlayingAudio) {
-      interval = setInterval(() => {
-        setTimerCount((prev) => {
-          if (prev <= 1) {
-            setIsPlayingAudio(false);
-            return 4;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isPlayingAudio]);
-
   const toggleAudio = () => {
-    setIsPlayingAudio((currentlyPlaying) => {
+    setIsPlayingAudio((prev) => {
+      const currentlyPlaying = !prev;
       if (currentlyPlaying) {
         setTimerCount(4);
       }
@@ -35,16 +35,14 @@ export default function EvaluasiJawabanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface font-body-md text-on-surface antialiased flex flex-col">
+    <div className="min-h-screen bg-surface font-sans text-on-surface antialiased flex flex-col">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 px-4 lg:px-8 flex items-center justify-between">
         <Link
-          href="/dashboard/belajar"
+          href="/dashboard"
           className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-high hover:text-on-surface transition-colors cursor-pointer"
         >
-          <span className="material-symbols-outlined text-on-surface-variant">
-            close
-          </span>
+          <X className="w-6 h-6 text-on-surface-variant" />
         </Link>
         <div className="flex-1 max-w-2xl mx-4 lg:mx-8">
           <div className="w-full bg-surface-container-high h-3 rounded-full overflow-hidden">
@@ -55,9 +53,7 @@ export default function EvaluasiJawabanPage() {
           </div>
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 bg-error-container text-on-error-container rounded-full text-label-md font-bold">
-          <span className="material-symbols-outlined text-error text-[18px]">
-            favorite
-          </span>
+          <Heart className="w-4 h-4 text-error fill-current" />
           <span>2/3</span>
         </div>
       </header>
@@ -69,18 +65,14 @@ export default function EvaluasiJawabanPage() {
           <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-surface-container-low px-4 lg:px-6 py-3 rounded-2xl border border-outline-variant/30">
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-1 text-on-surface-variant text-label-md">
-                <span className="material-symbols-outlined text-sm text-primary">
-                  location_on
-                </span>
+                <MapPin className="w-4 h-4 text-primary" />
                 <span>
                   Dialek Kaili (Ledo &amp; Tara) • Lembah Palu &amp; Pesisir Banawa
                 </span>
               </div>
               <div className="w-1.5 h-1.5 rounded-full bg-surface-variant hidden sm:block"></div>
               <div className="flex items-center gap-1 text-secondary text-label-md font-bold">
-                <span className="material-symbols-outlined text-sm">
-                  local_fire_department
-                </span>
+                <Flame className="w-4 h-4" />
                 <span>6 Hari Beruntun</span>
               </div>
             </div>
@@ -113,9 +105,7 @@ export default function EvaluasiJawabanPage() {
                   </div>
                 </div>
                 <div className="p-4 bg-surface-container-lowest flex items-start gap-2.5">
-                  <span className="material-symbols-outlined text-primary text-[20px] mt-0.5">
-                    info
-                  </span>
+                  <Info className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                   <p className="text-on-surface-variant text-body-sm leading-relaxed">
                     Beranda utama Souraja merupakan ruang diplomasi adat
                     tertua Kaili. Tamu kehormatan disambut dengan gestur
@@ -130,9 +120,7 @@ export default function EvaluasiJawabanPage() {
               <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-xs flex flex-col gap-4 border border-outline-variant/30">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-primary text-label-md uppercase tracking-wider font-bold">
-                    <span className="material-symbols-outlined text-[20px]">
-                      record_voice_over
-                    </span>
+                    <Volume2 className="w-5 h-5" />
                     <span>Audio Penutur Asli</span>
                   </div>
                   <span className="text-on-surface-variant text-label-sm font-medium">
@@ -148,9 +136,11 @@ export default function EvaluasiJawabanPage() {
                       isPlayingAudio ? "bg-tertiary" : "bg-primary"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[24px]">
-                      {isPlayingAudio ? "pause" : "play_arrow"}
-                    </span>
+                    {isPlayingAudio ? (
+                      <Pause className="w-6 h-6" />
+                    ) : (
+                      <Play className="w-6 h-6 fill-current" />
+                    )}
                   </button>
                   <div className="flex-1 flex flex-col gap-1">
                     <div className="flex items-center justify-between">
@@ -178,9 +168,7 @@ export default function EvaluasiJawabanPage() {
 
                 <div className="flex items-center justify-between pt-1 text-on-surface-variant text-label-sm">
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">
-                      verified_user
-                    </span>
+                    <BadgeCheck className="w-4 h-4 text-primary" />
                     Kak Rusdi (38 thn, Palu Barat)
                   </span>
                   <span className="text-secondary font-semibold">
@@ -192,9 +180,7 @@ export default function EvaluasiJawabanPage() {
               {/* Etiquette Micro Card */}
               <div className="bg-surface-container p-4 rounded-2xl flex items-start gap-3 border border-outline-variant/20">
                 <div className="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-[20px]">
-                    front_hand
-                  </span>
+                  <Hand className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <h4 className="text-title-md text-on-surface font-bold">
@@ -234,9 +220,7 @@ export default function EvaluasiJawabanPage() {
                   <div className="relative bg-surface-container-lowest p-4 rounded-xl flex items-start justify-between border-2 border-primary shadow-xs">
                     <div className="flex items-start gap-3">
                       <div className="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                        <span className="material-symbols-outlined text-[16px]">
-                          check
-                        </span>
+                        <Check className="w-4 h-4" />
                       </div>
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -307,9 +291,7 @@ export default function EvaluasiJawabanPage() {
               {/* Cultural Nuance Callout Box */}
               <div className="bg-secondary-fixed/30 p-5 rounded-2xl flex flex-col gap-2 border border-secondary/20">
                 <div className="flex items-center gap-2 text-on-secondary-fixed-variant">
-                  <span className="material-symbols-outlined text-[20px]">
-                    policy
-                  </span>
+                  <ShieldAlert className="w-5 h-5 text-secondary" />
                   <h3 className="text-title-md font-bold">
                     Catatan Budaya • Variasi Tradisi &amp; Ragam Dialek
                   </h3>
@@ -344,9 +326,7 @@ export default function EvaluasiJawabanPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[20px]">
-                        verified
-                      </span>
+                      <BadgeCheck className="w-5 h-5" />
                     </div>
                     <div>
                       <h4 className="text-title-md font-bold text-primary">
@@ -372,9 +352,7 @@ export default function EvaluasiJawabanPage() {
                     onClick={toggleAudio}
                     className="w-full sm:w-auto px-5 py-3 rounded-full bg-surface-container-lowest text-tertiary font-label-lg flex items-center justify-center gap-2 hover:bg-surface-container-high transition-colors shadow-xs cursor-pointer font-bold border border-outline-variant/20"
                   >
-                    <span className="material-symbols-outlined text-[20px]">
-                      volume_up
-                    </span>
+                    <Volume2 className="w-5 h-5" />
                     <span>Dengarkan Pelafalan Sakral &ldquo;Tabe Pue&rdquo;</span>
                   </button>
 
@@ -384,9 +362,7 @@ export default function EvaluasiJawabanPage() {
                     className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-primary text-on-primary font-label-lg font-bold shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
                   >
                     <span>Lanjut ke Perayaan Selesai</span>
-                    <span className="material-symbols-outlined text-[20px]">
-                      arrow_forward
-                    </span>
+                    <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
               </div>

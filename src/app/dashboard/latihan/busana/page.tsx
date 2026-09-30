@@ -3,50 +3,52 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  X,
+  Heart,
+  Shirt,
+  Sparkles,
+  HelpCircle,
+  Check,
+  CheckCircle2,
+  Circle,
+  ArrowRight,
+  Palette,
+  Eye,
+} from "lucide-react";
 
-interface Hotspot {
-  id: number;
-  name: string;
-  tag: string;
-  title: string;
-  description: string;
-  icon: string;
-  top: string;
-  left: string;
-}
-
-const hotspots: Hotspot[] = [
+const hotspots = [
   {
     id: 1,
-    name: "1. Sampa (Dada)",
-    tag: "FILOSOFI & KEAGUNGAN",
-    title: "Sampa (Kalung Dada Bertingkat)",
+    name: "Kerah Persegi Dada",
+    title: "Leher Lebar Persegi (Pola Berongga)",
     description:
-      "Melambangkan kehormatan, keagungan akhlak, serta status sosial terpandang bagi wanita Suku Kaili dalam tatanan adat.",
-    icon: "verified",
-    top: "28%",
-    left: "48%",
+      "Didesain lebar tanpa kancing kerah untuk kenyamanan iklim tropis Lembah Palu, sekaligus memudahkan pemakaian kalung bertingkat (Taiganja).",
+    tag: "Ornamen Atas",
+    Icon: Sparkles,
+    top: "22%",
+    left: "50%",
   },
   {
     id: 2,
-    name: "2. Baju Nggembe (Blus)",
-    tag: "SILUET & KESOPANAN",
-    title: "Baju Nggembe (Potongan Segi Empat)",
+    name: "Lengan Menggantung",
+    title: "Lengan Melebar Beruntai Benang Emas",
     description:
-      "Busana bersiluet longgar berlengan pendek hingga siku, melambangkan keanggunan dan kesopanan gerak-gerik putri Kaili.",
-    icon: "checkroom",
-    top: "44%",
-    left: "24%",
+      "Ujung lengan yang tidak dijahit rapat melambangkan keterbukaan budi pekerti perempuan Kaili dalam menerima tamu adat dan kekerabatan.",
+    tag: "Etika & Gerak",
+    Icon: Palette,
+    top: "38%",
+    left: "26%",
   },
   {
     id: 3,
-    name: "3. Sarung Donggala (Buya)",
-    tag: "WARISAN TENUN",
-    title: "Buya Sabe (Sarung Sutra Donggala)",
+    name: "Tenun Donggala Buya Sabe",
+    title: "Sarung Tenun Buya Sabe Corak Subolang",
     description:
-      "Kain tenun sutra Donggala bermotif Subolang atau Bomba, ditenun dengan benang emas asli lambang kemakmuran pesisir.",
-    icon: "palette",
-    top: "78%",
+      "Ditenun berbulan-bulan oleh penenun Donggala menggunakan benang sutra berpewarna alami, mencerminkan martabat tinggi sang pemakai.",
+    tag: "Tekstil Utama",
+    Icon: Eye,
+    top: "70%",
     left: "64%",
   },
 ];
@@ -56,16 +58,17 @@ export default function LatihanBusanaPage() {
   const [activeHotspotId, setActiveHotspotId] = useState(1);
   const [selectedAnswer, setSelectedAnswer] = useState<number>(0);
   const activeHotspot = hotspots.find((h) => h.id === activeHotspotId) || hotspots[0];
+  const ActiveIcon = activeHotspot.Icon;
 
   return (
-    <div className="min-h-screen bg-surface font-body-md text-on-surface flex flex-col antialiased">
+    <div className="min-h-screen bg-surface font-sans text-on-surface flex flex-col antialiased">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex items-center justify-between px-4 lg:px-8">
         <Link
-          href="/dashboard/belajar"
+          href="/dashboard"
           className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
         >
-          <span className="material-symbols-outlined text-[24px]">close</span>
+          <X className="w-6 h-6" />
         </Link>
 
         {/* Progress Bar */}
@@ -84,15 +87,9 @@ export default function LatihanBusanaPage() {
 
         {/* Lives */}
         <div className="flex items-center gap-1 bg-surface-container-low px-3 py-1.5 rounded-full shadow-xs">
-          <span className="material-symbols-outlined text-primary text-[18px] fill-current">
-            favorite
-          </span>
-          <span className="material-symbols-outlined text-primary text-[18px] fill-current">
-            favorite
-          </span>
-          <span className="material-symbols-outlined text-primary text-[18px] fill-current">
-            favorite
-          </span>
+          <Heart className="w-4 h-4 text-primary fill-current" />
+          <Heart className="w-4 h-4 text-primary fill-current" />
+          <Heart className="w-4 h-4 text-primary fill-current" />
         </div>
       </header>
 
@@ -101,9 +98,7 @@ export default function LatihanBusanaPage() {
         {/* Title */}
         <div className="mt-3">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold">
-            <span className="material-symbols-outlined text-[16px]">
-              apparel
-            </span>
+            <Shirt className="w-4 h-4" />
             <span>BUSANA ADAT • ANATOMI &amp; MAKNA</span>
           </div>
           <h1 className="text-headline-lg text-on-surface mt-2 font-extrabold tracking-tight">
@@ -150,9 +145,7 @@ export default function LatihanBusanaPage() {
                     {activeHotspotId === spot.id && (
                       <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping"></span>
                     )}
-                    <span className="material-symbols-outlined text-[16px]">
-                      {activeHotspotId === spot.id ? "flare" : "touch_app"}
-                    </span>
+                    <Sparkles className="w-4 h-4" />
                   </button>
                 </div>
               ))}
@@ -161,9 +154,7 @@ export default function LatihanBusanaPage() {
               <div className="absolute bottom-3 left-3 right-3 bg-surface-container-lowest/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-outline-variant/30 transition-all duration-300">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed shrink-0 mt-0.5">
-                    <span className="material-symbols-outlined text-[20px]">
-                      {activeHotspot.icon}
-                    </span>
+                    <ActiveIcon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
@@ -204,9 +195,7 @@ export default function LatihanBusanaPage() {
         {/* Quick Quiz Section */}
         <div className="mt-8">
           <div className="flex items-center gap-2 mb-2">
-            <span className="material-symbols-outlined text-secondary text-[22px]">
-              help_center
-            </span>
+            <HelpCircle className="text-secondary w-5 h-5" />
             <h3 className="text-headline-sm text-on-surface font-bold">
               Uji Pemahaman Singkat
             </h3>
@@ -234,23 +223,17 @@ export default function LatihanBusanaPage() {
                       : "bg-surface-container-highest text-on-surface-variant"
                   }`}
                 >
-                  {selectedAnswer === 1 ? (
-                    <span className="material-symbols-outlined text-[16px]">
-                      check
-                    </span>
-                  ) : (
-                    "A"
-                  )}
+                  {selectedAnswer === 1 ? <Check className="w-4 h-4" /> : "A"}
                 </div>
                 <span className="text-title-md text-on-surface font-bold truncate">
                   Upacara Adat Pernikahan &amp; Pesta Adat
                 </span>
               </div>
-              <span className="material-symbols-outlined text-primary text-[20px]">
-                {selectedAnswer === 1
-                  ? "radio_button_checked"
-                  : "radio_button_unchecked"}
-              </span>
+              {selectedAnswer === 1 ? (
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+              ) : (
+                <Circle className="w-5 h-5 text-outline-variant" />
+              )}
             </button>
 
             {/* Option 2 */}
@@ -270,11 +253,11 @@ export default function LatihanBusanaPage() {
                   Pakaian Kerja Sehari-hari di Ladang
                 </span>
               </div>
-              <span className="material-symbols-outlined text-outline-variant text-[20px]">
-                {selectedAnswer === 2
-                  ? "radio_button_checked"
-                  : "radio_button_unchecked"}
-              </span>
+              {selectedAnswer === 2 ? (
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+              ) : (
+                <Circle className="w-5 h-5 text-outline-variant" />
+              )}
             </button>
 
             {/* Option 3 */}
@@ -294,11 +277,11 @@ export default function LatihanBusanaPage() {
                   Upacara Duka Cita &amp; Masa Berkabung
                 </span>
               </div>
-              <span className="material-symbols-outlined text-outline-variant text-[20px]">
-                {selectedAnswer === 3
-                  ? "radio_button_checked"
-                  : "radio_button_unchecked"}
-              </span>
+              {selectedAnswer === 3 ? (
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+              ) : (
+                <Circle className="w-5 h-5 text-outline-variant" />
+              )}
             </button>
           </div>
         </div>
@@ -310,9 +293,7 @@ export default function LatihanBusanaPage() {
             className="w-full py-4 px-6 rounded-full bg-primary text-on-primary font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer font-bold text-base"
           >
             <span>Kirim Jawaban &amp; Buka Penjelasan</span>
-            <span className="material-symbols-outlined text-[20px]">
-              arrow_forward
-            </span>
+            <ArrowRight className="w-5 h-5" />
           </button>
         </div>
       </main>

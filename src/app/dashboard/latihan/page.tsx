@@ -3,37 +3,52 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  X,
+  Heart,
+  ArrowLeft,
+  MapPin,
+  Flame,
+  BadgeCheck,
+  Volume2,
+  AudioWaveform,
+  HelpCircle,
+  Check,
+  Lightbulb,
+  CheckCircle2,
+  BookOpen,
+  ArrowRight,
+} from "lucide-react";
 
-export default function LatihanBahasaPage() {
+export default function LatihanPage() {
   const router = useRouter();
   const [selectedOption, setSelectedOption] = useState<string>("A");
-  const [isAnswerChecked, setIsAnswerChecked] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
 
   const handleAudioPlay = () => {
     setIsPlayingAudio(true);
     setTimeout(() => {
       setIsPlayingAudio(false);
-    }, 1200);
+    }, 1800);
   };
 
   const handleContinue = () => {
-    if (!isAnswerChecked) {
-      setIsAnswerChecked(true);
-    } else {
+    if (selectedOption === "A") {
       router.push("/dashboard/evaluasi");
+    } else {
+      router.push("/dashboard/latihan/busana");
     }
   };
 
   return (
-    <div className="min-h-screen bg-background text-on-surface flex flex-col antialiased">
+    <div className="min-h-screen bg-background text-on-surface flex flex-col antialiased font-sans">
       {/* Top Header */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex items-center justify-between px-4 lg:px-8">
         <Link
-          href="/dashboard/belajar"
+          href="/dashboard"
           className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
         >
-          <span className="material-symbols-outlined text-[24px]">close</span>
+          <X className="w-6 h-6" />
         </Link>
 
         {/* Progress Bar */}
@@ -48,9 +63,7 @@ export default function LatihanBahasaPage() {
 
         {/* Lives / Hearts */}
         <div className="flex items-center gap-1 bg-error-container/40 px-3.5 py-1 rounded-full border border-error/20">
-          <span className="material-symbols-outlined text-error text-[20px] fill-current">
-            favorite
-          </span>
+          <Heart className="w-5 h-5 text-error fill-current" />
           <span className="text-label-lg text-error font-bold">3/3</span>
         </div>
       </header>
@@ -62,28 +75,22 @@ export default function LatihanBahasaPage() {
           <div className="px-6 py-3.5 bg-surface-container-low flex flex-wrap items-center justify-between gap-3 border-b border-surface-container">
             <div className="flex items-center gap-3">
               <Link
-                href="/dashboard/belajar"
+                href="/dashboard"
                 className="inline-flex items-center gap-1 text-on-surface-variant hover:text-on-surface text-label-md uppercase tracking-wider font-semibold"
               >
-                <span className="material-symbols-outlined text-[20px]">
-                  arrow_back
-                </span>
+                <ArrowLeft className="w-5 h-5" />
                 <span>Keluar Latihan</span>
               </Link>
               <div className="h-4 w-px bg-outline-variant"></div>
               <div className="flex items-center gap-1.5 bg-secondary-fixed text-on-secondary-fixed px-3 py-1 rounded-full text-label-sm font-bold">
-                <span className="material-symbols-outlined text-[16px]">
-                  location_on
-                </span>
+                <MapPin className="w-4 h-4" />
                 <span>Bahasa Kaili Ledo • Lembah Palu</span>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1 bg-surface-container-highest px-3 py-1 rounded-full">
-                <span className="material-symbols-outlined text-primary text-[18px]">
-                  local_fire_department
-                </span>
+              <div className="flex items-center gap-1.5 bg-surface-container-highest px-3 py-1 rounded-full">
+                <Flame className="w-4 h-4 text-primary" />
                 <span className="text-label-md text-on-surface font-bold">
                   6 Hari Streak
                 </span>
@@ -108,9 +115,7 @@ export default function LatihanBahasaPage() {
               <div className="flex flex-col gap-4 relative z-10">
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container/20 text-on-secondary-container text-label-sm font-bold">
-                    <span className="material-symbols-outlined text-[16px]">
-                      verified
-                    </span>
+                    <BadgeCheck className="w-4 h-4" />
                     Etika &amp; Tata Krama
                   </span>
                   <span className="text-label-sm text-on-surface-variant">
@@ -133,9 +138,11 @@ export default function LatihanBahasaPage() {
                       onClick={handleAudioPlay}
                       className="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center hover:opacity-90 active:scale-95 transition-all shadow-md cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[24px]">
-                        {isPlayingAudio ? "graphic_eq" : "volume_up"}
-                      </span>
+                      {isPlayingAudio ? (
+                        <AudioWaveform className="w-6 h-6 animate-pulse" />
+                      ) : (
+                        <Volume2 className="w-6 h-6" />
+                      )}
                     </button>
                   </div>
 
@@ -185,9 +192,7 @@ export default function LatihanBahasaPage() {
             <div className="lg:col-span-7 p-6 lg:p-8 flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-1.5 text-primary mb-1">
-                  <span className="material-symbols-outlined text-[20px]">
-                    help
-                  </span>
+                  <HelpCircle className="w-5 h-5" />
                   <span className="text-label-md uppercase tracking-wider font-bold">
                     Pertanyaan 03
                   </span>
@@ -222,9 +227,7 @@ export default function LatihanBahasaPage() {
                       }`}
                     >
                       {selectedOption === "A" ? (
-                        <span className="material-symbols-outlined text-[18px]">
-                          check
-                        </span>
+                        <Check className="w-4 h-4" />
                       ) : (
                         "A"
                       )}
@@ -335,10 +338,8 @@ export default function LatihanBahasaPage() {
               </div>
 
               <div className="mt-6 flex items-center justify-between text-on-surface-variant text-label-sm">
-                <span className="flex items-center gap-1 font-medium">
-                  <span className="material-symbols-outlined text-[18px] text-secondary">
-                    lightbulb
-                  </span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Lightbulb className="w-4 h-4 text-secondary" />
                   Tips: Perhatikan gestur fisik saat kata ini diucapkan.
                 </span>
                 <button
@@ -355,9 +356,7 @@ export default function LatihanBahasaPage() {
           <div className="p-5 lg:p-6 bg-surface-container-lowest shadow-[0_-8px_24px_rgba(0,0,0,0.06)] flex flex-col md:flex-row items-center justify-between gap-4 z-20 border-t border-surface-container">
             <div className="flex items-start gap-3 flex-1">
               <div className="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0 shadow-xs">
-                <span className="material-symbols-outlined text-[28px]">
-                  check_circle
-                </span>
+                <CheckCircle2 className="w-7 h-7" />
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -365,9 +364,7 @@ export default function LatihanBahasaPage() {
                     Tepat Sekali! (+15 XP)
                   </h3>
                   <span className="inline-flex items-center gap-1 text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant font-medium">
-                    <span className="material-symbols-outlined text-[14px]">
-                      menu_book
-                    </span>
+                    <BookOpen className="w-3.5 h-3.5" />
                     Balai Bahasa Sulteng
                   </span>
                 </div>
@@ -386,9 +383,7 @@ export default function LatihanBahasaPage() {
                 className="w-full md:w-auto px-8 py-3.5 bg-primary text-on-primary rounded-full font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer font-bold"
               >
                 <span>Lanjut ke Evaluasi Jawaban</span>
-                <span className="material-symbols-outlined text-[20px]">
-                  arrow_forward
-                </span>
+                <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </div>

@@ -1,201 +1,343 @@
 ﻿"use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import TopBar from "../components/TopBar";
+import {
+  Flame,
+  Zap,
+  Heart,
+  Star,
+  BookOpen,
+  Shirt,
+  Sparkles,
+  Gift,
+  Lock,
+  Check,
+  Play,
+  ArrowRight,
+  Trophy,
+  Volume2,
+} from "lucide-react";
 
-export default function DashboardHome() {
-  const isNewUser = true;
-  const primaryAction = isNewUser
-    ? { href: "/dashboard/arcade", label: "Mulai game", icon: "sports_esports" }
-    : { href: "/dashboard/latihan", label: "Lanjutkan misi", icon: "play_arrow" };
+interface PathNode {
+  id: number;
+  title: string;
+  subtitle: string;
+  type: "lesson" | "attire" | "chest" | "review";
+  status: "completed" | "active" | "locked";
+  offset: "center" | "left" | "right";
+  href: string;
+  xp: number;
+}
+
+const pathNodes: PathNode[] = [
+  {
+    id: 1,
+    title: "Salam & Adab Tabe",
+    subtitle: "Pelajaran 1 • Kaili Ledo",
+    type: "lesson",
+    status: "completed",
+    offset: "center",
+    href: "/dashboard/latihan",
+    xp: 15,
+  },
+  {
+    id: 2,
+    title: "Sapaan Orang Tua & Kerabat",
+    subtitle: "Pelajaran 2 • Kosakata Sopan",
+    type: "lesson",
+    status: "completed",
+    offset: "left",
+    href: "/dashboard/latihan",
+    xp: 15,
+  },
+  {
+    id: 3,
+    title: "Peti Budaya: Kosakata Rahasia",
+    subtitle: "Hadiah Milestone Bab 1",
+    type: "chest",
+    status: "completed",
+    offset: "center",
+    href: "/dashboard/paspor",
+    xp: 25,
+  },
+  {
+    id: 4,
+    title: "Kenali Anatomi Baju Nggembe",
+    subtitle: "Pelajaran 3 • Busana Adat",
+    type: "attire",
+    status: "active",
+    offset: "right",
+    href: "/dashboard/latihan/busana",
+    xp: 20,
+  },
+  {
+    id: 5,
+    title: "Skenario Souraja Adat",
+    subtitle: "Pelajaran 4 • Culture Connection",
+    type: "review",
+    status: "locked",
+    offset: "center",
+    href: "/dashboard/culture-connection",
+    xp: 30,
+  },
+  {
+    id: 6,
+    title: "Ujian Kelulusan Bab 1",
+    subtitle: "Pelajaran 5 • Lencana Paspor",
+    type: "lesson",
+    status: "locked",
+    offset: "left",
+    href: "/dashboard/evaluasi",
+    xp: 50,
+  },
+];
+
+export default function DashboardPage() {
+  const [selectedNode, setSelectedNode] = useState<PathNode | null>(pathNodes[3]);
 
   return (
-    <>
-      <TopBar />
+    <div className="min-h-screen bg-surface font-sans text-on-surface flex flex-col xl:flex-row justify-center max-w-7xl mx-auto">
+      {/* ── CENTRAL COLUMN: Duolingo Snake Learning Path ── */}
+      <div className="flex-1 max-w-2xl w-full mx-auto px-4 py-6 md:py-8 flex flex-col items-center">
+        {/* Sticky Unit Header Banner */}
+        <div className="w-full bg-primary text-on-primary rounded-3xl p-5 mb-8 shadow-[0_5px_0_0_#881f00] flex items-center justify-between">
+          <div>
+            <span className="text-xs uppercase font-black tracking-widest text-primary-fixed block">
+              Unit 1 • Sulawesi Tengah
+            </span>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight mt-0.5">
+              Salam, Sapaan &amp; Busana Kaili
+            </h1>
+            <p className="text-xs sm:text-sm font-semibold text-primary-fixed mt-1">
+              Kuasai adab bertutur santun dan filosofi Baju Nggembe.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/culture-connection"
+            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-surface text-primary font-black text-xs uppercase tracking-wider shadow-[0_3px_0_0_#ffdbd1] hover:bg-surface-container active:translate-y-0.5 transition-all shrink-0"
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Panduan</span>
+          </Link>
+        </div>
 
-      <main className="relative min-h-screen w-full px-3 pb-20 pt-20 sm:px-4 lg:px-6">
-        <div className="mx-auto max-w-5xl space-y-4">
-          <section className="overflow-hidden rounded-[24px] bg-gradient-to-br from-[#fef3e8] via-[#f7d7b8] to-[#ef8f5a] p-4 shadow-[0_12px_22px_-16px_rgba(168,50,17,0.3)] ring-1 ring-[#f3c9a7] sm:p-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-xl">
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="rounded-full bg-white/70 px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-primary">
-                    {isNewUser ? "Pemula baru" : "Misi Hari Ini"}
-                  </span>
-                </div>
+        {/* Learning Path Nodes (Snake / Zigzag) */}
+        <div className="w-full flex flex-col items-center space-y-7 relative pb-28">
+          {pathNodes.map((node) => {
+            const isCompleted = node.status === "completed";
+            const isActive = node.status === "active";
+            const isLocked = node.status === "locked";
 
-                <h1 className="text-2xl font-black tracking-tight text-[#3c1d12] sm:text-3xl">
-                  {isNewUser ? "Mau mulai petualangan budaya?" : "Level 3: Salam & Hormat"}
-                </h1>
-                <p className="mt-2 text-sm text-[#543127] sm:text-base">
-                  {isNewUser
-                    ? "Mulai dengan tantangan cepat dan bangun streak sambil belajar bahasa dan adat Kaili."
-                    : "Selesaikan tantangan kecil hari ini untuk naik level dan buka lencana budaya baru."}
-                </p>
-              </div>
+            // Horizontal alignment offset to create the Duolingo S-curve
+            const offsetClass =
+              node.offset === "left"
+                ? "-translate-x-12 sm:-translate-x-16"
+                : node.offset === "right"
+                ? "translate-x-12 sm:translate-x-16"
+                : "translate-x-0";
 
-              <div className="flex items-center gap-2 self-start rounded-full bg-[#fff0e3]/80 px-2.5 py-1.5 shadow-[0_6px_16px_rgba(132,54,16,0.12)] ring-1 ring-white/50">
-                <span className="material-symbols-outlined text-[18px] text-primary">local_fire_department</span>
-                <div>
-                  <div className="text-[9px] uppercase tracking-[0.12em] text-[#704433]">Streak</div>
-                  <div className="text-base font-black text-[#472518]">5 hari</div>
-                </div>
-              </div>
-            </div>
+            return (
+              <div
+                key={node.id}
+                className={`relative flex flex-col items-center ${offsetClass} transition-transform`}
+              >
+                {/* Active Floating Speech Bubble */}
+                {isActive && (
+                  <div className="absolute -top-12 z-20 animate-bounce">
+                    <div className="bg-surface-container-lowest border-2 border-primary/30 px-3.5 py-1.5 rounded-2xl shadow-lg flex items-center gap-1.5 font-black text-xs text-primary uppercase tracking-wider whitespace-nowrap">
+                      <span>MULAI!</span>
+                      <Play className="w-3 h-3 fill-current" />
+                    </div>
+                  </div>
+                )}
 
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="rounded-full bg-[#fff8f1] px-2.5 py-1.5 text-xs font-bold text-[#472518] shadow-sm">
-                  480 XP
-                </div>
-                <div className="rounded-full bg-[#fff8f1] px-2.5 py-1.5 text-xs font-bold text-[#472518] shadow-sm">
-                  Level 3
-                </div>
-                <div className="rounded-full bg-[#fff8f1] px-2.5 py-1.5 text-xs font-bold text-[#472518] shadow-sm">
-                  {isNewUser ? "Challenge baru" : "2 misi tersisa"}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Link
-                  href={primaryAction.href}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1d120d] px-4 py-2.5 text-sm font-extrabold text-[#fff7f1] shadow-[0_4px_0_0_#4a2214] transition-all hover:translate-y-[-1px]"
+                {/* The 3D Tactile Node Button */}
+                <button
+                  onClick={() => setSelectedNode(node)}
+                  className={`w-20 h-20 sm:w-22 sm:h-22 rounded-full flex items-center justify-center transition-all cursor-pointer select-none active:translate-y-1 ${
+                    isActive
+                      ? "bg-primary text-on-primary shadow-[0_6px_0_0_#881f00] ring-8 ring-primary/20 scale-105 active:shadow-[0_2px_0_0_#881f00]"
+                      : isCompleted
+                      ? "bg-secondary-container text-on-secondary-container shadow-[0_5px_0_0_#684000] active:shadow-[0_2px_0_0_#684000]"
+                      : "bg-surface-container-high text-outline shadow-[0_5px_0_0_#c0b8c4] active:shadow-[0_2px_0_0_#c0b8c4]"
+                  }`}
+                  aria-label={node.title}
                 >
-                  <span className="material-symbols-outlined text-[16px]">{primaryAction.icon}</span>
-                  {primaryAction.label}
-                </Link>
+                  {node.type === "chest" ? (
+                    <Gift className="w-9 h-9" />
+                  ) : node.type === "attire" ? (
+                    <Shirt className="w-9 h-9" />
+                  ) : isCompleted ? (
+                    <Check className="w-10 h-10 stroke-[3]" />
+                  ) : isLocked ? (
+                    <Lock className="w-8 h-8" />
+                  ) : (
+                    <Star className="w-9 h-9 fill-current" />
+                  )}
+                </button>
 
-                <Link
-                  href={isNewUser ? "/dashboard/latihan" : "/dashboard/arcade"}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white/70 px-4 py-2.5 text-sm font-bold text-[#432615] shadow-sm ring-1 ring-white/60 transition-all hover:bg-white"
-                >
-                  <span className="material-symbols-outlined text-[16px]">
-                    {isNewUser ? "play_arrow" : "sports_esports"}
-                  </span>
-                  {isNewUser ? "Lanjut belajar" : "Main game"}
-                </Link>
-              </div>
-            </div>
-          </section>
-
-          <div className="grid gap-4 lg:grid-cols-[1.45fr_0.85fr]">
-            <section className="rounded-[22px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25 sm:p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
-                    Path ku
-                  </p>
-                  <h2 className="mt-1 text-lg font-extrabold text-on-surface">Quest aktif</h2>
-                </div>
-                <span className="rounded-full bg-primary-fixed px-2 py-1 text-[10px] font-bold text-on-primary-fixed">
-                  3/5
+                {/* Tiny node label */}
+                <span className="text-[11px] font-black text-on-surface-variant mt-2 text-center max-w-[120px] line-clamp-1">
+                  {node.title}
                 </span>
               </div>
+            );
+          })}
+        </div>
 
-              <div className="space-y-2.5">
-                <Link href="/dashboard/belajar" className="block rounded-2xl bg-surface-container p-3.5 ring-1 ring-outline-variant/20 transition hover:bg-surface-container-high">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[9px] uppercase tracking-[0.12em] text-on-surface-variant">
-                        Level 1
-                      </p>
-                      <h3 className="mt-1 text-base font-extrabold text-on-surface">Salam &amp; sapaan</h3>
-                    </div>
-                    <span className="material-symbols-outlined text-[20px] text-primary">check_circle</span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-container-high">
-                    <div className="h-full w-full rounded-full bg-primary" />
-                  </div>
-                </Link>
-
-                <Link href="/dashboard/belajar" className="block rounded-2xl bg-surface-container p-3.5 ring-1 ring-outline-variant/20 transition hover:bg-surface-container-high">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[9px] uppercase tracking-[0.12em] text-on-surface-variant">
-                        Level 2
-                      </p>
-                      <h3 className="mt-1 text-base font-extrabold text-on-surface">Kesantunan adat</h3>
-                    </div>
-                    <span className="material-symbols-outlined text-[20px] text-primary">play_circle</span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-container-high">
-                    <div className="h-full w-[70%] rounded-full bg-primary" />
-                  </div>
-                </Link>
-
-                <Link href="/dashboard/belajar" className="block rounded-2xl bg-surface-container p-3.5 ring-1 ring-outline-variant/20 opacity-80 transition hover:bg-surface-container-high">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[9px] uppercase tracking-[0.12em] text-on-surface-variant">
-                        Level 3
-                      </p>
-                      <h3 className="mt-1 text-base font-extrabold text-on-surface">Busana Nggembe</h3>
-                    </div>
-                    <span className="material-symbols-outlined text-[20px] text-on-surface-variant">lock</span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-container-high">
-                    <div className="h-full w-[35%] rounded-full bg-surface-variant" />
-                  </div>
-                </Link>
+        {/* Modal Popover when Node is Clicked (Duolingo Style Card) */}
+        {selectedNode && (
+          <div className="fixed inset-x-4 bottom-20 md:bottom-8 max-w-md mx-auto z-50 bg-surface-container-lowest border-2 border-outline-variant/40 rounded-3xl p-5 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="text-xs font-black uppercase tracking-wider text-primary">
+                  {selectedNode.subtitle}
+                </span>
+                <h3 className="text-lg font-black text-on-surface mt-0.5">
+                  {selectedNode.title}
+                </h3>
               </div>
-            </section>
+              <span className="px-2.5 py-1 rounded-xl bg-secondary-fixed text-on-secondary-fixed font-black text-xs shrink-0">
+                +{selectedNode.xp} XP
+              </span>
+            </div>
 
-            <aside className="space-y-3">
-              <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
-                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
-                  Progress
-                </p>
-                <div className="mt-3 flex items-center gap-3">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full border-[5px] border-primary/20 bg-surface-container text-lg font-black text-primary">
-                    68%
-                  </div>
-                  <div>
-                    <p className="text-xs text-on-surface-variant">Target harian</p>
-                    <p className="text-base font-black text-on-surface">3/5 quest</p>
-                  </div>
-                </div>
-              </div>
+            <div className="mt-4 flex gap-2">
+              <Link
+                href={selectedNode.href}
+                className="flex-1 text-center py-3 px-4 rounded-2xl bg-primary text-on-primary font-black text-sm uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2"
+              >
+                <span>{selectedNode.status === "completed" ? "Latih Ulang" : "Mulai Belajar"}</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <button
+                onClick={() => setSelectedNode(null)}
+                className="py-3 px-4 rounded-2xl bg-surface-container text-on-surface font-black text-sm uppercase tracking-wider hover:bg-surface-container-high active:translate-y-1 transition-all cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
-              <div className="rounded-[20px] bg-gradient-to-br from-[#f5dfd0] to-[#f7bf8e] p-3.5 shadow-xs ring-1 ring-[#e8b692]">
-                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#6e3a21]">
-                  Daily bonus
-                </p>
-                <h3 className="mt-2 text-lg font-black text-[#3f2113]">+20 XP</h3>
-                <p className="mt-1 text-xs text-[#6e3a21]">Selesaikan 1 review cepat untuk klaim bonus.</p>
-              </div>
-            </aside>
+      {/* ── RIGHT COLUMN: Duolingo Gamification Stats & Quest Sidebar ── */}
+      <aside className="w-full xl:w-80 px-4 py-6 md:py-8 flex flex-col gap-6 shrink-0 border-t-2 xl:border-t-0 xl:border-l-2 border-outline-variant/20">
+        {/* Top Status Indicators (Flame, XP, Hearts) */}
+        <div className="flex items-center justify-between p-3 rounded-2xl bg-surface-container-lowest border-2 border-outline-variant/30 shadow-sm">
+          {/* Region */}
+          <div className="flex items-center gap-1.5 text-xs font-black text-on-surface">
+            <span className="text-base">🏝️</span>
+            <span>KAILI</span>
           </div>
 
-          <section className="grid gap-3 md:grid-cols-3">
-            <Link href="/dashboard/arcade" className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25 transition hover:bg-surface-container">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-secondary-fixed text-secondary">
-                <span className="material-symbols-outlined text-[22px]">sports_esports</span>
-              </div>
-              <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Mini game</p>
-              <h3 className="mt-1.5 text-lg font-extrabold text-on-surface">Arcade</h3>
-              <p className="mt-1 text-xs text-on-surface-variant">Jawab cepat untuk dapat combo dan XP.</p>
-            </Link>
+          {/* Streak */}
+          <div className="flex items-center gap-1 text-primary font-black text-sm">
+            <Flame className="w-5 h-5 fill-current" />
+            <span>5</span>
+          </div>
 
-            <Link href="/dashboard/paspor" className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25 transition hover:bg-surface-container">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-fixed text-primary">
-                <span className="material-symbols-outlined text-[22px]">workspace_premium</span>
-              </div>
-              <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Prestasi</p>
-              <h3 className="mt-1.5 text-lg font-extrabold text-on-surface">Paspor</h3>
-              <p className="mt-1 text-xs text-on-surface-variant">Lihat level budaya, lencana, dan kemajuanmu.</p>
-            </Link>
+          {/* XP */}
+          <div className="flex items-center gap-1 text-secondary font-black text-sm">
+            <Zap className="w-5 h-5 fill-current" />
+            <span>480</span>
+          </div>
 
-            <Link href="/dashboard/profil" className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25 transition hover:bg-surface-container">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-tertiary-fixed text-tertiary">
-                <span className="material-symbols-outlined text-[22px]">person</span>
-              </div>
-              <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Profil</p>
-              <h3 className="mt-1.5 text-lg font-extrabold text-on-surface">Akun</h3>
-              <p className="mt-1 text-xs text-on-surface-variant">Cek streak, avatar, dan pengaturan belajar.</p>
-            </Link>
-          </section>
+          {/* Hearts */}
+          <div className="flex items-center gap-1 text-error font-black text-sm">
+            <Heart className="w-5 h-5 fill-current" />
+            <span>3</span>
+          </div>
         </div>
-      </main>
-    </>
+
+        {/* Daily Quests Box */}
+        <div className="bg-surface-container-lowest border-2 border-outline-variant/30 rounded-3xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-black text-base text-on-surface tracking-tight">
+              Target Harian
+            </h3>
+            <Link
+              href="/dashboard/paspor"
+              className="text-xs font-black uppercase tracking-wider text-primary hover:underline"
+            >
+              Lihat Semua
+            </Link>
+          </div>
+
+          {/* Quest 1 */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-on-surface">
+              <span className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-secondary" />
+                Dapatkan 50 XP hari ini
+              </span>
+              <span className="text-on-surface-variant font-mono">35/50</span>
+            </div>
+            <div className="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+              <div className="bg-secondary h-full rounded-full w-[70%]" />
+            </div>
+          </div>
+
+          {/* Quest 2 */}
+          <div className="space-y-2 pt-2 border-t border-outline-variant/20">
+            <div className="flex items-center justify-between text-xs font-bold text-on-surface">
+              <span className="flex items-center gap-2">
+                <Volume2 className="w-4 h-4 text-primary" />
+                Selesaikan 1 sesi audio Tabe
+              </span>
+              <span className="text-primary font-black">SELESAI ✓</span>
+            </div>
+            <div className="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+              <div className="bg-primary h-full rounded-full w-full" />
+            </div>
+          </div>
+        </div>
+
+        {/* Mini Cultural Artifact Spotlight */}
+        <div className="bg-surface-container-lowest border-2 border-outline-variant/30 rounded-3xl p-5 shadow-sm space-y-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-secondary" />
+            <h3 className="font-black text-base text-on-surface tracking-tight">
+              Artefak Terbuka
+            </h3>
+          </div>
+
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-surface-container-low border border-outline-variant/20">
+            <div className="w-12 h-12 rounded-xl bg-secondary-fixed flex items-center justify-center text-secondary text-2xl shrink-0">
+              👔
+            </div>
+            <div className="min-w-0">
+              <p className="font-black text-sm text-on-surface truncate">
+                Baju Nggembe &amp; Buya Sabe
+              </p>
+              <p className="text-xs text-on-surface-variant font-medium">
+                Pakaian resmi putri Kaili
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Paspor Budaya Shortcut */}
+        <div className="bg-gradient-to-br from-primary/10 via-surface-container-low to-secondary/10 border-2 border-primary/20 rounded-3xl p-5 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-primary text-on-primary flex items-center justify-center shadow-md shrink-0">
+              <Trophy className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="font-black text-sm text-on-surface">Paspor Budaya</h4>
+              <p className="text-xs text-on-surface-variant font-semibold">Tingkat 1: Penutur Muda</p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/paspor"
+            className="p-2.5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 text-primary hover:bg-surface-container transition-all"
+            aria-label="Buka Paspor Budaya"
+          >
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+        </div>
+      </aside>
+    </div>
   );
 }

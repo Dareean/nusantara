@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ArrowLeft, Home, MapPin, Zap } from "lucide-react";
 
 interface TopBarProps {
   title?: string;
@@ -34,9 +35,7 @@ export default function TopBar({
               href={backHref}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container hover:bg-surface-container-high transition-colors"
             >
-              <span className="material-symbols-outlined text-[20px] text-on-surface">
-                arrow_back
-              </span>
+              <ArrowLeft className="w-5 h-5 text-on-surface" />
             </Link>
           ) : (
             <div className="flex shrink-0 items-center gap-2 lg:gap-3">
@@ -78,7 +77,7 @@ export default function TopBar({
             className="inline-flex items-center gap-1.5 rounded-full bg-primary text-on-primary px-3 py-1.5 text-label-md font-bold shadow-[0_2px_0_0_#881f00] transition-all hover:bg-primary-container"
             aria-label="Kembali ke Beranda"
           >
-            <span className="material-symbols-outlined text-[18px]">home</span>
+            <Home className="w-4 h-4" />
             <span className="hidden sm:inline">Beranda</span>
           </Link>
 
@@ -95,9 +94,7 @@ export default function TopBar({
             </div>
           ) : (
             <div className="hidden min-[980px]:flex items-center gap-2 rounded-full bg-surface-container-lowest px-2 py-1.5 shadow-[0_1px_4px_rgba(0,0,0,0.04)] ring-1 ring-outline-variant/30">
-              <span className="material-symbols-outlined text-primary text-[18px]">
-                location_on
-              </span>
+              <MapPin className="text-primary w-4 h-4" />
               <span className="text-label-md text-on-surface">
                 Sulawesi Tengah • Suku Kaili (Ledo)
               </span>
@@ -107,9 +104,7 @@ export default function TopBar({
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-1 bg-secondary-fixed px-2.5 py-1.5 rounded-full text-on-secondary-fixed font-bold text-label-md shadow-xs">
-            <span className="material-symbols-outlined text-secondary text-[18px] fill-current">
-              bolt
-            </span>
+            <Zap className="text-secondary w-4 h-4 fill-current" />
             <span className="hidden min-[360px]:inline">480 XP</span>
             <span className="min-[360px]:hidden">480</span>
           </div>

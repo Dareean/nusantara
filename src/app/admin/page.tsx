@@ -2,6 +2,26 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import {
+  ShieldAlert,
+  ArrowLeft,
+  Sparkles,
+  Search,
+  BookOpen,
+  BadgeCheck,
+  Timer,
+  Info,
+  ChevronDown,
+  Volume2,
+  CheckCircle2,
+  AlertTriangle,
+  Lock,
+  History,
+  Landmark,
+  PlusCircle,
+  X,
+  AudioWaveform,
+} from "lucide-react";
 
 interface CulturalEntry {
   id: string;
@@ -205,7 +225,7 @@ export default function AdminPage() {
           </Link>
           <span className="hidden sm:inline-block text-outline-variant">•</span>
           <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold">
-            <span className="material-symbols-outlined text-[16px]">shield_person</span>
+            <ShieldAlert className="w-4 h-4" />
             <span>Dewan Kurator Adat Wilayah XVIII</span>
           </span>
         </div>
@@ -215,7 +235,7 @@ export default function AdminPage() {
             href="/dashboard"
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md transition-all"
           >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Kembali ke Dashboard Murid</span>
           </Link>
           <div className="flex items-center gap-2 pl-2 border-l border-outline-variant/30">
@@ -242,7 +262,7 @@ export default function AdminPage() {
         <div className="rounded-2xl bg-surface-container-high p-4 sm:p-5 shadow-sm border border-outline-variant/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-3.5">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shrink-0 shadow-sm">
-              <span className="material-symbols-outlined text-[22px]">policy</span>
+              <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -279,9 +299,7 @@ export default function AdminPage() {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="space-y-1.5 max-w-3xl">
             <div className="flex items-center gap-2 text-on-surface-variant text-label-md">
-              <span className="material-symbols-outlined text-[18px] text-primary">
-                verified_user
-              </span>
+              <BadgeCheck className="w-5 h-5 text-primary" />
               <span className="uppercase tracking-wider text-primary font-bold">
                 Sistem Verifikasi &amp; Sumber Konten Budaya
               </span>
@@ -303,9 +321,7 @@ export default function AdminPage() {
           {/* Action CTAs */}
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container-low text-on-surface border border-outline-variant/30">
-              <span className="material-symbols-outlined text-[20px] text-tertiary">
-                location_on
-              </span>
+              <Sparkles className="w-5 h-5 text-tertiary" />
               <div className="flex flex-col">
                 <span className="text-label-sm text-on-surface-variant leading-none">
                   Wilayah Riset
@@ -318,9 +334,9 @@ export default function AdminPage() {
 
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary hover:bg-primary-container text-on-primary text-label-lg font-bold transition-transform active:translate-y-0.5 shadow-[0_3px_0_0_#881f00]"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary hover:bg-primary-container text-on-primary text-label-lg font-bold transition-transform active:translate-y-0.5 shadow-[0_3px_0_0_#881f00] cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[20px]">add_circle</span>
+              <PlusCircle className="w-5 h-5" />
               <span>+ Tambah Entri Budaya</span>
             </button>
           </div>
@@ -335,7 +351,7 @@ export default function AdminPage() {
                 Total Konten Aktif
               </span>
               <div className="w-9 h-9 rounded-xl bg-surface-container-low flex items-center justify-center text-on-surface">
-                <span className="material-symbols-outlined text-[20px]">auto_stories</span>
+                <BookOpen className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4 flex items-baseline gap-2">
@@ -360,7 +376,7 @@ export default function AdminPage() {
                 Terverifikasi (Verified)
               </span>
               <div className="w-9 h-9 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
-                <span className="material-symbols-outlined text-[20px]">verified</span>
+                <BadgeCheck className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4 flex items-baseline gap-2">
@@ -375,9 +391,7 @@ export default function AdminPage() {
               </span>
             </div>
             <div className="mt-2 flex items-center gap-1 text-body-sm text-on-surface-variant">
-              <span className="material-symbols-outlined text-[16px] text-secondary">
-                check_circle
-              </span>
+              <CheckCircle2 className="w-4 h-4 text-secondary" />
               <span>Disahkan Tetua Adat &amp; BPK XVIII</span>
             </div>
             <div className="w-full bg-surface-container rounded-full h-1.5 mt-3 overflow-hidden">
@@ -392,7 +406,7 @@ export default function AdminPage() {
                 Menunggu Review
               </span>
               <div className="w-9 h-9 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
-                <span className="material-symbols-outlined text-[20px]">hourglass_top</span>
+                <Timer className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4 flex items-baseline gap-2">
@@ -417,7 +431,7 @@ export default function AdminPage() {
                 Disputed (Catatan Varian)
               </span>
               <div className="w-9 h-9 rounded-xl bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
-                <span className="material-symbols-outlined text-[20px]">quick_reference</span>
+                <BookOpen className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4 flex items-baseline gap-2">
@@ -427,7 +441,7 @@ export default function AdminPage() {
               <span className="text-body-sm text-on-surface-variant">Dialek Varian</span>
             </div>
             <div className="mt-2 flex items-center gap-1 text-body-sm text-on-surface-variant">
-              <span className="material-symbols-outlined text-[16px] text-tertiary">info</span>
+              <Info className="w-4 h-4 text-tertiary" />
               <span>Memerlukan catatan komparatif</span>
             </div>
             <div className="w-full bg-surface-container rounded-full h-1.5 mt-3 overflow-hidden">
@@ -509,9 +523,7 @@ export default function AdminPage() {
             {/* Search & Category Filter */}
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <div className="relative w-full sm:w-60">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">
-                  search
-                </span>
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-outline w-4 h-4 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Cari materi / dialek..."
@@ -532,9 +544,7 @@ export default function AdminPage() {
                   <option value="busana">Busana &amp; Rias Adat</option>
                   <option value="tenun">Tenun &amp; Kriya</option>
                 </select>
-                <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">
-                  expand_more
-                </span>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline w-4 h-4 pointer-events-none" />
               </div>
             </div>
           </div>
@@ -569,9 +579,7 @@ export default function AdminPage() {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <span className="material-symbols-outlined text-primary text-[24px]">
-                              {entry.icon || "translate"}
-                            </span>
+                            <BookOpen className="text-primary w-6 h-6" />
                           )}
                         </div>
                         <div>
@@ -585,12 +593,14 @@ export default function AdminPage() {
                                   setIsPlayingAudio(true);
                                   setTimeout(() => setIsPlayingAudio(false), 1500);
                                 }}
-                                className="text-tertiary hover:text-tertiary-container"
+                                className="text-tertiary hover:text-tertiary-container cursor-pointer"
                                 title="Dengarkan Fonetik"
                               >
-                                <span className="material-symbols-outlined text-[18px]">
-                                  {isPlayingAudio ? "graphic_eq" : "volume_up"}
-                                </span>
+                                {isPlayingAudio ? (
+                                  <AudioWaveform className="w-4 h-4 animate-pulse" />
+                                ) : (
+                                  <Volume2 className="w-4 h-4" />
+                                )}
                               </button>
                             )}
                           </div>
@@ -636,29 +646,25 @@ export default function AdminPage() {
                     <td className="py-4 px-4 text-center">
                       {entry.status === "verified" && (
                         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold shadow-sm">
-                          <span className="material-symbols-outlined text-[14px]">
-                            check_circle
-                          </span>
+                          <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>Verified ✓</span>
                         </span>
                       )}
                       {entry.status === "pending" && (
                         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-label-sm font-bold shadow-sm float-lift">
-                          <span className="material-symbols-outlined text-[14px]">
-                            hourglass_top
-                          </span>
+                          <Timer className="w-3.5 h-3.5" />
                           <span>Pending Review ⏳</span>
                         </span>
                       )}
                       {entry.status === "disputed" && (
                         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-bold shadow-sm">
-                          <span className="material-symbols-outlined text-[14px]">warning</span>
+                          <AlertTriangle className="w-3.5 h-3.5" />
                           <span>Disputed ⚠️</span>
                         </span>
                       )}
                       {entry.status === "draft" && (
                         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-label-sm font-bold shadow-sm">
-                          <span className="material-symbols-outlined text-[14px]">lock</span>
+                          <Lock className="w-3.5 h-3.5" />
                           <span>Draft 🔒</span>
                         </span>
                       )}
@@ -674,7 +680,7 @@ export default function AdminPage() {
                       )}
                       {entry.gating === "blocked" && (
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-error-container text-on-error-container text-label-sm font-bold">
-                          <span className="material-symbols-outlined text-[14px]">lock</span>
+                          <Lock className="w-3.5 h-3.5" />
                           <span>Ditahan / Blocked</span>
                         </div>
                       )}
@@ -729,7 +735,7 @@ export default function AdminPage() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
-                    <span className="material-symbols-outlined text-[20px]">history_edu</span>
+                    <History className="w-5 h-5" />
                   </div>
                   <div>
                     <h2 className="text-title-md font-bold text-on-surface">
@@ -746,9 +752,7 @@ export default function AdminPage() {
               <div className="space-y-3">
                 <div className="p-3.5 rounded-xl bg-surface-container-low flex items-start justify-between gap-4 border border-outline-variant/20">
                   <div className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-secondary text-[20px] mt-0.5">
-                      verified
-                    </span>
+                    <BadgeCheck className="w-5 h-5 text-secondary mt-0.5 shrink-0" />
                     <div>
                       <p className="text-label-md font-bold text-on-surface">
                         Pemberian Status Sah: Frasa &ldquo;Tabe&rdquo; &amp; &ldquo;Nggembe&rdquo;
@@ -764,9 +768,7 @@ export default function AdminPage() {
 
                 <div className="p-3.5 rounded-xl bg-surface-container-low flex items-start justify-between gap-4 border border-outline-variant/20">
                   <div className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-tertiary text-[20px] mt-0.5">
-                      announcement
-                    </span>
+                    <Info className="w-5 h-5 text-tertiary mt-0.5 shrink-0" />
                     <div>
                       <p className="text-label-md font-bold text-on-surface">
                         Catatan Edukatif Disematkan pada Istilah &ldquo;Sampa&rdquo;
@@ -788,7 +790,7 @@ export default function AdminPage() {
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-9 h-9 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
-                  <span className="material-symbols-outlined text-[20px]">family_history</span>
+                  <Landmark className="w-5 h-5" />
                 </div>
                 <h2 className="text-title-md font-bold text-on-surface">Pusat Narahubung Tetua</h2>
               </div>
@@ -800,9 +802,7 @@ export default function AdminPage() {
               <div className="mt-4 space-y-2">
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/20">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[18px]">
-                      person
-                    </span>
+                    <BadgeCheck className="text-primary w-4 h-4" />
                     <span className="text-label-md text-on-surface font-semibold">
                       Dewan Adat Kaili (LAK)
                     </span>
@@ -811,9 +811,7 @@ export default function AdminPage() {
                 </div>
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/20">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-tertiary text-[18px]">
-                      account_balance
-                    </span>
+                    <Landmark className="text-tertiary w-4 h-4" />
                     <span className="text-label-md text-on-surface font-semibold">
                       Balai Pelestarian Wil. XVIII
                     </span>
@@ -840,7 +838,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
-                  <span className="material-symbols-outlined text-[24px]">bookmark_add</span>
+                  <PlusCircle className="w-6 h-6" />
                 </div>
                 <div>
                   <h3 className="font-headline-sm text-on-surface font-bold">
@@ -855,7 +853,7 @@ export default function AdminPage() {
                 onClick={() => setIsModalOpen(false)}
                 className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors"
               >
-                <span className="material-symbols-outlined">close</span>
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -926,9 +924,7 @@ export default function AdminPage() {
                   Unggah Rekaman Fonetik / Bukti Visual Adat
                 </label>
                 <div className="border-2 border-dashed border-outline-variant rounded-xl p-6 text-center bg-surface-container-low/50 hover:bg-surface-container-low transition-colors cursor-pointer">
-                  <span className="material-symbols-outlined text-[36px] text-primary">
-                    cloud_upload
-                  </span>
+                  <AudioWaveform className="w-9 h-9 text-primary mx-auto" />
                   <p className="text-body-sm text-on-surface font-semibold mt-1">
                     Seret audio WAV/MP3 atau Foto Resolusi Tinggi
                   </p>
@@ -976,9 +972,9 @@ export default function AdminPage() {
               </div>
               <button
                 onClick={() => setSelectedEntry(null)}
-                className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant"
+                className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant cursor-pointer"
               >
-                <span className="material-symbols-outlined">close</span>
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1049,27 +1045,27 @@ export default function AdminPage() {
                   onClick={() =>
                     handleUpdateStatus(selectedEntry.id, "verified", "published")
                   }
-                  className="py-2.5 px-3 rounded-xl bg-secondary-fixed text-on-secondary-fixed font-bold text-label-sm hover:bg-secondary hover:text-on-secondary transition-all flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-xl bg-secondary-fixed text-on-secondary-fixed font-bold text-label-sm hover:bg-secondary hover:text-on-secondary transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                  <CheckCircle2 className="w-4 h-4" />
                   <span>Sahkan (Verified)</span>
                 </button>
                 <button
                   onClick={() =>
                     handleUpdateStatus(selectedEntry.id, "disputed", "educational_note")
                   }
-                  className="py-2.5 px-3 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed font-bold text-label-sm hover:bg-tertiary hover:text-on-tertiary transition-all flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed font-bold text-label-sm hover:bg-tertiary hover:text-on-tertiary transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[16px]">quick_reference</span>
+                  <BookOpen className="w-4 h-4" />
                   <span>Varian Dialek</span>
                 </button>
                 <button
                   onClick={() =>
                     handleUpdateStatus(selectedEntry.id, "draft", "blocked")
                   }
-                  className="py-2.5 px-3 rounded-xl bg-error-container text-on-error-container font-bold text-label-sm hover:bg-error hover:text-on-error transition-all flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-xl bg-error-container text-on-error-container font-bold text-label-sm hover:bg-error hover:text-on-error transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[16px]">lock</span>
+                  <Lock className="w-4 h-4" />
                   <span>Tahan (Block)</span>
                 </button>
               </div>

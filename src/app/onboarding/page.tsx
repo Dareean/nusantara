@@ -1,8 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  Zap,
+  Sparkles,
+  Volume2,
+  Shirt,
+  Flame,
+  ArrowRight,
+  ArrowLeft,
+  Languages,
+  Check,
+  BadgeCheck,
+  Lock,
+  Landmark,
+  Compass,
+  TrendingUp,
+  Brain,
+  CheckCircle2,
+  Play,
+  Clock,
+} from "lucide-react";
 
 const stepTitles: Record<number, string> = {
   1: "Langkah 1 dari 5 • Kenali LARAS",
@@ -28,7 +47,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-4 bg-surface relative">
+    <main className="min-h-screen w-full flex items-center justify-center p-4 bg-surface relative font-sans">
       <div className="flex flex-col w-full max-w-2xl mx-auto py-6 sm:py-10">
         {/* Top Progress Indicator */}
         <div className="bg-surface-container-lowest rounded-2xl shadow-md p-4 mb-6 border border-outline-variant/30">
@@ -43,9 +62,7 @@ export default function OnboardingPage() {
             </div>
             <div className="flex items-center gap-1.5">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold shadow-xs">
-                <span className="material-symbols-outlined text-[14px]">
-                  bolt
-                </span>
+                <Zap className="w-3.5 h-3.5" />
                 <span>&lt; 1 Menit</span>
               </span>
             </div>
@@ -77,9 +94,7 @@ export default function OnboardingPage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/80 via-inverse-surface/20 to-transparent flex flex-col justify-end p-4">
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-label-sm font-bold self-start mb-1 shadow-xs">
-                    <span className="material-symbols-outlined text-[13px]">
-                      auto_awesome
-                    </span>
+                    <Sparkles className="w-3.5 h-3.5" />
                     Kultur Interaktif Generasi Baru
                   </span>
                   <p className="text-headline-md text-on-primary font-bold">
@@ -103,9 +118,7 @@ export default function OnboardingPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
                 <div className="bg-surface-container-low rounded-xl p-3 flex sm:flex-col items-center sm:items-start gap-2">
                   <div className="w-9 h-9 rounded-full bg-primary-fixed flex items-center justify-center text-primary shrink-0">
-                    <span className="material-symbols-outlined text-[20px]">
-                      record_voice_over
-                    </span>
+                    <Volume2 className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-label-lg text-on-surface font-bold">
@@ -119,9 +132,7 @@ export default function OnboardingPage() {
 
                 <div className="bg-surface-container-low rounded-xl p-3 flex sm:flex-col items-center sm:items-start gap-2">
                   <div className="w-9 h-9 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary shrink-0">
-                    <span className="material-symbols-outlined text-[20px]">
-                      styler
-                    </span>
+                    <Shirt className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-label-lg text-on-surface font-bold">
@@ -135,9 +146,7 @@ export default function OnboardingPage() {
 
                 <div className="bg-surface-container-low rounded-xl p-3 flex sm:flex-col items-center sm:items-start gap-2">
                   <div className="w-9 h-9 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary shrink-0">
-                    <span className="material-symbols-outlined text-[20px]">
-                      local_fire_department
-                    </span>
+                    <Flame className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-label-lg text-on-surface font-bold">
@@ -156,9 +165,7 @@ export default function OnboardingPage() {
                 className="w-full py-3.5 px-6 rounded-full bg-primary text-on-primary font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer font-bold"
               >
                 <span>Mulai Setup Kilat (45 Detik)</span>
-                <span className="material-symbols-outlined text-[20px]">
-                  arrow_forward
-                </span>
+                <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           )}
@@ -191,9 +198,7 @@ export default function OnboardingPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-primary shrink-0">
-                      <span className="material-symbols-outlined text-[26px]">
-                        translate
-                      </span>
+                      <Languages className="w-6 h-6" />
                     </div>
                     <div className="text-left">
                       <p className="text-title-md text-on-surface font-bold">
@@ -212,9 +217,7 @@ export default function OnboardingPage() {
                         : "bg-surface-container-highest text-transparent"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[16px]">
-                      check
-                    </span>
+                    <Check className="w-4 h-4" />
                   </div>
                 </div>
 
@@ -229,9 +232,7 @@ export default function OnboardingPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-tertiary-fixed flex items-center justify-center text-tertiary shrink-0">
-                      <span className="material-symbols-outlined text-[26px]">
-                        checkroom
-                      </span>
+                      <Shirt className="w-6 h-6" />
                     </div>
                     <div className="text-left">
                       <p className="text-title-md text-on-surface font-bold">
@@ -250,9 +251,7 @@ export default function OnboardingPage() {
                         : "bg-surface-container-highest text-transparent"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[16px]">
-                      check
-                    </span>
+                    <Check className="w-4 h-4" />
                   </div>
                 </div>
 
@@ -267,9 +266,7 @@ export default function OnboardingPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-on-primary shrink-0">
-                      <span className="material-symbols-outlined text-[26px]">
-                        auto_awesome
-                      </span>
+                      <Sparkles className="w-6 h-6" />
                     </div>
                     <div className="text-left">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -293,9 +290,7 @@ export default function OnboardingPage() {
                         : "bg-surface-container-highest text-transparent"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[16px]">
-                      check
-                    </span>
+                    <Check className="w-4 h-4" />
                   </div>
                 </div>
               </div>
@@ -306,9 +301,7 @@ export default function OnboardingPage() {
                   onClick={() => goToStep(1)}
                   className="py-3 px-5 rounded-full bg-surface-container text-on-surface-variant font-label-lg hover:bg-surface-container-high transition-all flex items-center gap-1 cursor-pointer font-semibold"
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    arrow_back
-                  </span>
+                  <ArrowLeft className="w-4 h-4" />
                   <span>Kembali</span>
                 </button>
                 <button
@@ -317,9 +310,7 @@ export default function OnboardingPage() {
                   className="py-3 px-8 rounded-full bg-primary text-on-primary font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 transition-all flex items-center gap-1 cursor-pointer font-bold"
                 >
                   <span>Lanjut: Pilih Wilayah</span>
-                  <span className="material-symbols-outlined text-[18px]">
-                    arrow_forward
-                  </span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -366,17 +357,13 @@ export default function OnboardingPage() {
                           Dialek Ledo &amp; Tara • Baju Nggembe &amp; Tenun Donggala
                         </p>
                         <p className="text-label-sm text-secondary font-semibold mt-1 flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px]">
-                            verified
-                          </span>
+                          <BadgeCheck className="w-3.5 h-3.5" />
                           Terakreditasi Balai Bahasa Prov. Sulteng
                         </p>
                       </div>
                     </div>
                     <span className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-on-primary shrink-0 self-end sm:self-center">
-                      <span className="material-symbols-outlined text-[16px]">
-                        check
-                      </span>
+                      <Check className="w-4 h-4" />
                     </span>
                   </div>
                 </div>
@@ -385,9 +372,7 @@ export default function OnboardingPage() {
                 <div className="bg-surface-container-low opacity-60 rounded-xl p-4 flex items-center justify-between border border-outline-variant/30">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-surface-container-high flex items-center justify-center text-on-surface-variant">
-                      <span className="material-symbols-outlined text-[24px]">
-                        museum
-                      </span>
+                      <Landmark className="w-6 h-6" />
                     </div>
                     <div className="text-left">
                       <div className="flex items-center gap-2">
@@ -403,18 +388,14 @@ export default function OnboardingPage() {
                       </p>
                     </div>
                   </div>
-                  <span className="material-symbols-outlined text-outline text-[20px]">
-                    lock
-                  </span>
+                  <Lock className="w-5 h-5 text-outline" />
                 </div>
 
                 {/* Jawa Mataram */}
                 <div className="bg-surface-container-low opacity-60 rounded-xl p-4 flex items-center justify-between border border-outline-variant/30">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-surface-container-high flex items-center justify-center text-on-surface-variant">
-                      <span className="material-symbols-outlined text-[24px]">
-                        temple_buddhist
-                      </span>
+                      <Compass className="w-6 h-6" />
                     </div>
                     <div className="text-left">
                       <div className="flex items-center gap-2">
@@ -430,9 +411,7 @@ export default function OnboardingPage() {
                       </p>
                     </div>
                   </div>
-                  <span className="material-symbols-outlined text-outline text-[20px]">
-                    lock
-                  </span>
+                  <Lock className="w-5 h-5 text-outline" />
                 </div>
               </div>
 
@@ -442,9 +421,7 @@ export default function OnboardingPage() {
                   onClick={() => goToStep(2)}
                   className="py-3 px-5 rounded-full bg-surface-container text-on-surface-variant font-label-lg hover:bg-surface-container-high transition-all flex items-center gap-1 cursor-pointer font-semibold"
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    arrow_back
-                  </span>
+                  <ArrowLeft className="w-4 h-4" />
                   <span>Kembali</span>
                 </button>
                 <button
@@ -453,9 +430,7 @@ export default function OnboardingPage() {
                   className="py-3 px-8 rounded-full bg-primary text-on-primary font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 transition-all flex items-center gap-1 cursor-pointer font-bold"
                 >
                   <span>Lanjut: Target Harian</span>
-                  <span className="material-symbols-outlined text-[18px]">
-                    arrow_forward
-                  </span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -489,9 +464,7 @@ export default function OnboardingPage() {
                 >
                   <div>
                     <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface mb-3">
-                      <span className="material-symbols-outlined text-[20px]">
-                        self_improvement
-                      </span>
+                      <Clock className="w-5 h-5" />
                     </div>
                     <h3 className="text-title-md text-on-surface font-bold">
                       Santai
@@ -505,13 +478,11 @@ export default function OnboardingPage() {
                   </div>
                   <div className="mt-4 pt-2 flex items-center justify-between text-on-surface-variant text-label-sm">
                     <span>+10 XP / hari</span>
-                    <span
-                      className={`material-symbols-outlined text-[18px] text-primary ${
+                    <CheckCircle2
+                      className={`w-4 h-4 text-primary ${
                         pace === "santai" ? "opacity-100" : "opacity-0"
                       }`}
-                    >
-                      check_circle
-                    </span>
+                    />
                   </div>
                 </div>
 
@@ -529,9 +500,7 @@ export default function OnboardingPage() {
                   </div>
                   <div>
                     <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary mb-3">
-                      <span className="material-symbols-outlined text-[20px]">
-                        trending_up
-                      </span>
+                      <TrendingUp className="w-5 h-5" />
                     </div>
                     <h3 className="text-title-md text-on-surface font-bold">
                       Serius
@@ -545,13 +514,11 @@ export default function OnboardingPage() {
                   </div>
                   <div className="mt-4 pt-2 flex items-center justify-between text-on-surface-variant text-label-sm">
                     <span className="text-primary font-bold">+25 XP / hari</span>
-                    <span
-                      className={`material-symbols-outlined text-[18px] text-primary ${
+                    <CheckCircle2
+                      className={`w-4 h-4 text-primary ${
                         pace === "serius" ? "opacity-100" : "opacity-0"
                       }`}
-                    >
-                      check_circle
-                    </span>
+                    />
                   </div>
                 </div>
 
@@ -566,9 +533,7 @@ export default function OnboardingPage() {
                 >
                   <div>
                     <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface mb-3">
-                      <span className="material-symbols-outlined text-[20px]">
-                        psychology
-                      </span>
+                      <Brain className="w-5 h-5" />
                     </div>
                     <h3 className="text-title-md text-on-surface font-bold">
                       Ambisius
@@ -582,13 +547,11 @@ export default function OnboardingPage() {
                   </div>
                   <div className="mt-4 pt-2 flex items-center justify-between text-on-surface-variant text-label-sm">
                     <span>+50 XP / hari</span>
-                    <span
-                      className={`material-symbols-outlined text-[18px] text-primary ${
+                    <CheckCircle2
+                      className={`w-4 h-4 text-primary ${
                         pace === "ambisius" ? "opacity-100" : "opacity-0"
                       }`}
-                    >
-                      check_circle
-                    </span>
+                    />
                   </div>
                 </div>
               </div>
@@ -599,9 +562,7 @@ export default function OnboardingPage() {
                   onClick={() => goToStep(3)}
                   className="py-3 px-5 rounded-full bg-surface-container text-on-surface-variant font-label-lg hover:bg-surface-container-high transition-all flex items-center gap-1 cursor-pointer font-semibold"
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    arrow_back
-                  </span>
+                  <ArrowLeft className="w-4 h-4" />
                   <span>Kembali</span>
                 </button>
                 <button
@@ -610,9 +571,7 @@ export default function OnboardingPage() {
                   className="py-3 px-8 rounded-full bg-primary text-on-primary font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 transition-all flex items-center gap-1 cursor-pointer font-bold"
                 >
                   <span>Lanjut: Konfirmasi</span>
-                  <span className="material-symbols-outlined text-[18px]">
-                    arrow_forward
-                  </span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -623,9 +582,7 @@ export default function OnboardingPage() {
             <div className="flex flex-col">
               <div className="bg-gradient-to-br from-primary-fixed/40 via-surface-container-low to-secondary-fixed/30 rounded-xl p-6 mb-6 text-center relative overflow-hidden border border-outline-variant/30">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-label-sm font-bold mb-3 shadow-xs">
-                  <span className="material-symbols-outlined text-[16px]">
-                    verified_user
-                  </span>
+                  <BadgeCheck className="w-4 h-4" />
                   Profil Pembelajar Siap!
                 </div>
                 <h2 className="text-headline-lg text-on-surface font-extrabold tracking-tight mb-2">
@@ -640,9 +597,7 @@ export default function OnboardingPage() {
                 <div className="bg-surface-container-lowest max-w-sm mx-auto rounded-xl p-3 flex items-center justify-between shadow-xs border border-outline-variant/20">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
-                      <span className="material-symbols-outlined text-[20px]">
-                        local_fire_department
-                      </span>
+                      <Flame className="w-5 h-5 text-secondary" />
                     </div>
                     <div className="text-left">
                       <p className="text-label-lg text-on-surface font-bold">
@@ -705,9 +660,7 @@ export default function OnboardingPage() {
                   onClick={() => router.push("/dashboard/latihan")}
                   className="w-full py-4 px-6 rounded-full bg-primary text-on-primary font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer font-bold text-base"
                 >
-                  <span className="material-symbols-outlined text-[22px]">
-                    play_circle
-                  </span>
+                  <Play className="w-5 h-5 fill-current" />
                   <span>Mulai Pelajaran Pertama Sekarang (Bab 1)</span>
                 </button>
                 <button
@@ -725,21 +678,17 @@ export default function OnboardingPage() {
         {/* Footer */}
         <div className="mt-4 text-center flex items-center justify-center gap-4 flex-wrap text-on-surface-variant text-label-sm opacity-80">
           <span className="inline-flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">lock</span>
+            <Lock className="w-3.5 h-3.5" />
             Tanpa Registrasi Rumit
           </span>
           <span>•</span>
           <span className="inline-flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">
-              verified
-            </span>
+            <BadgeCheck className="w-3.5 h-3.5" />
             Didukung Komunitas Adat Kaili
           </span>
           <span>•</span>
           <span className="inline-flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">
-              schedule
-            </span>
+            <Clock className="w-3.5 h-3.5" />
             100% Gratis Akses Dasar
           </span>
         </div>

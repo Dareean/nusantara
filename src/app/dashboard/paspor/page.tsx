@@ -2,30 +2,31 @@
 
 import Link from "next/link";
 import TopBar from "../../components/TopBar";
+import { Award, BadgeCheck, Sparkles, GraduationCap, Play } from "lucide-react";
 
 const achievements = [
   {
     title: "Pionir Salam",
     detail: "Menyelesaikan 3 sesi sapaan dengan benar.",
-    icon: "military_tech",
+    Icon: Award,
     tone: "primary",
   },
   {
     title: "Penjaga Adab",
     detail: "Menguasai ungkapan hormat dan etik percakapan.",
-    icon: "verified_user",
+    Icon: BadgeCheck,
     tone: "secondary",
   },
   {
     title: "Petualang Budaya",
     detail: "Menyelesaikan 5 quest dalam 7 hari berturut-turut.",
-    icon: "auto_awesome",
+    Icon: Sparkles,
     tone: "tertiary",
   },
   {
     title: "Pejuang Ledo",
     detail: "Konsisten belajar bahasa dan kosakata dasar Kaili.",
-    icon: "school",
+    Icon: GraduationCap,
     tone: "primary",
   },
 ];
@@ -75,36 +76,39 @@ export default function AchievementPage() {
           </section>
 
           <section className="space-y-3">
-            {achievements.map((item, index) => (
-              <div
-                key={item.title}
-                className="rounded-[22px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
-                        item.tone === "primary"
-                          ? "bg-primary-fixed text-primary"
-                          : item.tone === "secondary"
-                            ? "bg-secondary-fixed text-secondary"
-                            : "bg-tertiary-fixed text-tertiary"
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+            {achievements.map((item, index) => {
+              const { Icon } = item;
+              return (
+                <div
+                  key={item.title}
+                  className="rounded-[22px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
+                          item.tone === "primary"
+                            ? "bg-primary-fixed text-primary"
+                            : item.tone === "secondary"
+                              ? "bg-secondary-fixed text-secondary"
+                              : "bg-tertiary-fixed text-tertiary"
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-extrabold text-on-surface">{item.title}</h3>
+                        <p className="text-xs text-on-surface-variant">{item.detail}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-base font-extrabold text-on-surface">{item.title}</h3>
-                      <p className="text-xs text-on-surface-variant">{item.detail}</p>
-                    </div>
-                  </div>
 
-                  <span className="rounded-full bg-surface-container px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant">
-                    #{index + 1}
-                  </span>
+                    <span className="rounded-full bg-surface-container px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant">
+                      #{index + 1}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </section>
 
           <div className="flex justify-center pt-1">
@@ -112,7 +116,7 @@ export default function AchievementPage() {
               href="/dashboard/belajar"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1d120d] px-4 py-2.5 text-sm font-extrabold text-[#fff7f1] shadow-[0_4px_0_0_#4a2214] transition-all hover:translate-y-[-1px]"
             >
-              <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+              <Play className="w-4 h-4 fill-current" />
               Kembali ke quest
             </Link>
           </div>

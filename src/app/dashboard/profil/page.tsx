@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 import TopBar from "../../components/TopBar";
+import {
+  Settings,
+  Award,
+  BadgeCheck,
+  Sparkles,
+  GraduationCap,
+} from "lucide-react";
 
 const learningTracks = [
   { title: "Bahasa Ledo", progress: 82, tag: "Active" },
@@ -10,10 +17,10 @@ const learningTracks = [
 ];
 
 const achievements = [
-  { title: "Pionir Salam", detail: "3 sesi sapaan selesai", icon: "military_tech" },
-  { title: "Penjaga Adab", detail: "12 ekspresi hormat dikuasai", icon: "verified_user" },
-  { title: "Petualang Budaya", detail: "5 quest diselesaikan", icon: "auto_awesome" },
-  { title: "Riset Ledo", detail: "1 mini challenge selesai", icon: "school" },
+  { title: "Pionir Salam", detail: "3 sesi sapaan selesai", Icon: Award },
+  { title: "Penjaga Adab", detail: "12 ekspresi hormat dikuasai", Icon: BadgeCheck },
+  { title: "Petualang Budaya", detail: "5 quest diselesaikan", Icon: Sparkles },
+  { title: "Riset Ledo", detail: "1 mini challenge selesai", Icon: GraduationCap },
 ];
 
 export default function ProfilPage() {
@@ -42,7 +49,7 @@ export default function ProfilPage() {
                   href="/dashboard/pengaturan"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-surface-container px-4 py-2.5 text-sm font-bold text-on-surface ring-1 ring-outline-variant/25 transition hover:bg-surface-container-high"
                 >
-                  <span className="material-symbols-outlined text-[16px]">settings</span>
+                  <Settings className="w-4 h-4" />
                   Pengaturan
                 </Link>
               </div>
@@ -111,19 +118,22 @@ export default function ProfilPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {achievements.map((item) => (
-                <div key={item.title} className="rounded-[18px] bg-surface-container p-3 ring-1 ring-outline-variant/20">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-fixed text-primary">
-                      <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-extrabold text-on-surface">{item.title}</p>
-                      <p className="text-[11px] text-on-surface-variant">{item.detail}</p>
+              {achievements.map((item) => {
+                const { Icon } = item;
+                return (
+                  <div key={item.title} className="rounded-[18px] bg-surface-container p-3 ring-1 ring-outline-variant/20">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-fixed text-primary">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-extrabold text-on-surface">{item.title}</p>
+                        <p className="text-[11px] text-on-surface-variant">{item.detail}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         </div>

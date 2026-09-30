@@ -2,6 +2,20 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import {
+  Gamepad2,
+  Trophy,
+  ArrowLeft,
+  Timer,
+  Flame,
+  Heart,
+  Play,
+  CheckCircle2,
+  XCircle,
+  Lightbulb,
+  Info,
+  Frown,
+} from "lucide-react";
 
 interface Question {
   id: number;
@@ -197,7 +211,7 @@ export default function ArcadePage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shadow-[0_3px_0_0_#b45309]">
-            <span className="material-symbols-outlined text-[28px]">sports_esports</span>
+            <Gamepad2 className="w-7 h-7" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -216,17 +230,15 @@ export default function ArcadePage() {
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-container text-on-surface text-label-md font-bold">
-            <span className="material-symbols-outlined text-secondary text-[18px]">
-              emoji_events
-            </span>
+            <Trophy className="text-secondary w-4 h-4" />
             <span>Rekor: {highScore} XP</span>
           </div>
           <Link
-            href="/dashboard/belajar"
+            href="/dashboard"
             className="flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-surface-container text-on-surface-variant text-label-md transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            <span>Jalur Belajar</span>
+            <ArrowLeft className="w-4 h-4" />
+            <span>Kembali ke Belajar</span>
           </Link>
         </div>
       </div>
@@ -251,19 +263,17 @@ export default function ArcadePage() {
             {/* Feature Bento */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/20">
-                <span className="material-symbols-outlined text-primary text-[24px]">timer</span>
+                <Timer className="w-6 h-6 text-primary" />
                 <h4 className="text-title-md font-bold text-on-surface mt-1">15 Detik</h4>
                 <p className="text-body-sm text-on-surface-variant">Batas waktu tiap pertanyaan</p>
               </div>
               <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/20">
-                <span className="material-symbols-outlined text-secondary text-[24px]">
-                  local_fire_department
-                </span>
+                <Flame className="w-6 h-6 text-secondary" />
                 <h4 className="text-title-md font-bold text-on-surface mt-1">Hingga 3.0x</h4>
                 <p className="text-body-sm text-on-surface-variant">Multiplier kombo XP berturut</p>
               </div>
               <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/20">
-                <span className="material-symbols-outlined text-tertiary text-[24px]">favorite</span>
+                <Heart className="w-6 h-6 text-tertiary fill-current" />
                 <h4 className="text-title-md font-bold text-on-surface mt-1">3 Nyawa</h4>
                 <p className="text-body-sm text-on-surface-variant">Jaga konsentrasi budaya</p>
               </div>
@@ -272,9 +282,9 @@ export default function ArcadePage() {
             {/* Launch Button */}
             <button
               onClick={startGame}
-              className="w-full py-4 rounded-full bg-primary hover:bg-primary-container text-on-primary text-title-md font-bold transition-all transform active:translate-y-0.5 shadow-[0_4px_0_0_#881f00] flex items-center justify-center gap-2 text-lg"
+              className="w-full py-4 rounded-full bg-primary hover:bg-primary-container text-on-primary text-title-md font-bold transition-all transform active:translate-y-0.5 shadow-[0_4px_0_0_#881f00] flex items-center justify-center gap-2 text-lg cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[24px]">play_arrow</span>
+              <Play className="w-6 h-6 fill-current" />
               <span>Mulai Bertanding Sekarang</span>
             </button>
           </div>
@@ -282,9 +292,7 @@ export default function ArcadePage() {
           {/* Leaderboard Sidebar */}
           <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-sm space-y-4">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-secondary text-[22px]">
-                leaderboard
-              </span>
+              <Trophy className="text-secondary w-5 h-5" />
               <h3 className="text-title-md font-bold text-on-surface">Peringkat Murid</h3>
             </div>
 
@@ -337,23 +345,18 @@ export default function ArcadePage() {
             {/* Lives */}
             <div className="flex items-center gap-1">
               {[1, 2, 3].map((heart) => (
-                <span
+                <Heart
                   key={heart}
-                  className={`material-symbols-outlined text-[22px] transition-all ${
-                    heart <= lives ? "text-error fill-1" : "text-outline-variant"
+                  className={`w-5 h-5 transition-all ${
+                    heart <= lives ? "text-error fill-current" : "text-outline-variant"
                   }`}
-                  style={{ fontVariationSettings: heart <= lives ? "'FILL' 1" : "'FILL' 0" }}
-                >
-                  favorite
-                </span>
+                />
               ))}
             </div>
 
             {/* Timer */}
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[20px] float-lift">
-                timer
-              </span>
+              <Timer className="text-primary w-5 h-5" />
               <span
                 className={`font-mono text-xl font-bold ${
                   timeLeft <= 5 ? "text-error float-lift" : "text-on-surface"
@@ -366,7 +369,7 @@ export default function ArcadePage() {
             {/* Score & Combo Multiplier */}
             <div className="flex items-center gap-2">
               <div className="px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold flex items-center gap-1">
-                <span className="material-symbols-outlined text-[16px]">local_fire_department</span>
+                <Flame className="w-4 h-4" />
                 <span>{combo.toFixed(1)}x Combo</span>
               </div>
               <span className="font-extrabold text-title-md text-primary">{score} XP</span>
@@ -418,20 +421,16 @@ export default function ArcadePage() {
                   key={idx}
                   onClick={() => handleSelectOption(idx)}
                   disabled={selectedOption !== null}
-                  className={`p-4 rounded-xl border text-left text-body-md transition-all active:scale-[0.99] flex items-center justify-between ${btnStyle}`}
+                  className={`p-4 rounded-xl border text-left text-body-md transition-all active:scale-[0.99] flex items-center justify-between cursor-pointer ${btnStyle}`}
                 >
                   <span className="font-semibold">{opt}</span>
                   {selectedOption !== null && idx === currentQ.correctIndex && (
-                    <span className="material-symbols-outlined text-secondary text-[20px]">
-                      check_circle
-                    </span>
+                    <CheckCircle2 className="text-secondary w-5 h-5 shrink-0" />
                   )}
                   {selectedOption !== null &&
                     idx === selectedOption &&
                     idx !== currentQ.correctIndex && (
-                      <span className="material-symbols-outlined text-error text-[20px]">
-                        cancel
-                      </span>
+                      <XCircle className="text-error w-5 h-5 shrink-0" />
                     )}
                 </button>
               );
@@ -447,9 +446,11 @@ export default function ArcadePage() {
                   : "bg-error-container/40 border-error text-on-error-container"
               }`}
             >
-              <span className="material-symbols-outlined text-[20px] shrink-0 mt-0.5">
-                {answerStatus === "correct" ? "lightbulb" : "info"}
-              </span>
+              {answerStatus === "correct" ? (
+                <Lightbulb className="w-5 h-5 shrink-0 mt-0.5" />
+              ) : (
+                <Info className="w-5 h-5 shrink-0 mt-0.5" />
+              )}
               <div>
                 <p className="font-bold">
                   {answerStatus === "correct" ? "Jawaban Benar! 🎉" : "Kurang Tepat!"}
@@ -465,7 +466,7 @@ export default function ArcadePage() {
       {gameState === "gameover" && (
         <div className="bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/30 shadow-xl text-center space-y-6 max-w-md mx-auto">
           <div className="w-16 h-16 rounded-full bg-error-container text-error flex items-center justify-center mx-auto shadow-inner">
-            <span className="material-symbols-outlined text-[36px]">sentiment_very_dissatisfied</span>
+            <Frown className="w-9 h-9" />
           </div>
 
           <div className="space-y-1">
@@ -508,7 +509,7 @@ export default function ArcadePage() {
       {gameState === "victory" && (
         <div className="bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/30 shadow-xl text-center space-y-6 max-w-lg mx-auto">
           <div className="w-20 h-20 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center mx-auto shadow-[0_4px_0_0_#b45309] float-lift">
-            <span className="material-symbols-outlined text-[44px]">workspace_premium</span>
+            <Trophy className="w-10 h-10" />
           </div>
 
           <div className="space-y-1">

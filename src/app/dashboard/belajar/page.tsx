@@ -2,12 +2,22 @@
 
 import Link from "next/link";
 import TopBar from "../../components/TopBar";
+import {
+  BookOpen,
+  Headphones,
+  Languages,
+  Star,
+  BookMarked,
+  Lock,
+  ArrowUp,
+  type LucideIcon,
+} from "lucide-react";
 
 type LessonStatus = "done" | "active" | "locked";
 
 type Lesson = {
   id: number;
-  icon: string;
+  Icon: LucideIcon;
   label: string;
   status: LessonStatus;
   href: string;
@@ -17,11 +27,11 @@ type Lesson = {
 };
 
 const lessons: Lesson[] = [
-  { id: 1, icon: "menu_book", label: "Baca", status: "done", href: "/dashboard/latihan", left: 50, top: 12, size: 68 },
-  { id: 2, icon: "headphones", label: "Dengar", status: "active", href: "/dashboard/latihan", left: 50, top: 32, size: 104 },
-  { id: 3, icon: "translate", label: "Pahami", status: "locked", href: "/dashboard/latihan/busana", left: 50, top: 52, size: 82 },
-  { id: 4, icon: "star", label: "Tantang", status: "locked", href: "/dashboard/culture-connection", left: 50, top: 68, size: 84 },
-  { id: 5, icon: "book_4", label: "Rekap", status: "locked", href: "/dashboard/paspor", left: 50, top: 88, size: 82 },
+  { id: 1, Icon: BookOpen, label: "Baca", status: "done", href: "/dashboard/latihan", left: 50, top: 12, size: 68 },
+  { id: 2, Icon: Headphones, label: "Dengar", status: "active", href: "/dashboard/latihan", left: 50, top: 32, size: 104 },
+  { id: 3, Icon: Languages, label: "Pahami", status: "locked", href: "/dashboard/latihan/busana", left: 50, top: 52, size: 82 },
+  { id: 4, Icon: Star, label: "Tantang", status: "locked", href: "/dashboard/culture-connection", left: 50, top: 68, size: 84 },
+  { id: 5, Icon: BookMarked, label: "Rekap", status: "locked", href: "/dashboard/paspor", left: 50, top: 88, size: 82 },
 ];
 
 export default function JalurBelajarPage() {
@@ -58,6 +68,7 @@ export default function JalurBelajarPage() {
               const isDone = lesson.status === "done";
               const isActive = lesson.status === "active";
               const isLocked = lesson.status === "locked";
+              const { Icon } = lesson;
 
               const nodeTopMap: Record<number, number> = {
                 1: 58,
@@ -98,9 +109,7 @@ export default function JalurBelajarPage() {
                       transform: "translate(-50%, -50%)",
                     }}
                   >
-                    <span className="material-symbols-outlined text-[34px]" aria-hidden="true">
-                      {lesson.icon}
-                    </span>
+                    <Icon className="w-8 h-8" aria-hidden="true" />
 
                     {isActive && (
                       <span className="absolute inset-[-10px] rounded-full ring-4 ring-[#f29b5b]/20" />
@@ -116,7 +125,7 @@ export default function JalurBelajarPage() {
                         transform: "translateY(-50%)",
                       }}
                     >
-                      <span className="material-symbols-outlined text-[12px]">lock</span>
+                      <Lock className="w-3 h-3" />
                       later
                     </div>
                   )}
@@ -125,7 +134,7 @@ export default function JalurBelajarPage() {
             })}
 
             <div className="absolute bottom-4 right-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#f29b5b] text-[#fffaf3] shadow-[0_12px_24px_-12px_rgba(242,155,91,0.9)]">
-              <span className="material-symbols-outlined text-[32px]">keyboard_arrow_up</span>
+              <ArrowUp className="w-7 h-7" />
             </div>
 
             <div className="absolute bottom-5 left-5 flex h-10 w-10 items-center justify-center rounded-full bg-[#1f1d1b] text-sm font-black text-white shadow-md">
