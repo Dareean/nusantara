@@ -30,10 +30,10 @@ type Lesson = {
 };
 
 const lessons: Lesson[] = [
-  { id: 1, Icon: BookOpen, label: "Baca", status: "done", href: "/dashboard/latihan", left: 50, top: 12, size: 68 },
-  { id: 2, Icon: Headphones, label: "Dengar", status: "active", href: "/dashboard/latihan?lesson=2", left: 50, top: 32, size: 104 },
-  { id: 3, Icon: Languages, label: "Pahami", status: "locked", href: "/dashboard/latihan/busana", left: 50, top: 52, size: 82 },
-  { id: 4, Icon: Star, label: "Tantang", status: "locked", href: "/dashboard/culture-connection", left: 50, top: 68, size: 84 },
+  { id: 1, Icon: BookOpen, label: "Baca", status: "done", href: "/dashboard/latihan/1", left: 50, top: 12, size: 68 },
+  { id: 2, Icon: Headphones, label: "Dengar", status: "active", href: "/dashboard/latihan/1", left: 50, top: 32, size: 104 },
+  { id: 3, Icon: Languages, label: "Pahami", status: "locked", href: "/dashboard/latihan/2", left: 50, top: 52, size: 82 },
+  { id: 4, Icon: Star, label: "Tantang", status: "locked", href: "/dashboard/latihan/3", left: 50, top: 68, size: 84 },
   { id: 5, Icon: BookMarked, label: "Rekap", status: "locked", href: "/dashboard/paspor", left: 50, top: 88, size: 82 },
 ];
 

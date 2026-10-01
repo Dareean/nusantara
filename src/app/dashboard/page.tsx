@@ -40,7 +40,7 @@ const pathNodes: PathNode[] = [
     type: "lesson",
     status: "completed",
     offset: "center",
-    href: "/dashboard/latihan",
+    href: "/dashboard/latihan/1",
     xp: 15,
   },
   {
@@ -50,7 +50,7 @@ const pathNodes: PathNode[] = [
     type: "lesson",
     status: "completed",
     offset: "left",
-    href: "/dashboard/latihan?lesson=2",
+    href: "/dashboard/latihan/1",
     xp: 15,
   },
   {
@@ -70,7 +70,7 @@ const pathNodes: PathNode[] = [
     type: "attire",
     status: "active",
     offset: "right",
-    href: "/dashboard/latihan/busana",
+    href: "/dashboard/latihan/2",
     xp: 20,
   },
   {
@@ -80,7 +80,7 @@ const pathNodes: PathNode[] = [
     type: "review",
     status: "locked",
     offset: "center",
-    href: "/dashboard/culture-connection",
+    href: "/dashboard/latihan/3",
     xp: 30,
   },
   {
