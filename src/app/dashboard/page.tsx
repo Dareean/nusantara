@@ -102,7 +102,6 @@ export default function DashboardPage() {
               <div className="absolute bottom-10 left-1/2 top-10 w-2 -translate-x-1/2 rounded-full bg-secondary-fixed" aria-hidden="true" />
               {nodes.map((node) => {
                 const isActive = node.status === "active";
-                const isCompleted = node.status === "completed";
                 const isLocked = node.status === "locked";
                 const offset = node.offset === "left" ? "-translate-x-20 sm:-translate-x-28" : node.offset === "right" ? "translate-x-20 sm:translate-x-28" : "translate-x-0";
                 return (
