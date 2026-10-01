@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import TopBar from "../../components/TopBar";
 import {
@@ -9,6 +10,8 @@ import {
   Sparkles,
   GraduationCap,
 } from "lucide-react";
+import { getSession } from "../../auth/authClient";
+import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
 
 const learningTracks = [
   { title: "Bahasa Ledo", progress: 82, tag: "Active" },
@@ -24,6 +27,17 @@ const achievements = [
 ];
 
 export default function ProfilPage() {
+  const [userName, setUserName] = useState("Pelajar LARAS");
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+
+  useEffect(() => {
+    getSession().then(async (session) => {
+      if (!session) return;
+      setUserName(session.name);
+      setProgress(await loadProgress(session.email));
+    });
+  }, []);
+
   return (
     <>
       <TopBar title="Profile" subtitle="Jalur belajar dan achievement" />
@@ -33,14 +47,14 @@ export default function ProfilPage() {
           <section className="rounded-[24px] bg-surface-container-lowest p-4 shadow-xs ring-1 ring-outline-variant/25 sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
-                <img
-                  alt="Rani Maharani"
-                  className="h-16 w-16 rounded-full object-cover ring-2 ring-primary/20"
-                  src="https://lh3.googleusercontent.com/aida/AEtjO1Vhf8Tpf1UP_r76LEL-9Olxy-KamrRKdvbuw_IdSOUdsPnutS-ucQSUNrUwCmvv79RwssCekEhlPat9dql81M0_w3TdFVqc0hENXtxegKWhP1UapZD9OlTcn4MiCZZPhuf7VNtyofbbQ8ByHlCDXGq8phTykzER2D0OKlgZrlUIKLycgNPOKpSjSCeQYrau-XCBnFjpIEDXwO8PKFKpjzvu77uKgmWMakGwQ2PeNYy_zuHKKvm8sSrmGaG3"
-                />
+                <div
+                  className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-black text-on-primary ring-2 ring-primary/20"
+                >
+                  {userName.slice(0, 1).toUpperCase()}
+                </div>
                 <div>
-                  <h1 className="text-2xl font-black text-on-surface">Rani Maharani</h1>
-                  <p className="text-sm text-on-surface-variant">@ranimaharani • Sulawesi Tengah</p>
+                  <h1 className="text-2xl font-black text-on-surface">{userName}</h1>
+                  <p className="text-sm text-on-surface-variant">{userName.toLowerCase().replaceAll(" ", "_")} • Sulawesi Tengah</p>
                 </div>
               </div>
 
@@ -59,15 +73,15 @@ export default function ProfilPage() {
           <section className="grid gap-3 md:grid-cols-3">
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <div className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">XP</div>
-              <div className="mt-2 text-2xl font-black text-on-surface">480</div>
+              <div className="mt-2 text-2xl font-black text-on-surface">{progress.xp}</div>
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <div className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Level</div>
-              <div className="mt-2 text-2xl font-black text-on-surface">3</div>
+              <div className="mt-2 text-2xl font-black text-on-surface">{Math.floor(progress.xp / 100) + 1}</div>
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <div className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Streak</div>
-              <div className="mt-2 text-2xl font-black text-on-surface">5 hari</div>
+              <div className="mt-2 text-2xl font-black text-on-surface">{progress.streak} hari</div>
             </div>
           </section>
 
@@ -98,9 +112,8 @@ export default function ProfilPage() {
                   </div>
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-container-high">
                     <div
-                      className={`h-full rounded-full ${
-                        track.progress === 100 ? "w-full bg-secondary" : "w-[" + track.progress + "%] bg-primary"
-                      }`}
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${track.title === "Adab & sapaan" && progress.completedLessons.includes(1) ? 100 : track.progress}%` }}
                     />
                   </div>
                   <div className="mt-2 text-[11px] font-bold uppercase tracking-[0.12em] text-on-surface-variant">

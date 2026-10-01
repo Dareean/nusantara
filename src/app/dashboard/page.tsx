@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Flame,
@@ -18,6 +18,8 @@ import {
   Trophy,
   Volume2,
 } from "lucide-react";
+import { getSession } from "../auth/authClient";
+import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "./progress";
 
 interface PathNode {
   id: number;
@@ -48,7 +50,7 @@ const pathNodes: PathNode[] = [
     type: "lesson",
     status: "completed",
     offset: "left",
-    href: "/dashboard/latihan",
+    href: "/dashboard/latihan?lesson=2",
     xp: 15,
   },
   {
@@ -94,7 +96,33 @@ const pathNodes: PathNode[] = [
 ];
 
 export default function DashboardPage() {
-  const [selectedNode, setSelectedNode] = useState<PathNode | null>(pathNodes[3]);
+  const [selectedNode, setSelectedNode] = useState<PathNode | null>(null);
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+
+  useEffect(() => {
+    let email = "";
+    getSession().then(async (session) => {
+      email = session?.email ?? "";
+      if (email) setProgress(await loadProgress(email));
+    });
+    const refresh = () => {
+      if (email) setProgress(readProgress(email));
+    };
+    window.addEventListener("laras-progress-updated", refresh);
+    return () => window.removeEventListener("laras-progress-updated", refresh);
+  }, []);
+
+  const getNodeStatus = (node: PathNode): PathNode["status"] => {
+    if (node.id === 1) return progress.completedLessons.includes(1) ? "completed" : "active";
+    if (node.id === 2) {
+      if (progress.completedLessons.includes(2)) return "completed";
+      return progress.unlockedLessons.includes(2) ? "active" : "locked";
+    }
+    if (node.id === 3) return progress.completedLessons.includes(2) ? "completed" : "locked";
+    if (node.id === 4) return progress.unlockedLessons.includes(3) ? "active" : "locked";
+    if (node.id === 5) return progress.unlockedLessons.includes(4) ? "active" : "locked";
+    return progress.unlockedLessons.includes(5) ? "active" : "locked";
+  };
 
   return (
     <div className="min-h-screen bg-surface font-sans text-on-surface flex flex-col xl:flex-row justify-center max-w-7xl mx-auto">
@@ -125,9 +153,10 @@ export default function DashboardPage() {
         {/* Learning Path Nodes (Snake / Zigzag) */}
         <div className="w-full flex flex-col items-center space-y-7 relative pb-28">
           {pathNodes.map((node) => {
-            const isCompleted = node.status === "completed";
-            const isActive = node.status === "active";
-            const isLocked = node.status === "locked";
+            const currentNode = { ...node, status: getNodeStatus(node) };
+            const isCompleted = currentNode.status === "completed";
+            const isActive = currentNode.status === "active";
+            const isLocked = currentNode.status === "locked";
 
             // Horizontal alignment offset to create the Duolingo S-curve
             const offsetClass =
@@ -154,7 +183,8 @@ export default function DashboardPage() {
 
                 {/* The 3D Tactile Node Button */}
                 <button
-                  onClick={() => setSelectedNode(node)}
+                  onClick={() => setSelectedNode(currentNode)}
+                  disabled={isLocked}
                   className={`w-20 h-20 sm:w-22 sm:h-22 rounded-full flex items-center justify-center transition-all cursor-pointer select-none active:translate-y-1 ${
                     isActive
                       ? "bg-primary text-on-primary shadow-[0_6px_0_0_#881f00] ring-8 ring-primary/20 scale-105 active:shadow-[0_2px_0_0_#881f00]"
@@ -235,19 +265,19 @@ export default function DashboardPage() {
           {/* Streak */}
           <div className="flex items-center gap-1 text-primary font-black text-sm">
             <Flame className="w-5 h-5 fill-current" />
-            <span>5</span>
+            <span>{progress.streak}</span>
           </div>
 
           {/* XP */}
           <div className="flex items-center gap-1 text-secondary font-black text-sm">
             <Zap className="w-5 h-5 fill-current" />
-            <span>480</span>
+            <span>{progress.xp}</span>
           </div>
 
           {/* Hearts */}
           <div className="flex items-center gap-1 text-error font-black text-sm">
             <Heart className="w-5 h-5 fill-current" />
-            <span>3</span>
+            <span>{progress.hearts}</span>
           </div>
         </div>
 
@@ -272,10 +302,10 @@ export default function DashboardPage() {
                 <Zap className="w-4 h-4 text-secondary" />
                 Dapatkan 50 XP hari ini
               </span>
-              <span className="text-on-surface-variant font-mono">35/50</span>
+              <span className="text-on-surface-variant font-mono">{Math.min(progress.xp, 50)}/50</span>
             </div>
             <div className="w-full h-3 bg-surface-container rounded-full overflow-hidden">
-              <div className="bg-secondary h-full rounded-full w-[70%]" />
+              <div className="bg-secondary h-full rounded-full" style={{ width: `${Math.min(progress.xp * 2, 100)}%` }} />
             </div>
           </div>
 

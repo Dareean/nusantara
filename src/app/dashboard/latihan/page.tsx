@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -19,10 +19,15 @@ import {
   BookOpen,
   ArrowRight,
 } from "lucide-react";
+import { getSession } from "../../auth/authClient";
+import { recordLessonResult } from "../progress";
 
 export default function LatihanPage() {
   const router = useRouter();
-  const [selectedOption, setSelectedOption] = useState<string>("A");
+  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [hasCheckedAnswer, setHasCheckedAnswer] = useState(false);
+  const [sessionEmail, setSessionEmail] = useState("");
+  const [sessionReady, setSessionReady] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
 
   const handleAudioPlay = () => {
@@ -33,12 +38,28 @@ export default function LatihanPage() {
   };
 
   const handleContinue = () => {
-    if (selectedOption === "A") {
-      router.push("/dashboard/evaluasi");
-    } else {
-      router.push("/dashboard/latihan/busana");
+    if (!selectedOption) return;
+    const correct = selectedOption === "A";
+    const lessonId = new URLSearchParams(window.location.search).get("lesson") === "2" ? 2 : 1;
+    if (sessionEmail) {
+      recordLessonResult(sessionEmail, {
+        answered: selectedOption,
+        lessonId: lessonId === 2 ? 2 : 1,
+        correct,
+        score: correct ? 100 : 0,
+        xp: 20,
+        completedAt: new Date().toISOString(),
+      });
     }
+    router.push("/dashboard/evaluasi");
   };
+
+  useEffect(() => {
+    getSession().then((session) => {
+      setSessionEmail(session?.email ?? "");
+      setSessionReady(true);
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col antialiased font-sans">
@@ -355,34 +376,43 @@ export default function LatihanPage() {
           {/* Bottom Evaluation Banner Drawer */}
           <div className="p-5 lg:p-6 bg-surface-container-lowest shadow-[0_-8px_24px_rgba(0,0,0,0.06)] flex flex-col md:flex-row items-center justify-between gap-4 z-20 border-t border-surface-container">
             <div className="flex items-start gap-3 flex-1">
-              <div className="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0 shadow-xs">
+              <div className={`w-12 h-12 rounded-full ${hasCheckedAnswer ? "bg-secondary-container text-on-secondary-container" : "bg-surface-container text-outline"} flex items-center justify-center shrink-0 shadow-xs`}>
                 <CheckCircle2 className="w-7 h-7" />
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-title-md text-primary font-bold">
-                    Tepat Sekali! (+15 XP)
-                  </h3>
-                  <span className="inline-flex items-center gap-1 text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant font-medium">
-                    <BookOpen className="w-3.5 h-3.5" />
-                    Balai Bahasa Sulteng
-                  </span>
+              {hasCheckedAnswer ? (
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className={`text-title-md ${selectedOption === "A" ? "text-primary" : "text-error"} font-bold`}>
+                      {selectedOption === "A" ? "Tepat Sekali! (+20 XP)" : "Belum tepat (+5 XP)"}
+                    </h3>
+                    <span className="inline-flex items-center gap-1 text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant font-medium">
+                      <BookOpen className="w-3.5 h-3.5" />
+                      Balai Bahasa Sulteng
+                    </span>
+                  </div>
+                  <p className="text-body-sm text-on-surface-variant max-w-2xl leading-relaxed">
+                    Dalam tata krama Kaili, kata <strong>&ldquo;Tabe&rdquo;</strong> diiringi sikap tubuh merendah sebagai penghormatan kepada orang yang dituakan.
+                  </p>
                 </div>
-                <p className="text-body-sm text-on-surface-variant max-w-2xl leading-relaxed">
-                  Dalam tata krama Kaili, kata <strong>&ldquo;Tabe&rdquo;</strong>{" "}
-                  diiringi sikap tubuh merendah sebagai penghormatan luhur kepada
-                  sesama dan orang yang dituakan, melambangkan kerendahan hati.
-                </p>
-              </div>
+              ) : (
+                <p className="text-body-md text-on-surface-variant">Pilih jawaban, lalu periksa hasilnya untuk mendapatkan XP.</p>
+              )}
             </div>
 
             <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
               <button
                 type="button"
-                onClick={handleContinue}
+                disabled={!selectedOption || !sessionReady}
+                onClick={() => {
+                  if (hasCheckedAnswer) {
+                    handleContinue();
+                  } else {
+                    setHasCheckedAnswer(true);
+                  }
+                }}
                 className="w-full md:w-auto px-8 py-3.5 bg-primary text-on-primary rounded-full font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer font-bold"
               >
-                <span>Lanjut ke Evaluasi Jawaban</span>
+                <span>{hasCheckedAnswer ? "Lanjut ke Evaluasi Jawaban" : "Periksa Jawaban"}</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>

@@ -1,8 +1,11 @@
 ﻿"use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import TopBar from "../../components/TopBar";
 import { Award, BadgeCheck, Sparkles, GraduationCap, Play } from "lucide-react";
+import { getSession } from "../../auth/authClient";
+import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
 
 const achievements = [
   {
@@ -32,6 +35,14 @@ const achievements = [
 ];
 
 export default function AchievementPage() {
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+
+  useEffect(() => {
+    getSession().then(async (session) => {
+      if (session) setProgress(await loadProgress(session.email));
+    });
+  }, []);
+
   return (
     <>
       <TopBar title="Achievement" subtitle="Prestasi belajar dan progress budaya" />
@@ -49,25 +60,25 @@ export default function AchievementPage() {
 
               <div className="rounded-full bg-white/80 px-3 py-2 shadow-sm ring-1 ring-white/60">
                 <div className="text-[9px] uppercase tracking-[0.12em] text-[#6f422e]">Total XP</div>
-                <div className="text-lg font-black text-[#3e2115]">480</div>
+                <div className="text-lg font-black text-[#3e2115]">{progress.xp}</div>
               </div>
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">Level 3</span>
-              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">5 hari streak</span>
-              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">4 badge</span>
+              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">Level {Math.floor(progress.xp / 100) + 1}</span>
+              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">{progress.streak} hari streak</span>
+              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">{progress.badges.length} badge</span>
             </div>
           </section>
 
           <section className="grid gap-3 md:grid-cols-3">
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Quest selesai</p>
-              <h2 className="mt-2 text-2xl font-black text-on-surface">14</h2>
+              <h2 className="mt-2 text-2xl font-black text-on-surface">{progress.completedLessons.length}</h2>
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Badge aktif</p>
-              <h2 className="mt-2 text-2xl font-black text-on-surface">4/8</h2>
+              <h2 className="mt-2 text-2xl font-black text-on-surface">{progress.badges.length}/8</h2>
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Misi hari ini</p>
@@ -76,7 +87,7 @@ export default function AchievementPage() {
           </section>
 
           <section className="space-y-3">
-            {achievements.map((item, index) => {
+            {achievements.map((item) => {
               const { Icon } = item;
               return (
                 <div
@@ -102,8 +113,8 @@ export default function AchievementPage() {
                       </div>
                     </div>
 
-                    <span className="rounded-full bg-surface-container px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-on-surface-variant">
-                      #{index + 1}
+                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${progress.badges.includes(item.title) ? "bg-secondary-fixed text-on-secondary-fixed" : "bg-surface-container text-on-surface-variant"}`}>
+                      {progress.badges.includes(item.title) ? "Terbuka" : "Terkunci"}
                     </span>
                   </div>
                 </div>

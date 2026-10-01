@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ArrowLeft, Home, MapPin, Zap } from "lucide-react";
+import { getSession } from "../auth/authClient";
+import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../dashboard/progress";
 
 interface TopBarProps {
   title?: string;
@@ -25,6 +28,23 @@ export default function TopBar({
   backHref = "/dashboard",
 }: TopBarProps) {
   const pathname = usePathname();
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [userName, setUserName] = useState("Pelajar LARAS");
+
+  useEffect(() => {
+    let email = "";
+    getSession().then(async (session) => {
+      if (!session) return;
+      email = session.email;
+      setUserName(session.name);
+      setProgress(await loadProgress(email));
+    });
+    const refresh = () => {
+      if (email) setProgress(readProgress(email));
+    };
+    window.addEventListener("laras-progress-updated", refresh);
+    return () => window.removeEventListener("laras-progress-updated", refresh);
+  }, []);
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 h-20 border-b border-outline-variant/30 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
@@ -105,21 +125,19 @@ export default function TopBar({
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-1 bg-secondary-fixed px-2.5 py-1.5 rounded-full text-on-secondary-fixed font-bold text-label-md shadow-xs">
             <Zap className="text-secondary w-4 h-4 fill-current" />
-            <span className="hidden min-[360px]:inline">480 XP</span>
-            <span className="min-[360px]:hidden">480</span>
+            <span className="hidden min-[360px]:inline">{progress.xp} XP</span>
+            <span className="min-[360px]:hidden">{progress.xp}</span>
           </div>
 
           <Link
             href="/dashboard/profil"
             className="flex items-center gap-2 pl-1 hover:opacity-85 transition-opacity"
           >
-            <img
-              alt="Profile Rani"
-              className="h-8 w-8 rounded-full object-cover ring-2 ring-primary/20 sm:h-9 sm:w-9"
-              src="https://lh3.googleusercontent.com/aida/AEtjO1Vhf8Tpf1UP_r76LEL-9Olxy-KamrRKdvbuw_IdSOUdsPnutS-ucQSUNrUwCmvv79RwssCekEhlPat9dql81M0_w3TdFVqc0hENXtxegKWhP1UapZD9OlTcn4MiCZZPhuf7VNtyofbbQ8ByHlCDXGq8phTykzER2D0OKlgZrlUIKLycgNPOKpSjSCeQYrau-XCBnFjpIEDXwO8PKFKpjzvu77uKgmWMakGwQ2PeNYy_zuHKKvm8sSrmGaG3"
-            />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-black text-on-primary ring-2 ring-primary/20 sm:h-9 sm:w-9">
+              {userName.slice(0, 1).toUpperCase()}
+            </div>
             <span className="hidden text-label-lg text-on-surface font-semibold xl:inline">
-              Rani M.
+              {userName}
             </span>
           </Link>
         </div>

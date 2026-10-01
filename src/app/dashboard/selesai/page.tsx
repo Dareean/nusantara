@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import TopBar from "../../components/TopBar";
 import {
@@ -20,9 +20,21 @@ import {
   BookOpen,
   Trophy,
 } from "lucide-react";
+import { getSession } from "../../auth/authClient";
+import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
 
 export default function SelesaiLatihanPage() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [userName, setUserName] = useState("Pelajar LARAS");
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+
+  useEffect(() => {
+    getSession().then(async (session) => {
+      if (!session) return;
+      setUserName(session.name);
+      setProgress(await loadProgress(session.email));
+    });
+  }, []);
 
   const handleAudio = () => {
     setIsPlayingAudio(true);
@@ -67,7 +79,7 @@ export default function SelesaiLatihanPage() {
               </div>
 
               <h1 className="text-3xl leading-9 sm:text-[36px] sm:leading-11 text-on-surface font-extrabold tracking-tight mt-2">
-                Luar Biasa, Rani!
+                Luar Biasa, {userName}!
               </h1>
               <p className="text-body-md sm:text-body-lg text-on-surface-variant max-w-2xl mt-2 leading-relaxed">
                 Kamu telah menyelesaikan{" "}
@@ -106,7 +118,7 @@ export default function SelesaiLatihanPage() {
                 <div className="my-4 flex flex-col items-center">
                   <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-secondary-fixed text-on-secondary-fixed rounded-full shadow-xs">
                     <Plus className="text-secondary-container w-5 h-5" />
-                    <span className="text-headline-md sm:text-headline-lg font-extrabold">20 XP</span>
+                    <span className="text-headline-md sm:text-headline-lg font-extrabold">{progress.lastLesson?.xp ?? 0} XP</span>
                   </div>
                   <span className="text-headline-sm text-on-surface font-bold mt-2">
                     Skor Kemahiran Bahasa
@@ -117,7 +129,7 @@ export default function SelesaiLatihanPage() {
                     Total XP terkumpul:
                   </span>
                   <span className="text-label-lg text-primary font-extrabold ml-1">
-                    500 XP
+                    {progress.xp} XP
                   </span>
                 </div>
               </div>
@@ -133,7 +145,7 @@ export default function SelesaiLatihanPage() {
                 <div className="my-4 flex flex-col items-center">
                   <div className="flex items-center gap-1.5">
                     <span className="text-headline-md sm:text-headline-lg text-primary font-extrabold">
-                      7 Hari Beruntun!
+                      {progress.streak} Hari Beruntun!
                     </span>
                     <span className="text-2xl">🔥</span>
                   </div>
@@ -198,13 +210,13 @@ export default function SelesaiLatihanPage() {
                       Gelar Penjelajah Budaya Kaili
                     </span>
                     <span className="text-label-sm text-primary font-extrabold">
-                      +5% (70%)
+                      +{progress.completedLessons.length > 0 ? 5 : 0}% ({Math.min(progress.completedLessons.length * 20, 100)}%)
                     </span>
                   </div>
                   <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
                     <div
                       className="bg-gradient-to-r from-primary to-secondary-container h-full rounded-full transition-all duration-1000"
-                      style={{ width: "70%" }}
+                      style={{ width: `${Math.min(progress.completedLessons.length * 20, 100)}%` }}
                     ></div>
                   </div>
                 </div>

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     // clear cookie
     res.cookies.set('laras_session', '', { httpOnly: true, path: '/', maxAge: 0 });
     return res;
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || String(err) }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }

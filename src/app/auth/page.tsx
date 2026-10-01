@@ -25,9 +25,13 @@ function AuthPageContent() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
+    setIsSubmitting(true);
     try {
       if (authMode === "register") {
         // register locally
@@ -39,11 +43,10 @@ function AuthPageContent() {
       }
       // on success redirect (respect redirect param if present)
       router.push(redirectTo);
-    } catch (err: any) {
-      // basic inline error handling
-      const msg = err?.message || 'Terjadi kesalahan autentikasi';
-      // eslint-disable-next-line no-alert
-      alert(msg);
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "Terjadi kesalahan autentikasi");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -114,10 +117,16 @@ function AuthPageContent() {
               </button>
             </div>
 
+            {errorMessage && (
+              <div role="alert" className="rounded-xl border border-error/30 bg-error-container/50 px-4 py-3 text-body-sm font-semibold text-on-error-container">
+                {errorMessage}
+              </div>
+            )}
+
             {/* Google OAuth Button */}
             <button
               type="button"
-              onClick={() => router.push("/dashboard")}
+              onClick={() => setErrorMessage("Login Google belum tersedia. Gunakan email dan kata sandi untuk demo.")}
               className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface font-label-lg transition-colors cursor-pointer border border-outline-variant/30"
             >
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
@@ -277,10 +286,13 @@ function AuthPageContent() {
 
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="mt-2 w-full py-3.5 px-6 rounded-full bg-primary text-on-primary font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer font-bold"
               >
                 <span>
-                  {authMode === "login"
+                  {isSubmitting
+                    ? "Memproses..."
+                    : authMode === "login"
                     ? "Masuk ke Akun Belajar"
                     : "Mulai Petualangan Budaya"}
                 </span>

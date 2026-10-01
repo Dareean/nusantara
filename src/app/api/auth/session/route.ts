@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const data = getSession(sessionId);
     if (!data) return NextResponse.json({ ok: false, session: null });
     return NextResponse.json({ ok: true, session: data });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || String(err) }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -18,11 +18,26 @@ import {
   ShieldAlert,
   ArrowRight,
 } from "lucide-react";
+import { getSession } from "../../auth/authClient";
+import { loadProgress, type LessonResult } from "../progress";
 
 export default function EvaluasiJawabanPage() {
   const router = useRouter();
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [timerCount, setTimerCount] = useState(4);
+  const [lessonResult, setLessonResult] = useState<LessonResult | null>(null);
+
+  useEffect(() => {
+    getSession().then(async (session) => {
+      if (!session) return;
+      const result = (await loadProgress(session.email)).lastLesson;
+      if (!result) {
+        router.replace("/dashboard/latihan");
+        return;
+      }
+      setLessonResult(result);
+    });
+  }, [router]);
 
   const toggleAudio = () => {
     setIsPlayingAudio((prev) => {
@@ -30,7 +45,7 @@ export default function EvaluasiJawabanPage() {
       if (currentlyPlaying) {
         setTimerCount(4);
       }
-      return !currentlyPlaying;
+      return currentlyPlaying;
     });
   };
 
@@ -54,7 +69,7 @@ export default function EvaluasiJawabanPage() {
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 bg-error-container text-on-error-container rounded-full text-label-md font-bold">
           <Heart className="w-4 h-4 text-error fill-current" />
-          <span>2/3</span>
+          <span>{lessonResult?.correct ? "3/3" : "2/3"}</span>
         </div>
       </header>
 
@@ -329,18 +344,18 @@ export default function EvaluasiJawabanPage() {
                       <BadgeCheck className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-title-md font-bold text-primary">
-                        Penjelasan Konseptual Tuntas (+20 XP)
+                        <h4 className={`text-title-md font-bold ${lessonResult?.correct ? "text-primary" : "text-error"}`}>
+                        {lessonResult?.correct ? "Penjelasan Konseptual Tuntas (+20 XP)" : "Jawaban perlu diulang (+5 XP)"}
                       </h4>
                       <p className="text-body-sm text-on-surface-variant">
-                        Selamat! Pemahaman adab tuturan Anda telah terverifikasi.
+                        {lessonResult?.correct ? "Selamat! Pemahaman adab tuturan Anda telah terverifikasi." : "Tidak apa-apa. Pelajari kembali konteks Tabe dan coba lagi."}
                       </p>
                     </div>
                   </div>
                 </div>
 
                 <p className="text-body-md text-on-surface leading-relaxed bg-surface-container-lowest/80 p-4 rounded-xl border border-outline-variant/20">
-                  Memasuki wilayah tetua adat Souraja menuntut penggunaan partikel
+                    {lessonResult?.correct ? "Memasuki wilayah tetua adat Souraja menuntut penggunaan partikel" : "Jawaban yang tepat untuk konteks ini menggunakan partikel"}{" "}
                   honorifik <strong>Tabe</strong> (mohon maaf lahir batin / izin
                   melangkah) dan sapaan <strong>Pue</strong> (tokoh yang
                   dituakan). Lanjutkan untuk merayakan penyelesaian modul ini!

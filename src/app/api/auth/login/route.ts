@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({ ok: true, email: user.email, name: user.name });
     res.cookies.set('laras_session', sessionId, { httpOnly: true, path: '/', sameSite: 'lax' });
     return res;
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || String(err) }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }

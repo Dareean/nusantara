@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import TopBar from "../../components/TopBar";
 import {
@@ -12,6 +13,8 @@ import {
   ArrowUp,
   type LucideIcon,
 } from "lucide-react";
+import { getSession } from "../../auth/authClient";
+import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
 
 type LessonStatus = "done" | "active" | "locked";
 
@@ -28,13 +31,21 @@ type Lesson = {
 
 const lessons: Lesson[] = [
   { id: 1, Icon: BookOpen, label: "Baca", status: "done", href: "/dashboard/latihan", left: 50, top: 12, size: 68 },
-  { id: 2, Icon: Headphones, label: "Dengar", status: "active", href: "/dashboard/latihan", left: 50, top: 32, size: 104 },
+  { id: 2, Icon: Headphones, label: "Dengar", status: "active", href: "/dashboard/latihan?lesson=2", left: 50, top: 32, size: 104 },
   { id: 3, Icon: Languages, label: "Pahami", status: "locked", href: "/dashboard/latihan/busana", left: 50, top: 52, size: 82 },
   { id: 4, Icon: Star, label: "Tantang", status: "locked", href: "/dashboard/culture-connection", left: 50, top: 68, size: 84 },
   { id: 5, Icon: BookMarked, label: "Rekap", status: "locked", href: "/dashboard/paspor", left: 50, top: 88, size: 82 },
 ];
 
 export default function JalurBelajarPage() {
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+
+  useEffect(() => {
+    getSession().then(async (session) => {
+      if (session) setProgress(await loadProgress(session.email));
+    });
+  }, []);
+
   return (
     <>
       <TopBar title="Jalur Belajar" subtitle="Misi budaya yang siap kamu jalani" />
@@ -65,9 +76,10 @@ export default function JalurBelajarPage() {
             </svg>
 
             {lessons.map((lesson) => {
-              const isDone = lesson.status === "done";
-              const isActive = lesson.status === "active";
-              const isLocked = lesson.status === "locked";
+              const isDone = progress.completedLessons.includes(lesson.id) || (lesson.id === 1 && lesson.status === "done");
+              const isUnlocked = progress.unlockedLessons.includes(lesson.id) || lesson.id === 1;
+              const isActive = isUnlocked && !isDone;
+              const isLocked = !isUnlocked;
               const { Icon } = lesson;
 
               const nodeTopMap: Record<number, number> = {
@@ -91,7 +103,22 @@ export default function JalurBelajarPage() {
                     </div>
                   )}
 
-                  <Link
+                  {isLocked ? (
+                    <div
+                      aria-label={`${lesson.label} terkunci`}
+                      className={`absolute flex items-center justify-center rounded-full border-[5px] transition-all duration-200 ${"border-[#d8cdc3] bg-[#e8e1db] text-[#554a43] opacity-90"}`}
+                      style={{
+                        left: "50%",
+                        top: `${top}px`,
+                        width: `${lesson.size}px`,
+                        height: `${lesson.size}px`,
+                        transform: "translate(-50%, -50%)",
+                      }}
+                    >
+                      <Lock className="w-8 h-8" aria-hidden="true" />
+                    </div>
+                  ) : (
+                    <Link
                     href={lesson.href}
                     aria-label={lesson.label}
                     className={`absolute flex items-center justify-center rounded-full border-[5px] transition-all duration-200 ${
@@ -108,13 +135,14 @@ export default function JalurBelajarPage() {
                       height: `${lesson.size}px`,
                       transform: "translate(-50%, -50%)",
                     }}
-                  >
+                    >
                     <Icon className="w-8 h-8" aria-hidden="true" />
 
                     {isActive && (
                       <span className="absolute inset-[-10px] rounded-full ring-4 ring-[#f29b5b]/20" />
                     )}
-                  </Link>
+                    </Link>
+                  )}
 
                   {lesson.id === 3 && isLocked && (
                     <div
