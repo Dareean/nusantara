@@ -50,7 +50,7 @@ const pathNodes: PathNode[] = [
     type: "lesson",
     status: "completed",
     offset: "left",
-    href: "/dashboard/latihan/1",
+    href: "/dashboard/latihan/2",
     xp: 15,
   },
   {
@@ -70,7 +70,7 @@ const pathNodes: PathNode[] = [
     type: "attire",
     status: "active",
     offset: "right",
-    href: "/dashboard/latihan/2",
+    href: "/dashboard/latihan/3",
     xp: 20,
   },
   {
