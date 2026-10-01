@@ -5,6 +5,23 @@ export type LessonResult = {
   score: number;
   xp: number;
   completedAt: string;
+  totalExercises?: number;
+  correctExercises?: number;
+  bonusXp?: number;
+  heartsRemaining?: number;
+  completed?: boolean;
+};
+
+export type LessonSessionResult = {
+  lessonId: number;
+  answered: string;
+  score: number;
+  xpEarned: number;
+  bonusXp: number;
+  totalExercises: number;
+  correctExercises: number;
+  heartsRemaining: number;
+  completedAt: string;
 };
 
 export type UserProgress = {
@@ -125,6 +142,51 @@ export function recordLessonResult(email: string, result: LessonResult) {
       ? [...current.badges, "Pionir Salam"]
       : current.badges,
     lastLesson: result,
+    lastStudyDate: today,
+  };
+  saveProgress(email, next);
+  return next;
+}
+
+export function recordLessonSession(email: string, result: LessonSessionResult) {
+  const current = readProgress(email);
+  const alreadyCompleted = current.completedLessons.includes(result.lessonId);
+  const today = result.completedAt.slice(0, 10);
+  const previousDate = current.lastStudyDate;
+  const yesterday = new Date(`${today}T12:00:00`);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayKey = yesterday.toISOString().slice(0, 10);
+  const streak = previousDate === today
+    ? current.streak
+    : previousDate === yesterdayKey
+      ? current.streak + 1
+      : 1;
+  const lessonResult: LessonResult = {
+    lessonId: result.lessonId,
+    answered: result.answered,
+    correct: result.correctExercises === result.totalExercises,
+    score: result.score,
+    xp: result.xpEarned,
+    bonusXp: result.bonusXp,
+    totalExercises: result.totalExercises,
+    correctExercises: result.correctExercises,
+    heartsRemaining: result.heartsRemaining,
+    completed: true,
+    completedAt: result.completedAt,
+  };
+  const next: UserProgress = {
+    ...current,
+    xp: alreadyCompleted ? current.xp : current.xp + result.xpEarned + result.bonusXp,
+    streak,
+    hearts: result.heartsRemaining,
+    completedLessons: alreadyCompleted ? current.completedLessons : [...current.completedLessons, result.lessonId],
+    unlockedLessons: alreadyCompleted
+      ? current.unlockedLessons
+      : Array.from(new Set([...current.unlockedLessons, result.lessonId + 1])),
+    badges: result.lessonId === 1 && !current.badges.includes("Pionir Salam")
+      ? [...current.badges, "Pionir Salam"]
+      : current.badges,
+    lastLesson: lessonResult,
     lastStudyDate: today,
   };
   saveProgress(email, next);

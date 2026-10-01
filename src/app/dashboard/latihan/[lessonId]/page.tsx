@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Heart, Lock, RotateCcw, Sparkles, XCircle } from "lucide-react";
 import { getSession } from "../../../auth/authClient";
-import { loadProgress } from "../../progress";
+import { loadProgress, recordLessonSession } from "../../progress";
 import { getLessonById, type ChoiceQuestionData, type Lesson } from "../../../../lib/lessons";
 
 type SessionScreen = "loading" | "intro" | "exercise" | "feedback" | "gameover";
@@ -18,6 +18,7 @@ export default function LessonSessionPage() {
   const [hearts, setHearts] = useState(3);
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [sessionEmail, setSessionEmail] = useState("");
 
   useEffect(() => {
     const lessonId = Number(params.lessonId);
@@ -32,6 +33,7 @@ export default function LessonSessionPage() {
         router.replace(`/auth?redirect=/dashboard/latihan/${lessonId}`);
         return;
       }
+      setSessionEmail(session.email);
       const currentProgress = await loadProgress(session.email);
       if (!currentProgress.unlockedLessons.includes(lessonId)) {
         router.replace("/dashboard");
@@ -72,6 +74,27 @@ export default function LessonSessionPage() {
   };
 
   const retrySession = () => startSession();
+
+  const continueAfterFeedback = () => {
+    if (isCorrect && choiceQuestion) {
+      recordLessonSession(sessionEmail, {
+        lessonId: lesson.id,
+        answered: selectedAnswer,
+        score: 100,
+        xpEarned: choiceQuestion.xp,
+        bonusXp: lesson.rewardXp,
+        totalExercises: 1,
+        correctExercises: 1,
+        heartsRemaining: hearts,
+        completedAt: new Date().toISOString(),
+      });
+      router.push(`/dashboard/evaluasi?lesson=${lesson.id}`);
+      return;
+    }
+    setSelectedAnswer("");
+    setIsCorrect(null);
+    setScreen("exercise");
+  };
 
   return (
     <main className="min-h-screen bg-background text-on-surface px-4 py-6 sm:px-6">
@@ -146,7 +169,7 @@ export default function LessonSessionPage() {
             <button
               type="button"
               disabled={!selectedAnswer}
-              onClick={screen === "exercise" ? checkAnswer : startSession}
+              onClick={screen === "exercise" ? checkAnswer : continueAfterFeedback}
               className="mt-8 w-full rounded-full bg-primary px-6 py-4 text-base font-black text-on-primary shadow-[0_4px_0_0_#881f00] transition hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-50"
             >
               {screen === "exercise" ? "Periksa" : "Lanjut"}
