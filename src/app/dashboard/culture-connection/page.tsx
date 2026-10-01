@@ -23,22 +23,85 @@ import {
   RotateCw,
   ArrowRight,
 } from "lucide-react";
+import { useEffect } from "react";
+import { getSession } from "../../auth/authClient";
+import { recordLessonResult } from "../progress";
+
+const decisions = [
+  {
+    title: "Sapaan saat tiba",
+    prompt: "Tetua sedang berbicara di beranda. Apa tindakanmu?",
+    choices: [
+      { id: "tabe", label: "Ucapkan Tabe pue sambil menunduk", score: 2 },
+      { id: "wait", label: "Menunggu tanpa menyapa", score: 1 },
+      { id: "enter", label: "Langsung masuk ke rumah", score: 0 },
+    ],
+  },
+  {
+    title: "Pilihan busana",
+    prompt: "Kamu hadir sebagai tamu kehormatan. Apa yang kamu kenakan?",
+    choices: [
+      { id: "nggembe", label: "Baju Nggembe dan Buya Sabe yang serasi", score: 2 },
+      { id: "plain", label: "Pakaian sehari-hari yang praktis", score: 1 },
+      { id: "loud", label: "Aksesori paling mencolok", score: 0 },
+    ],
+  },
+  {
+    title: "Gesture penutup",
+    prompt: "Tuan rumah mempersilakanmu duduk. Bagaimana kamu merespons?",
+    choices: [
+      { id: "lower", label: "Menunduk ringan dan mengucapkan terima kasih", score: 2 },
+      { id: "nod", label: "Mengangguk singkat", score: 1 },
+      { id: "rush", label: "Duduk tanpa memberi respons", score: 0 },
+    ],
+  },
+];
 
 export default function CultureConnectionPage() {
   const router = useRouter();
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
+  const [decisionStep, setDecisionStep] = useState(0);
+  const [selectedDecision, setSelectedDecision] = useState("");
+  const [harmony, setHarmony] = useState(0);
+  const [sessionEmail, setSessionEmail] = useState("");
+  const [sessionReady, setSessionReady] = useState(false);
+
+  useEffect(() => {
+    getSession().then((session) => {
+      setSessionEmail(session?.email ?? "");
+      setSessionReady(true);
+    });
+  }, []);
 
   const toggleAudio = () => {
     setIsPlayingAudio(!isPlayingAudio);
   };
 
   const handleClaim = () => {
+    if (decisionStep < decisions.length || !sessionEmail) return;
+    recordLessonResult(sessionEmail, {
+      lessonId: 4,
+      answered: "culture-connection",
+      correct: harmony >= 5,
+      score: harmony * 20,
+      xp: 30,
+      completedAt: new Date().toISOString(),
+    });
     setIsClaiming(true);
     setTimeout(() => {
       setIsClaiming(false);
       router.push("/dashboard/paspor");
     }, 1200);
+  };
+
+  const currentDecision = decisions[decisionStep];
+  const selectedChoice = currentDecision?.choices.find((choice) => choice.id === selectedDecision);
+  const chooseDecision = () => {
+    if (!selectedChoice) return;
+    setHarmony((value) => value + selectedChoice.score);
+    setSelectedDecision("");
+    setDecisionStep((value) => value + 1);
   };
 
   return (
@@ -96,7 +159,7 @@ export default function CultureConnectionPage() {
                   ></circle>
                 </svg>
                 <span className="absolute text-label-md text-primary font-bold">
-                  100%
+                  {Math.round((harmony / 6) * 100)}%
                 </span>
               </div>
               <div className="flex flex-col">
@@ -104,7 +167,7 @@ export default function CultureConnectionPage() {
                   Tingkat Harmoni
                 </span>
                 <span className="text-title-md text-on-surface font-extrabold">
-                  3/3 Sempurna
+                  {decisionStep}/3 Tahap selesai
                 </span>
               </div>
             </div>
@@ -225,6 +288,51 @@ export default function CultureConnectionPage() {
 
             {/* RIGHT COLUMN: 3-Step Interactive Decision Panel */}
             <div className="lg:col-span-7 flex flex-col gap-4">
+              {currentDecision ? (
+                <div className="bg-primary-fixed/30 p-6 rounded-2xl shadow-xs flex flex-col gap-4 border border-primary/20">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <span className="text-label-sm text-primary uppercase tracking-wider font-bold">
+                        Keputusan {decisionStep + 1} dari 3
+                      </span>
+                      <h2 className="text-headline-md text-on-surface font-extrabold mt-1">
+                        {currentDecision.title}
+                      </h2>
+                    </div>
+                    <span className="text-label-md font-black text-primary">Harmoni {harmony}/6</span>
+                  </div>
+                  <p className="text-body-lg text-on-surface leading-relaxed">{currentDecision.prompt}</p>
+                  <div className="flex flex-col gap-2">
+                    {currentDecision.choices.map((choice) => (
+                      <button
+                        key={choice.id}
+                        type="button"
+                        onClick={() => setSelectedDecision(choice.id)}
+                        className={`w-full text-left rounded-xl p-4 border transition-all ${selectedDecision === choice.id ? "border-primary bg-surface-container-lowest ring-2 ring-primary" : "border-outline-variant/30 bg-surface-container-low hover:bg-surface-container"}`}
+                      >
+                        <span className="text-title-md font-bold text-on-surface">{choice.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={chooseDecision}
+                    disabled={!selectedDecision || !sessionReady}
+                    className="w-full rounded-full bg-primary px-5 py-3 font-bold text-on-primary shadow-[0_4px_0_0_#881f00] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Lakukan Keputusan
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-secondary-fixed/40 p-6 rounded-2xl border border-secondary/20">
+                  <div className="flex items-center gap-2 text-secondary">
+                    <Award className="w-6 h-6" />
+                    <h2 className="text-headline-md font-extrabold text-on-surface">Skenario selesai</h2>
+                  </div>
+                  <p className="mt-2 text-body-md text-on-surface-variant">Semua keputusanmu sudah membentuk perjalanan bertamu. Klaim reward untuk menyimpan cap ke Paspor Budaya.</p>
+                </div>
+              )}
+
               {/* Step 1: Speech Selection */}
               <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-xs flex flex-col gap-4 relative overflow-hidden border border-outline-variant/30">
                 <div className="flex items-center justify-between">
@@ -243,7 +351,7 @@ export default function CultureConnectionPage() {
                   </div>
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-label-sm font-bold">
                     <CheckCircle2 className="w-4 h-4" />
-                    Selesai
+                    {decisionStep > 0 ? "Terlewati" : "Menunggu keputusan"}
                   </span>
                 </div>
 
@@ -306,7 +414,7 @@ export default function CultureConnectionPage() {
                   </div>
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-label-sm font-bold">
                     <CheckCircle2 className="w-4 h-4" />
-                    Selesai
+                    {decisionStep > 1 ? "Terlewati" : "Menunggu keputusan"}
                   </span>
                 </div>
 
@@ -346,7 +454,7 @@ export default function CultureConnectionPage() {
                         Resmi &amp; Beradab
                       </span>
                       <span className="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant text-label-sm font-bold">
-                        Sesuai Kaidah Adat (Benar ✓)
+                        Selaras dengan konteks acara
                       </span>
                     </div>
                   </div>
@@ -408,16 +516,16 @@ export default function CultureConnectionPage() {
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                       <span className="text-headline-sm text-on-surface font-extrabold">
-                        Skenario Sempurna!
+                        {harmony >= 5 ? "Skenario Harmonis!" : "Skenario selesai"}
                       </span>
                       <span className="px-2 py-0.5 rounded-full bg-primary text-on-primary text-label-sm font-bold">
-                        100% Harmoni
+                        {Math.round((harmony / 6) * 100)}% Harmoni
                       </span>
                     </div>
                     <div className="flex items-center gap-3 mt-0.5 text-body-sm flex-wrap">
                       <span className="inline-flex items-center gap-1 text-label-md text-secondary font-bold">
                         <Zap className="w-4 h-4" />
-                        +50 XP Kemahiran
+                        +30 XP Kemahiran
                       </span>
                       <span>•</span>
                       <span className="inline-flex items-center gap-1 text-label-md text-tertiary font-bold">
@@ -431,7 +539,7 @@ export default function CultureConnectionPage() {
                 <button
                   type="button"
                   onClick={handleClaim}
-                  disabled={isClaiming}
+                  disabled={isClaiming || decisionStep < decisions.length || !sessionReady}
                   className="w-full md:w-auto px-8 py-3.5 rounded-full bg-primary text-on-primary font-label-lg font-bold shadow-[0_4px_0_0_#881f00] hover:translate-y-0.5 hover:shadow-[0_2px_0_0_#881f00] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
                 >
                   {isClaiming ? (
@@ -441,7 +549,7 @@ export default function CultureConnectionPage() {
                     </>
                   ) : (
                     <>
-                      <span>Klaim Hadiah &amp; Simpan ke Paspor</span>
+                      <span>{decisionStep < decisions.length ? "Selesaikan Keputusan" : "Klaim Hadiah &amp; Simpan ke Paspor"}</span>
                       <ArrowRight className="w-5 h-5" />
                     </>
                   )}

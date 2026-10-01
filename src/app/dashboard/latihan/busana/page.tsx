@@ -8,14 +8,15 @@ import {
   Heart,
   Shirt,
   Sparkles,
-  HelpCircle,
   Check,
   CheckCircle2,
-  Circle,
   ArrowRight,
   Palette,
   Eye,
 } from "lucide-react";
+import { useEffect } from "react";
+import { getSession } from "../../../auth/authClient";
+import { recordLessonResult } from "../../progress";
 
 const hotspots = [
   {
@@ -57,8 +58,37 @@ export default function LatihanBusanaPage() {
   const router = useRouter();
   const [activeHotspotId, setActiveHotspotId] = useState(1);
   const [selectedAnswer, setSelectedAnswer] = useState<number>(0);
+  const [hasCheckedAnswer, setHasCheckedAnswer] = useState(false);
+  const [sessionEmail, setSessionEmail] = useState("");
+  const [sessionReady, setSessionReady] = useState(false);
   const activeHotspot = hotspots.find((h) => h.id === activeHotspotId) || hotspots[0];
   const ActiveIcon = activeHotspot.Icon;
+
+  useEffect(() => {
+    getSession().then((session) => {
+      setSessionEmail(session?.email ?? "");
+      setSessionReady(true);
+    });
+  }, []);
+
+  const handleContinue = () => {
+    if (!selectedAnswer) return;
+    if (!hasCheckedAnswer) {
+      setHasCheckedAnswer(true);
+      return;
+    }
+    if (sessionEmail) {
+      recordLessonResult(sessionEmail, {
+        lessonId: 3,
+        answered: String(selectedAnswer),
+        correct: selectedAnswer === 1,
+        score: selectedAnswer === 1 ? 100 : 40,
+        xp: 20,
+        completedAt: new Date().toISOString(),
+      });
+    }
+    router.push("/dashboard/evaluasi");
+  };
 
   return (
     <div className="min-h-screen bg-surface font-sans text-on-surface flex flex-col antialiased">
@@ -192,23 +222,22 @@ export default function LatihanBusanaPage() {
           </div>
         </div>
 
-        {/* Quick Quiz Section */}
+        {/* Cultural Choice Section */}
         <div className="mt-8">
           <div className="flex items-center gap-2 mb-2">
-            <HelpCircle className="text-secondary w-5 h-5" />
+            <Sparkles className="text-secondary w-5 h-5" />
             <h3 className="text-headline-sm text-on-surface font-bold">
-              Uji Pemahaman Singkat
+              Pilih Busana untuk Momen Ini
             </h3>
           </div>
           <p className="text-body-md text-on-surface mb-4">
-            Pada momentum atau acara apakah Baju Nggembe warna merah bata ini
-            lazim dikenakan oleh putri Kaili?
+            Kamu akan menghadiri pernikahan adat. Setelah menemukan tiga detail
+            busana, tindakan apa yang paling menghormati momen ini?
           </p>
 
           <div className="flex flex-col gap-3">
-            {/* Option 1 */}
             <button
-              onClick={() => setSelectedAnswer(1)}
+              onClick={() => { setSelectedAnswer(1); setHasCheckedAnswer(false); }}
               className={`w-full text-left p-4 rounded-2xl shadow-xs flex items-center justify-between transition-all cursor-pointer border ${
                 selectedAnswer === 1
                   ? "bg-primary-fixed/40 border-primary ring-2 ring-primary"
@@ -223,22 +252,17 @@ export default function LatihanBusanaPage() {
                       : "bg-surface-container-highest text-on-surface-variant"
                   }`}
                 >
-                  {selectedAnswer === 1 ? <Check className="w-4 h-4" /> : "A"}
+                  {selectedAnswer === 1 ? <Check className="w-4 h-4" /> : "*"}
                 </div>
                 <span className="text-title-md text-on-surface font-bold truncate">
-                  Upacara Adat Pernikahan &amp; Pesta Adat
+                  Memakai Baju Nggembe merah bata dengan Buya Sabe
                 </span>
               </div>
-              {selectedAnswer === 1 ? (
-                <CheckCircle2 className="w-5 h-5 text-primary" />
-              ) : (
-                <Circle className="w-5 h-5 text-outline-variant" />
-              )}
+              {selectedAnswer === 1 && <CheckCircle2 className="w-5 h-5 text-primary" />}
             </button>
 
-            {/* Option 2 */}
             <button
-              onClick={() => setSelectedAnswer(2)}
+              onClick={() => { setSelectedAnswer(2); setHasCheckedAnswer(false); }}
               className={`w-full text-left p-4 rounded-2xl shadow-xs flex items-center justify-between transition-all cursor-pointer border ${
                 selectedAnswer === 2
                   ? "bg-primary-fixed/40 border-primary ring-2 ring-primary"
@@ -247,22 +271,17 @@ export default function LatihanBusanaPage() {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center shrink-0 font-bold text-xs">
-                  B
+                  o
                 </div>
                 <span className="text-body-md text-on-surface truncate">
-                  Pakaian Kerja Sehari-hari di Ladang
+                  Memilih pakaian kerja agar lebih praktis bergerak
                 </span>
               </div>
-              {selectedAnswer === 2 ? (
-                <CheckCircle2 className="w-5 h-5 text-primary" />
-              ) : (
-                <Circle className="w-5 h-5 text-outline-variant" />
-              )}
+              {selectedAnswer === 2 && <CheckCircle2 className="w-5 h-5 text-primary" />}
             </button>
 
-            {/* Option 3 */}
             <button
-              onClick={() => setSelectedAnswer(3)}
+              onClick={() => { setSelectedAnswer(3); setHasCheckedAnswer(false); }}
               className={`w-full text-left p-4 rounded-2xl shadow-xs flex items-center justify-between transition-all cursor-pointer border ${
                 selectedAnswer === 3
                   ? "bg-primary-fixed/40 border-primary ring-2 ring-primary"
@@ -271,28 +290,35 @@ export default function LatihanBusanaPage() {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center shrink-0 font-bold text-xs">
-                  C
+                  o
                 </div>
                 <span className="text-body-md text-on-surface truncate">
-                  Upacara Duka Cita &amp; Masa Berkabung
+                  Memilih aksesori paling mencolok agar menjadi pusat perhatian
                 </span>
               </div>
-              {selectedAnswer === 3 ? (
-                <CheckCircle2 className="w-5 h-5 text-primary" />
-              ) : (
-                <Circle className="w-5 h-5 text-outline-variant" />
-              )}
+              {selectedAnswer === 3 && <CheckCircle2 className="w-5 h-5 text-primary" />}
             </button>
           </div>
+
+          {hasCheckedAnswer && selectedAnswer > 0 && (
+            <div className={`mt-4 rounded-2xl p-4 border ${selectedAnswer === 1 ? "bg-primary-fixed/30 border-primary/30" : "bg-secondary-fixed/30 border-secondary/30"}`}>
+              <p className="text-body-md text-on-surface font-semibold">
+                {selectedAnswer === 1
+                  ? "Pilihanmu selaras dengan suasana pernikahan adat: resmi, beradab, dan tidak mengalahkan pusat perhatian acara."
+                  : "Pilihan ini belum paling selaras dengan konteks pernikahan. Perhatikan acara, peran tamu, dan keseimbangan tampilan."}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Action Button */}
         <div className="mt-8">
           <button
-            onClick={() => router.push("/dashboard/evaluasi")}
+            onClick={handleContinue}
+            disabled={!selectedAnswer || !sessionReady}
             className="w-full py-4 px-6 rounded-full bg-primary text-on-primary font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer font-bold text-base"
           >
-            <span>Kirim Jawaban &amp; Buka Penjelasan</span>
+            <span>{hasCheckedAnswer ? "Simpan Temuan &amp; Lanjutkan" : "Lakukan Pilihan"}</span>
             <ArrowRight className="w-5 h-5" />
           </button>
         </div>

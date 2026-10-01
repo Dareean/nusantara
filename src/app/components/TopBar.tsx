@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import { ArrowLeft, Home, MapPin, Zap } from "lucide-react";
 import { getSession } from "../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../dashboard/progress";
@@ -14,20 +13,12 @@ interface TopBarProps {
   backHref?: string;
 }
 
-const navItems = [
-  { href: "/dashboard/belajar", label: "Jalur Belajar" },
-  { href: "/dashboard/arcade", label: "Arcade" },
-  { href: "/dashboard/paspor", label: "Achievement" },
-  { href: "/dashboard/profil", label: "Profil" },
-];
-
 export default function TopBar({
   title,
   subtitle,
   showBack = false,
   backHref = "/dashboard",
 }: TopBarProps) {
-  const pathname = usePathname();
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   const [userName, setUserName] = useState("Pelajar LARAS");
 
@@ -71,26 +62,6 @@ export default function TopBar({
               </div>
             </div>
           )}
-
-          <div className="hidden min-[980px]:flex items-center gap-1.5 rounded-full bg-surface-container-lowest p-1 ring-1 ring-outline-variant/30 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`rounded-full px-3 py-1.5 text-label-md font-bold transition-colors ${
-                    isActive
-                      ? "bg-primary text-on-primary shadow-[0_2px_0_0_#881f00]"
-                      : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
 
           <Link
             href="/dashboard"

@@ -12,20 +12,55 @@ import {
   BadgeCheck,
   Volume2,
   AudioWaveform,
-  HelpCircle,
-  Check,
   Lightbulb,
   CheckCircle2,
   BookOpen,
   ArrowRight,
+  Sparkles,
+  MessageCircle,
 } from "lucide-react";
 import { getSession } from "../../auth/authClient";
 import { recordLessonResult } from "../progress";
+
+const missionSteps = [
+  {
+    label: "Tiba di Souraja",
+    prompt: "Kamu tiba di beranda saat tetua sedang berbicara. Apa langkahmu?",
+    hint: "Tujuanmu: masuk dengan hormat tanpa memotong percakapan.",
+    choices: [
+      { id: "wait", label: "Menunggu di sisi tangga", detail: "Memberi ruang sebelum menyapa.", score: 1 },
+      { id: "tabe", label: "Mengucapkan Tabe sambil menunduk", detail: "Meminta izin dengan sikap merendah.", score: 2 },
+      { id: "enter", label: "Langsung naik ke tangga", detail: "Masuk tanpa membuka sapaan.", score: 0 },
+    ],
+  },
+  {
+    label: "Sapa tetua",
+    prompt: "Tetua menoleh dan memberi perhatian. Bagaimana kamu membuka percakapan?",
+    hint: "Pilih sapaan yang menjaga jarak hormat dan niat baik.",
+    choices: [
+      { id: "formal", label: "Tabe pue, nalompa mai kami", detail: "Sapaan hormat untuk meminta izin hadir.", score: 2 },
+      { id: "casual", label: "Halo, kami datang", detail: "Ramah, tetapi terlalu umum untuk konteks ini.", score: 1 },
+      { id: "quiet", label: "Diam dan langsung duduk", detail: "Niatmu belum terbaca oleh tuan rumah.", score: 0 },
+    ],
+  },
+  {
+    label: "Jaga gesture",
+    prompt: "Kamu dipersilakan mendekat. Gesture apa yang kamu gunakan?",
+    hint: "Hormati ruang dan orang yang dituakan dengan gerak yang tenang.",
+    choices: [
+      { id: "lower", label: "Menunduk ringan dengan tangan kanan merendah", detail: "Gesture tenang yang melengkapi kata Tabe.", score: 2 },
+      { id: "wave", label: "Melambaikan tangan dari jauh", detail: "Cocok untuk teman sebaya, bukan momen ini.", score: 0 },
+      { id: "bow", label: "Membungkuk terlalu dalam", detail: "Niat hormat ada, tetapi gesture terasa berlebihan.", score: 1 },
+    ],
+  },
+];
 
 export default function LatihanPage() {
   const router = useRouter();
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [hasCheckedAnswer, setHasCheckedAnswer] = useState(false);
+  const [missionStep, setMissionStep] = useState(0);
+  const [reputation, setReputation] = useState(0);
   const [sessionEmail, setSessionEmail] = useState("");
   const [sessionReady, setSessionReady] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
@@ -39,20 +74,35 @@ export default function LatihanPage() {
 
   const handleContinue = () => {
     if (!selectedOption) return;
-    const correct = selectedOption === "A";
+    const choice = missionSteps[missionStep].choices.find((item) => item.id === selectedOption);
+    if (!choice) return;
     const lessonId = new URLSearchParams(window.location.search).get("lesson") === "2" ? 2 : 1;
+    const nextReputation = reputation + choice.score;
+
+    if (missionStep < missionSteps.length - 1) {
+      setReputation(nextReputation);
+      setMissionStep((current) => current + 1);
+      setSelectedOption("");
+      setHasCheckedAnswer(false);
+      return;
+    }
+
+    const correct = nextReputation >= 5;
     if (sessionEmail) {
       recordLessonResult(sessionEmail, {
         answered: selectedOption,
         lessonId: lessonId === 2 ? 2 : 1,
         correct,
-        score: correct ? 100 : 0,
+        score: nextReputation * 20,
         xp: 20,
         completedAt: new Date().toISOString(),
       });
     }
     router.push("/dashboard/evaluasi");
   };
+
+  const currentStep = missionSteps[missionStep];
+  const selectedChoice = currentStep.choices.find((choice) => choice.id === selectedOption);
 
   useEffect(() => {
     getSession().then((session) => {
@@ -113,15 +163,15 @@ export default function LatihanPage() {
               <div className="flex items-center gap-1.5 bg-surface-container-highest px-3 py-1 rounded-full">
                 <Flame className="w-4 h-4 text-primary" />
                 <span className="text-label-md text-on-surface font-bold">
-                  6 Hari Streak
+                  Misi {missionStep + 1}/{missionSteps.length}
                 </span>
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-label-sm text-on-surface-variant uppercase font-medium">
-                  Bab 2 : Sapaan Kaili
+                  Reputasi Adab: {reputation}/6
                 </span>
                 <span className="text-label-sm text-primary font-bold">
-                  (Soal 3/5)
+                  {reputation >= 5 ? "Harmonis" : "Jelajahi"}
                 </span>
               </div>
             </div>
@@ -209,166 +259,74 @@ export default function LatihanPage() {
               </div>
             </div>
 
-            {/* Right Question & Options Column */}
+            {/* Right Mission Column */}
             <div className="lg:col-span-7 p-6 lg:p-8 flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-1.5 text-primary mb-1">
-                  <HelpCircle className="w-5 h-5" />
-                  <span className="text-label-md uppercase tracking-wider font-bold">
-                    Pertanyaan 03
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-1.5 text-primary">
+                    <Sparkles className="w-5 h-5" />
+                    <span className="text-label-md uppercase tracking-wider font-bold">
+                      Misi Budaya
+                    </span>
+                  </div>
+                  <span className="text-label-sm font-black uppercase tracking-wider text-on-surface-variant">
+                    {currentStep.label}
                   </span>
                 </div>
 
                 <h2 className="text-headline-lg text-on-surface tracking-tight font-extrabold leading-snug">
-                  Apa arti dan konteks penggunaan kata{" "}
-                  <span className="text-primary italic">&ldquo;Tabe&rdquo;</span>{" "}
-                  yang paling tepat dalam masyarakat Kaili?
+                  Bertamu ke <span className="text-primary italic">Souraja</span>
                 </h2>
-                <p className="text-body-md text-on-surface-variant mt-1 mb-6">
-                  Pilihlah satu jawaban yang paling mencerminkan tata krama luhur
-                  dan fungsi sosialnya.
+                <p className="text-body-lg text-on-surface mt-3 mb-2 leading-relaxed">
+                  {currentStep.prompt}
+                </p>
+                <p className="text-body-sm text-on-surface-variant mb-6 flex items-center gap-1.5">
+                  <Lightbulb className="w-4 h-4 text-secondary shrink-0" />
+                  {currentStep.hint}
                 </p>
 
-                {/* Options Group */}
+                {/* Action choices */}
                 <div className="space-y-3">
-                  {/* Option A (Correct) */}
-                  <div
-                    onClick={() => setSelectedOption("A")}
-                    className={`cursor-pointer p-4 rounded-2xl transition-all flex items-start gap-4 border ${
-                      selectedOption === "A"
-                        ? "bg-primary-fixed/20 border-primary ring-2 ring-primary shadow-xs"
-                        : "bg-surface-container-low hover:bg-surface-container border-transparent"
-                    }`}
-                  >
-                    <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-bold text-sm ${
-                        selectedOption === "A"
-                          ? "bg-primary text-on-primary shadow-xs"
-                          : "bg-surface-container-highest text-on-surface-variant"
+                  {currentStep.choices.map((choice) => (
+                    <button
+                      key={choice.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedOption(choice.id);
+                        setHasCheckedAnswer(false);
+                      }}
+                      className={`w-full text-left cursor-pointer p-4 rounded-2xl transition-all flex items-start gap-4 border ${
+                        selectedOption === choice.id
+                          ? "bg-primary-fixed/20 border-primary ring-2 ring-primary shadow-xs"
+                          : "bg-surface-container-low hover:bg-surface-container border-transparent"
                       }`}
                     >
-                      {selectedOption === "A" ? (
-                        <Check className="w-4 h-4" />
-                      ) : (
-                        "A"
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
-                        <span className="text-title-md text-on-surface font-bold">
-                          A. Permisi / Hormat
-                        </span>
-                        <span className="text-label-sm bg-primary-fixed text-on-primary-fixed px-2 py-0.5 rounded-full font-bold uppercase">
-                          Pilihan Santun Tertinggi
-                        </span>
-                      </div>
-                      <p className="text-body-md text-on-surface-variant">
-                        Diucapkan saat menyapa, lewat di depan orang tua, atau
-                        meminta izin berpartisipasi dalam musyawarah adat.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Option B */}
-                  <div
-                    onClick={() => setSelectedOption("B")}
-                    className={`cursor-pointer p-4 rounded-2xl transition-all flex items-start gap-4 border ${
-                      selectedOption === "B"
-                        ? "bg-primary-fixed/20 border-primary ring-2 ring-primary shadow-xs"
-                        : "bg-surface-container-low hover:bg-surface-container border-transparent"
-                    }`}
-                  >
-                    <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-bold text-sm ${
-                        selectedOption === "B"
-                          ? "bg-primary text-on-primary shadow-xs"
-                          : "bg-surface-container-highest text-on-surface-variant"
-                      }`}
-                    >
-                      B
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-title-md text-on-surface font-bold block mb-1">
-                        Sampai jumpa besok pagi
+                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${selectedOption === choice.id ? "bg-primary text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
+                        {selectedOption === choice.id ? <CheckCircle2 className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
                       </span>
-                      <p className="text-body-md text-on-surface-variant">
-                        Ungkapan perpisahan santai antar rekan sebaya menjelang
-                        istirahat malam.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Option C */}
-                  <div
-                    onClick={() => setSelectedOption("C")}
-                    className={`cursor-pointer p-4 rounded-2xl transition-all flex items-start gap-4 border ${
-                      selectedOption === "C"
-                        ? "bg-primary-fixed/20 border-primary ring-2 ring-primary shadow-xs"
-                        : "bg-surface-container-low hover:bg-surface-container border-transparent"
-                    }`}
-                  >
-                    <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-bold text-sm ${
-                        selectedOption === "C"
-                          ? "bg-primary text-on-primary shadow-xs"
-                          : "bg-surface-container-highest text-on-surface-variant"
-                      }`}
-                    >
-                      C
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-title-md text-on-surface font-bold block mb-1">
-                        Terima kasih atas hidangannya
+                      <span className="flex-1 min-w-0">
+                        <span className="text-title-md text-on-surface font-bold block mb-1">{choice.label}</span>
+                        <span className="text-body-md text-on-surface-variant">{choice.detail}</span>
                       </span>
-                      <p className="text-body-md text-on-surface-variant">
-                        Ungkapan rasa syukur formal sehabis jamuan makan bersama
-                        dalam upacara syukuran.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Option D */}
-                  <div
-                    onClick={() => setSelectedOption("D")}
-                    className={`cursor-pointer p-4 rounded-2xl transition-all flex items-start gap-4 border ${
-                      selectedOption === "D"
-                        ? "bg-primary-fixed/20 border-primary ring-2 ring-primary shadow-xs"
-                        : "bg-surface-container-low hover:bg-surface-container border-transparent"
-                    }`}
-                  >
-                    <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-bold text-sm ${
-                        selectedOption === "D"
-                          ? "bg-primary text-on-primary shadow-xs"
-                          : "bg-surface-container-highest text-on-surface-variant"
-                      }`}
-                    >
-                      D
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-title-md text-on-surface font-bold block mb-1">
-                        Permintaan maaf atas kesalahan besar
-                      </span>
-                      <p className="text-body-md text-on-surface-variant">
-                        Bentuk pertobatan adat resmi saat dijatuhi sanksi Givu
-                        oleh dewa adat.
-                      </p>
-                    </div>
-                  </div>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div className="mt-6 flex items-center justify-between text-on-surface-variant text-label-sm">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Lightbulb className="w-4 h-4 text-secondary" />
-                  Tips: Perhatikan gestur fisik saat kata ini diucapkan.
-                </span>
-                <button
-                  type="button"
-                  className="hover:text-on-surface transition-colors cursor-pointer"
-                >
-                  Laporkan Masalah
-                </button>
+              <div className="mt-6 rounded-2xl bg-surface-container p-4 border border-outline-variant/20">
+                <div className="flex items-center justify-between text-label-sm font-bold text-on-surface-variant">
+                  <span>Reputasi Adab</span>
+                  <span className="text-primary">{reputation}/6</span>
+                </div>
+                <div className="mt-2 h-2 rounded-full bg-surface-container-highest overflow-hidden">
+                  <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.min((reputation / 6) * 100, 100)}%` }} />
+                </div>
+                {hasCheckedAnswer && selectedChoice && (
+                  <p className="mt-3 flex items-start gap-2 text-body-sm text-on-surface-variant">
+                    <MessageCircle className="w-4 h-4 mt-0.5 text-secondary shrink-0" />
+                    {selectedChoice.detail} Reaksi lingkungan akan mengikuti pilihanmu.
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -379,11 +337,11 @@ export default function LatihanPage() {
               <div className={`w-12 h-12 rounded-full ${hasCheckedAnswer ? "bg-secondary-container text-on-secondary-container" : "bg-surface-container text-outline"} flex items-center justify-center shrink-0 shadow-xs`}>
                 <CheckCircle2 className="w-7 h-7" />
               </div>
-              {hasCheckedAnswer ? (
+              {hasCheckedAnswer && selectedChoice ? (
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className={`text-title-md ${selectedOption === "A" ? "text-primary" : "text-error"} font-bold`}>
-                      {selectedOption === "A" ? "Tepat Sekali! (+20 XP)" : "Belum tepat (+5 XP)"}
+                    <h3 className="text-title-md text-primary font-bold">
+                      {missionStep === missionSteps.length - 1 ? "Misi hampir selesai" : "Pilihanmu mengubah suasana"}
                     </h3>
                     <span className="inline-flex items-center gap-1 text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant font-medium">
                       <BookOpen className="w-3.5 h-3.5" />
@@ -391,11 +349,11 @@ export default function LatihanPage() {
                     </span>
                   </div>
                   <p className="text-body-sm text-on-surface-variant max-w-2xl leading-relaxed">
-                    Dalam tata krama Kaili, kata <strong>&ldquo;Tabe&rdquo;</strong> diiringi sikap tubuh merendah sebagai penghormatan kepada orang yang dituakan.
+                    {selectedChoice.detail} Perhatikan reaksi tetua sebelum melanjutkan langkahmu.
                   </p>
                 </div>
               ) : (
-                <p className="text-body-md text-on-surface-variant">Pilih jawaban, lalu periksa hasilnya untuk mendapatkan XP.</p>
+                <p className="text-body-md text-on-surface-variant">Pilih tindakanmu untuk melihat reaksi situasi.</p>
               )}
             </div>
 
@@ -412,7 +370,7 @@ export default function LatihanPage() {
                 }}
                 className="w-full md:w-auto px-8 py-3.5 bg-primary text-on-primary rounded-full font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer font-bold"
               >
-                <span>{hasCheckedAnswer ? "Lanjut ke Evaluasi Jawaban" : "Periksa Jawaban"}</span>
+                <span>{hasCheckedAnswer ? (missionStep === missionSteps.length - 1 ? "Selesaikan Misi" : "Lanjutkan Misi") : "Lakukan Aksi"}</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
