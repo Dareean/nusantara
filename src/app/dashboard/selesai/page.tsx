@@ -61,7 +61,7 @@ export default function SelesaiLatihanPage() {
               <div className="inline-flex max-w-full items-center justify-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-surface-container-lowest shadow-xs mb-4">
                 <BadgeCheck className="text-secondary w-4 h-4" />
                 <span className="text-label-sm sm:text-label-md text-secondary uppercase tracking-widest font-bold text-center">
-                  Pelajaran Tuntas • Bab 2: Sapaan Sehari-hari (Tabe)
+                  Sesi Tuntas • {progress.lastLesson?.correctExercises ?? 0}/{progress.lastLesson?.totalExercises ?? 0} Exercise
                 </span>
               </div>
 
@@ -84,7 +84,7 @@ export default function SelesaiLatihanPage() {
               <p className="text-body-md sm:text-body-lg text-on-surface-variant max-w-2xl mt-2 leading-relaxed">
                 Kamu telah menyelesaikan{" "}
                 <strong className="text-on-surface">
-                  Pelajaran 3: Sapaan Sehari-hari (Tabe)
+                  Sesi budaya tentang bahasa, gesture, dan konteks Kaili
                 </strong>
                 . Kosa kata dan adab tutur Kaili kini semakin melekat dalam
                 keseharianmu!
@@ -118,7 +118,7 @@ export default function SelesaiLatihanPage() {
                 <div className="my-4 flex flex-col items-center">
                   <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-secondary-fixed text-on-secondary-fixed rounded-full shadow-xs">
                     <Plus className="text-secondary-container w-5 h-5" />
-                    <span className="text-headline-md sm:text-headline-lg font-extrabold">{progress.lastLesson?.xp ?? 0} XP</span>
+                    <span className="text-headline-md sm:text-headline-lg font-extrabold">{(progress.lastLesson?.xp ?? 0) + (progress.lastLesson?.bonusXp ?? 0)} XP</span>
                   </div>
                   <span className="text-headline-sm text-on-surface font-bold mt-2">
                     Skor Kemahiran Bahasa

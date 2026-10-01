@@ -94,7 +94,7 @@ export default function EvaluasiJawabanPage() {
 
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-label-sm shadow-xs">
               <span className="w-2 h-2 rounded-full bg-secondary-container"></span>
-              <span className="font-bold">Evaluasi Jawaban Terpadu</span>
+              <span className="font-bold">Refleksi Sesi Belajar</span>
             </div>
           </div>
 
@@ -217,15 +217,14 @@ export default function EvaluasiJawabanPage() {
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center justify-between">
                     <span className="text-primary text-label-md tracking-wider uppercase font-bold">
-                      PERTANYAAN 03 • TATA KRAMA TUTUR SULAWESI TENGAH
+                      JEJAK SESI • TATA KRAMA TUTUR SULAWESI TENGAH
                     </span>
                     <span className="px-2.5 py-0.5 bg-surface-container-high rounded text-on-surface text-label-sm font-semibold">
-                      Tingkat Kesulitan: Madya
+                      {lessonResult?.correctExercises ?? 0}/{lessonResult?.totalExercises ?? 0} exercise tepat
                     </span>
                   </div>
                   <h2 className="text-headline-lg text-on-surface font-extrabold leading-tight mt-1">
-                    Ungkapan manakah yang tepat diucapkan saat menyapa tetua adat
-                    di pelataran Souraja?
+                    Bagaimana pilihanmu membentuk cara bertamu di pelataran Souraja?
                   </h2>
                 </div>
 
@@ -243,7 +242,7 @@ export default function EvaluasiJawabanPage() {
                             &ldquo;Tabe pue, nalompa kami ri Souraja...&rdquo;
                           </span>
                           <span className="px-2 py-0.5 rounded bg-primary text-on-primary text-label-sm uppercase font-bold">
-                            Kunci Jawaban Tepat
+                            Jejak pilihan paling selaras
                           </span>
                         </div>
                         <p className="text-body-sm text-on-surface-variant">
@@ -345,10 +344,10 @@ export default function EvaluasiJawabanPage() {
                     </div>
                     <div>
                         <h4 className={`text-title-md font-bold ${lessonResult?.correct ? "text-primary" : "text-error"}`}>
-                        {lessonResult?.correct ? "Penjelasan Konseptual Tuntas (+20 XP)" : "Jawaban perlu diulang (+5 XP)"}
+                        {lessonResult?.correct ? `Sesi tuntas (+${lessonResult.xp + (lessonResult.bonusXp ?? 0)} XP)` : "Sesi perlu diulang"}
                       </h4>
                       <p className="text-body-sm text-on-surface-variant">
-                        {lessonResult?.correct ? "Selamat! Pemahaman adab tuturan Anda telah terverifikasi." : "Tidak apa-apa. Pelajari kembali konteks Tabe dan coba lagi."}
+                        {lessonResult?.correct ? "Semua exercise selesai. Reward dan unlock sudah dicatat." : "Tidak apa-apa. Ulangi sesi untuk memperkuat konteks budaya."}
                       </p>
                     </div>
                   </div>
