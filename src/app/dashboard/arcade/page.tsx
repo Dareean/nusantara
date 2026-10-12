@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import {
   Gamepad2,
@@ -16,6 +16,8 @@ import {
   Info,
   Frown,
 } from "lucide-react";
+import { getSession } from "../../auth/authClient";
+import { recordArcadeXp } from "../progress";
 
 interface Question {
   id: number;
@@ -99,6 +101,23 @@ export default function ArcadePage() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [answerStatus, setAnswerStatus] = useState<"correct" | "incorrect" | null>(null);
   const [highScore, setHighScore] = useState(1250);
+  const sessionEmailRef = useRef("");
+  const savedScoreRef = useRef(false);
+
+  // Load user session on mount
+  useEffect(() => {
+    getSession().then((session) => {
+      if (session) sessionEmailRef.current = session.email;
+    });
+  }, []);
+
+  // Persist arcade XP to main progress when game ends
+  useEffect(() => {
+    if ((gameState === "victory" || gameState === "gameover") && score > 0 && sessionEmailRef.current && !savedScoreRef.current) {
+      savedScoreRef.current = true;
+      recordArcadeXp(sessionEmailRef.current, score);
+    }
+  }, [gameState, score]);
 
   // Timer loop when playing
   useEffect(() => {
@@ -139,6 +158,7 @@ export default function ArcadePage() {
     setTimeLeft(15);
     setSelectedOption(null);
     setAnswerStatus(null);
+    savedScoreRef.current = false;
   };
 
   const advanceQuestion = () => {
@@ -166,7 +186,7 @@ export default function ArcadePage() {
     }
 
     setSelectedOption(idx);
-    const isCorrect = idx === currentQ.correctIndex;
+    const isCorrect = currentOptions[idx]?.isCorrect ?? false;
 
     if (isCorrect) {
       setAnswerStatus("correct");
@@ -204,6 +224,19 @@ export default function ArcadePage() {
   };
 
   const currentQ = quizData[currentIdx] ?? quizData[quizData.length - 1] ?? null;
+
+  const currentOptions = useMemo<{ opt: string; isCorrect: boolean }[]>(() => {
+    if (!currentQ) return [];
+    const items: { opt: string; isCorrect: boolean }[] = currentQ.options.map((opt, originalIdx) => ({
+      opt,
+      isCorrect: originalIdx === currentQ.correctIndex,
+    }));
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    return items;
+  }, [currentQ?.id]);
 
   return (
     <main className="w-full min-w-0 max-w-4xl mx-auto space-y-6 pb-20 overflow-x-clip">
@@ -403,12 +436,12 @@ export default function ArcadePage() {
 
           {/* Options Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            {currentQ.options.map((opt, idx) => {
+            {currentOptions.map((item, idx) => {
               let btnStyle =
                 "bg-surface-container-low border-outline-variant/30 text-on-surface hover:bg-surface-container hover:border-primary";
 
               if (selectedOption !== null) {
-                if (idx === currentQ.correctIndex) {
+                if (item.isCorrect) {
                   btnStyle = "bg-secondary-fixed text-on-secondary-fixed border-secondary font-bold shadow-[0_2px_0_0_#b45309]";
                 } else if (idx === selectedOption) {
                   btnStyle = "bg-error-container text-on-error-container border-error font-bold";
@@ -424,13 +457,13 @@ export default function ArcadePage() {
                   disabled={selectedOption !== null}
                   className={`p-4 rounded-xl border text-left text-body-md transition-all active:scale-[0.99] flex items-center justify-between cursor-pointer ${btnStyle}`}
                 >
-                  <span className="font-semibold">{opt}</span>
-                  {selectedOption !== null && idx === currentQ.correctIndex && (
+                  <span className="font-semibold">{item.opt}</span>
+                  {selectedOption !== null && item.isCorrect && (
                     <CheckCircle2 className="text-secondary w-5 h-5 shrink-0" />
                   )}
                   {selectedOption !== null &&
                     idx === selectedOption &&
-                    idx !== currentQ.correctIndex && (
+                    !item.isCorrect && (
                       <XCircle className="text-error w-5 h-5 shrink-0" />
                     )}
                 </button>

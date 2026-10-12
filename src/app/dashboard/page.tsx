@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Flame, Gift, Heart, Lock, MapPin, Play, Sparkles, Star, Trophy, Zap } from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, Flame, Gift, Heart, Lock, MapPin, Play, Sparkles, Star, Trophy, Zap } from "lucide-react";
 import { getSession } from "../auth/authClient";
-import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "./progress";
+import { DEFAULT_PROGRESS, loadProgress, readProgress, ensureDailyQuests, type UserProgress } from "./progress";
 
 type PathNode = {
   id: number;
@@ -20,20 +20,24 @@ type NodeStatus = "completed" | "active" | "locked";
 
 const pathNodes: PathNode[] = [
   { id: 1, title: "Salam & Adab Tabe", subtitle: "Pelajaran 1 • Kaili Ledo", type: "lesson", href: "/dashboard/latihan/1", xp: 20, offset: "center" },
-  { id: 2, title: "Sapaan Orang Tua & Kerabat", subtitle: "Pelajaran 2 • Kosakata sopan", type: "lesson", href: "/dashboard/latihan/2", xp: 25, offset: "left" },
+  { id: 2, title: "Kenali Baju Nggembe", subtitle: "Pelajaran 2 • Busana adat", type: "lesson", href: "/dashboard/latihan/2", xp: 25, offset: "left" },
   { id: 3, title: "Peti Budaya", subtitle: "Reward Bab 1", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "center" },
-  { id: 4, title: "Kenali Baju Nggembe", subtitle: "Pelajaran 3 • Busana adat", type: "lesson", href: "/dashboard/latihan/3", xp: 30, offset: "right" },
-  { id: 5, title: "Skenario Souraja", subtitle: "Culture Connection", type: "review", href: "/dashboard/culture-connection", xp: 30, offset: "center" },
+  { id: 4, title: "Skenario Souraja", subtitle: "Pelajaran 3 • Simulasi bertamu", type: "lesson", href: "/dashboard/latihan/3", xp: 30, offset: "right" },
+  { id: 5, title: "Culture Connection", subtitle: "Simulasi Interaktif Mandiri", type: "review", href: "/dashboard/culture-connection", xp: 30, offset: "center" },
   { id: 6, title: "Lencana Tamu Sopan", subtitle: "Penutup Bab 1", type: "review", href: "/dashboard/paspor", xp: 50, offset: "left" },
 ];
 
 function getNodeStatus(node: PathNode, progress: UserProgress): NodeStatus {
+  const allLessonsDone = [1, 2, 3].every((id) => progress.completedLessons.includes(id));
   if (node.id === 1) return progress.completedLessons.includes(1) ? "completed" : "active";
   if (node.id === 2) return progress.completedLessons.includes(2) ? "completed" : progress.unlockedLessons.includes(2) ? "active" : "locked";
   if (node.id === 3) return progress.completedLessons.includes(2) ? "completed" : "locked";
   if (node.id === 4) return progress.completedLessons.includes(3) ? "completed" : progress.unlockedLessons.includes(3) ? "active" : "locked";
-  if (node.id === 5) return progress.unlockedLessons.includes(4) ? "active" : "locked";
-  return progress.unlockedLessons.includes(5) ? "active" : "locked";
+  // Culture Connection: optional, unlocks after all 3 lessons
+  if (node.id === 5) return progress.completedLessons.includes(99) ? "completed" : allLessonsDone ? "active" : "locked";
+  // Final badge node: unlocks after all 3 lessons (does NOT require CC)
+  if (node.id === 6) return (progress.badges.includes("Tamu Sopan") || progress.badges.includes("Penjaga Adab")) && allLessonsDone ? "completed" : allLessonsDone ? "active" : "locked";
+  return allLessonsDone ? "active" : "locked";
 }
 
 function NodeIcon({ node, status }: { node: PathNode; status: NodeStatus }) {
@@ -67,6 +71,8 @@ export default function DashboardPage() {
   const activeNode = nodes.find((node) => node.status === "active") ?? nodes[nodes.length - 1];
   const dailyXp = Math.min(progress.xp, 50);
 
+  const dailyQuests = ensureDailyQuests(progress).dailyQuests!;
+
   return (
     <main className="min-h-screen bg-surface px-4 py-6 text-on-surface sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
@@ -79,7 +85,7 @@ export default function DashboardPage() {
           <div className="hidden items-center gap-1.5 rounded-full bg-secondary-fixed px-3 py-2 text-sm font-black text-on-secondary-fixed sm:flex"><MapPin className="h-4 w-4" />Kaili</div>
         </header>
 
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_260px]">
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px]">
           <section className="relative overflow-hidden rounded-3xl bg-primary px-6 py-5 text-on-primary shadow-[0_6px_0_0_#881f00] sm:px-8">
             <div className="relative z-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
@@ -123,6 +129,92 @@ export default function DashboardPage() {
           </section>
 
           <aside className="space-y-4 xl:col-start-2 xl:row-start-1">
+            {/* Daily Quests Card */}
+            <section className="rounded-3xl bg-surface-container-lowest p-5 ring-1 ring-outline-variant/25 shadow-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-fixed text-primary">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black text-on-surface">Misi Harian</h2>
+                    <p className="text-[10px] font-bold text-on-surface-variant">Reset setiap 00:00</p>
+                  </div>
+                </div>
+                <span className="rounded-full bg-surface-container px-2.5 py-1 text-[11px] font-black text-primary">
+                  {dailyQuests.quests.filter((q) => q.completed).length}/3 Selesai
+                </span>
+              </div>
+
+              {/* Combo Banner */}
+              <div className={`mt-3 rounded-2xl p-2.5 text-xs transition-all ${
+                dailyQuests.comboClaimed
+                  ? "bg-secondary-fixed text-on-secondary-fixed font-black"
+                  : "bg-surface-container-low text-on-surface-variant font-bold ring-1 ring-outline-variant/20"
+              }`}>
+                {dailyQuests.comboClaimed ? (
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4 text-secondary shrink-0" />
+                    <span>Kombo 3/3 Selesai (+30 XP Bonus!)</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span>Kombo 3 Misi:</span>
+                    <span className="rounded-full bg-primary-fixed px-2 py-0.5 font-black text-primary text-[10px]">+30 XP</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Quests List */}
+              <div className="mt-3 space-y-2.5">
+                {dailyQuests.quests.map((quest) => {
+                  const percent = Math.min(100, Math.round((quest.progress / quest.target) * 100));
+                  return (
+                    <div
+                      key={quest.id}
+                      className={`rounded-2xl p-3 ring-1 transition-all ${
+                        quest.completed
+                          ? "bg-secondary-fixed/20 ring-secondary-fixed/50"
+                          : "bg-surface-container-low ring-outline-variant/20"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-black leading-snug text-on-surface">
+                            {quest.title}
+                          </p>
+                          <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-on-surface-variant">
+                            <span>Progress</span>
+                            <span>{quest.progress}/{quest.target}</span>
+                          </div>
+                          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-container-high">
+                            <div
+                              className={`h-full rounded-full transition-all duration-300 ${
+                                quest.completed ? "bg-secondary" : "bg-primary"
+                              }`}
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="shrink-0 pt-0.5">
+                          {quest.completed ? (
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary-fixed text-secondary">
+                              <CheckCircle2 className="h-4 w-4 stroke-[3]" />
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-surface-container px-2 py-0.5 text-[10px] font-black text-primary ring-1 ring-primary/20">
+                              +{quest.xpBonus} XP
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
             <section className="rounded-3xl bg-surface-container-lowest p-5 ring-1 ring-outline-variant/25"><div className="flex items-center justify-between"><h2 className="font-black">Hari ini</h2><Flame className="h-5 w-5 text-primary" /></div><p className="mt-5 text-3xl font-black">{progress.streak} <span className="text-sm text-on-surface-variant">hari streak</span></p><div className="mt-5 flex items-center justify-between text-xs font-bold text-on-surface-variant"><span>Target XP</span><span>{dailyXp}/50</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-high"><div className="h-full rounded-full bg-secondary" style={{ width: `${dailyXp * 2}%` }} /></div></section>
             <section className="rounded-3xl bg-surface-container-lowest p-5 ring-1 ring-outline-variant/25"><div className="flex items-center justify-between"><h2 className="font-black">Status</h2><Zap className="h-5 w-5 text-secondary" /></div><div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-2xl bg-surface-container-low p-3"><Heart className="h-4 w-4 text-error" /><p className="mt-2 text-lg font-black">{progress.hearts}</p><p className="text-xs font-bold text-on-surface-variant">hearts</p></div><div className="rounded-2xl bg-surface-container-low p-3"><Trophy className="h-4 w-4 text-secondary" /><p className="mt-2 text-lg font-black">{progress.xp}</p><p className="text-xs font-bold text-on-surface-variant">total XP</p></div></div></section>
             <Link href="/dashboard/paspor" className="flex items-center justify-between rounded-3xl bg-secondary-fixed p-5 text-on-secondary-fixed transition hover:brightness-95"><div><p className="text-xs font-black uppercase tracking-[0.14em]">Reward berikutnya</p><p className="mt-1 font-black">Tamu Sopan</p><p className="mt-1 text-xs font-semibold">Buka Paspor Budaya</p></div><ArrowRight className="h-5 w-5" /></Link>

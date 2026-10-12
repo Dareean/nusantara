@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import TopBar from "../../components/TopBar";
 import {
@@ -23,9 +23,9 @@ import {
   RotateCw,
   ArrowRight,
 } from "lucide-react";
-import { useEffect } from "react";
+
 import { getSession } from "../../auth/authClient";
-import { recordLessonResult } from "../progress";
+import { recordLessonResult, loadProgress, type UserProgress, DEFAULT_PROGRESS } from "../progress";
 
 const decisions = [
   {
@@ -66,11 +66,17 @@ export default function CultureConnectionPage() {
   const [harmony, setHarmony] = useState(0);
   const [sessionEmail, setSessionEmail] = useState("");
   const [sessionReady, setSessionReady] = useState(false);
+  const [prerequisitesMet, setPrerequisitesMet] = useState(false);
 
   useEffect(() => {
-    getSession().then((session) => {
-      setSessionEmail(session?.email ?? "");
+    getSession().then(async (session) => {
+      const email = session?.email ?? "";
+      setSessionEmail(email);
       setSessionReady(true);
+      if (email) {
+        const p = await loadProgress(email);
+        setPrerequisitesMet([1, 2, 3].every((id) => p.completedLessons.includes(id)));
+      }
     });
   }, []);
 
@@ -81,7 +87,7 @@ export default function CultureConnectionPage() {
   const handleClaim = () => {
     if (decisionStep < decisions.length || !sessionEmail) return;
     recordLessonResult(sessionEmail, {
-      lessonId: 4,
+      lessonId: 99,
       answered: "culture-connection",
       correct: harmony >= 5,
       score: harmony * 20,
@@ -96,6 +102,15 @@ export default function CultureConnectionPage() {
   };
 
   const currentDecision = decisions[decisionStep];
+  const shuffledChoices = useMemo(() => {
+    if (!currentDecision) return [];
+    const items = [...currentDecision.choices];
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    return items;
+  }, [decisionStep]);
   const selectedChoice = currentDecision?.choices.find((choice) => choice.id === selectedDecision);
   const chooseDecision = () => {
     if (!selectedChoice) return;
@@ -303,7 +318,7 @@ export default function CultureConnectionPage() {
                   </div>
                   <p className="text-body-lg text-on-surface leading-relaxed">{currentDecision.prompt}</p>
                   <div className="flex flex-col gap-2">
-                    {currentDecision.choices.map((choice) => (
+                    {shuffledChoices.map((choice) => (
                       <button
                         key={choice.id}
                         type="button"
@@ -317,11 +332,14 @@ export default function CultureConnectionPage() {
                   <button
                     type="button"
                     onClick={chooseDecision}
-                    disabled={!selectedDecision || !sessionReady}
+                    disabled={!selectedDecision || !sessionReady || !prerequisitesMet}
                     className="w-full rounded-full bg-primary px-5 py-3 font-bold text-on-primary shadow-[0_4px_0_0_#881f00] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Lakukan Keputusan
                   </button>
+                  {!prerequisitesMet && (
+                    <p className="text-center text-sm font-bold text-on-surface-variant">Selesaikan semua 3 pelajaran utama untuk membuka skenario ini.</p>
+                  )}
                 </div>
               ) : (
                 <div className="bg-secondary-fixed/40 p-6 rounded-2xl border border-secondary/20">

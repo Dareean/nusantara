@@ -35,7 +35,16 @@ function loadStore() {
     if (parsed.users) {
       Object.keys(parsed.users).forEach((email) => {
         const u = parsed.users[email];
-        users.set(email, { name: u.name, email, passwordHash: u.passwordHash });
+        const norm = email.toLowerCase().trim();
+        users.set(norm, { name: u.name, email: norm, passwordHash: u.passwordHash });
+      });
+    }
+    // Ensure demo user is always present with demo@123
+    if (!users.has("demo@gmail.com")) {
+      users.set("demo@gmail.com", {
+        name: "Demo User",
+        email: "demo@gmail.com",
+        passwordHash: hashPassword("demo@123"),
       });
     }
     if (parsed.sessions) {
@@ -77,13 +86,15 @@ export function hashPassword(password: string) {
 }
 
 export function addUser(name: string, email: string, password: string) {
+  const normEmail = email.toLowerCase().trim();
   const passwordHash = hashPassword(password);
-  users.set(email, { name, email, passwordHash });
+  users.set(normEmail, { name, email: normEmail, passwordHash });
   saveStore();
 }
 
 export function getUserByEmail(email: string) {
-  return users.get(email);
+  try { loadStore(); } catch {}
+  return users.get(email.toLowerCase().trim());
 }
 
 export function createSessionForUser(user: { name: string; email: string }, ttlMs: number = DEFAULT_SESSION_TTL) {

@@ -13,6 +13,7 @@ import {
   Compass,
   ArrowRight,
   BadgeCheck,
+  Sparkles,
 } from "lucide-react";
 
 function AuthPageContent() {
@@ -36,13 +37,13 @@ function AuthPageContent() {
       if (authMode === "register") {
         // register locally
         const { register } = await import('./authClient');
-        await register(name.trim(), email.trim(), password);
+        await register(name.trim(), email.trim(), password.trim());
       } else {
         const { login } = await import('./authClient');
-        await login(email.trim(), password);
+        await login(email.trim(), password.trim());
       }
-      // on success redirect (respect redirect param if present)
-      router.push(redirectTo);
+      // on success redirect cleanly with refreshed cookies
+      window.location.href = redirectTo;
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Terjadi kesalahan autentikasi");
     } finally {
@@ -123,10 +124,61 @@ function AuthPageContent() {
               </div>
             )}
 
+            {/* 1-Click Demo Login Button */}
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={async () => {
+                  setErrorMessage("");
+                  setIsSubmitting(true);
+                  try {
+                    setEmail("demo@gmail.com");
+                    setPassword("demo@123");
+                    const { login } = await import("./authClient");
+                    await login("demo@gmail.com", "demo@123");
+                    window.location.href = redirectTo;
+                  } catch (err) {
+                    setErrorMessage(err instanceof Error ? err.message : "Gagal masuk dengan akun demo");
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                className="w-full flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-full bg-gradient-to-r from-primary via-primary to-primary-container text-on-primary font-bold shadow-[0_4px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer text-sm"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Masuk Cepat dengan Akun Demo (1-Klik)</span>
+              </button>
+              <p className="text-center text-[11px] text-on-surface-variant font-medium">
+                Akun Demo: <span className="font-bold text-primary">demo@gmail.com</span> • Sandi: <span className="font-bold text-primary">demo@123</span>
+              </p>
+            </div>
+
             {/* Google OAuth Button */}
             <button
               type="button"
-              onClick={() => setErrorMessage("Login Google belum tersedia. Gunakan email dan kata sandi untuk demo.")}
+              onClick={async () => {
+                setErrorMessage("");
+                try {
+                  const { createClient } = await import("@/lib/supabase/client");
+                  const supabase = createClient();
+                  const { error } = await supabase.auth.signInWithOAuth({
+                    provider: "google",
+                    options: {
+                      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
+                    },
+                  });
+                  if (error) {
+                    setErrorMessage(
+                      error.message.includes("not enabled") || error.message.includes("provider")
+                        ? "Google OAuth belum diaktifkan di dashboard Supabase. Silakan gunakan email/sandi atau tombol Akun Demo di atas."
+                        : error.message
+                    );
+                  }
+                } catch (err) {
+                  setErrorMessage(err instanceof Error ? err.message : "Gagal memulai login Google");
+                }
+              }}
               className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface font-label-lg transition-colors cursor-pointer border border-outline-variant/30"
             >
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
@@ -154,7 +206,7 @@ function AuthPageContent() {
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-surface-container-high"></div>
               <span className="text-label-sm uppercase text-outline tracking-wider font-semibold">
-                atau dengan surel
+                atau surel manual
               </span>
               <div className="h-px flex-1 bg-surface-container-high"></div>
             </div>

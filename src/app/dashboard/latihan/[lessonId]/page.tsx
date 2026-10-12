@@ -18,7 +18,7 @@ import {
   type TrueFalseQuestionData,
 } from "../../../../lib/lessons";
 
-type SessionScreen = "loading" | "intro" | "exercise" | "feedback" | "gameover";
+type SessionScreen = "loading" | "intro" | "exercise" | "feedback" | "gameover" | "review";
 
 function isAnswerCorrect(question: Question, answer: string, scenarioScore: number) {
   if (question.type === "choice") return answer === (question.data as ChoiceQuestionData).answer;
@@ -27,6 +27,15 @@ function isAnswerCorrect(question: Question, answer: string, scenarioScore: numb
   if (question.type === "order") return answer === (question.data as OrderQuestionData).answer.join("|");
   if (question.type === "match") return answer === (question.data as MatchQuestionData).pairs.map((pair) => `${pair.left}:${pair.right}`).join("|");
   return scenarioScore >= (question.data as ScenarioQuestionData).passingScore;
+}
+
+function shuffleArray<T>(items: readonly T[] | T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
 }
 
 export default function LessonSessionPage() {
@@ -47,6 +56,13 @@ export default function LessonSessionPage() {
   const [earnedXp, setEarnedXp] = useState(0);
   const [scenarioStep, setScenarioStep] = useState(0);
   const [scenarioScore, setScenarioScore] = useState(0);
+
+  // Heart recovery review state
+  const [hasUsedReview, setHasUsedReview] = useState(false);
+  const [reviewIndex, setReviewIndex] = useState(0);
+  const [reviewCorrectCount, setReviewCorrectCount] = useState(0);
+  const [reviewSelected, setReviewSelected] = useState("");
+  const [reviewFeedback, setReviewFeedback] = useState<boolean | null>(null);
 
   useEffect(() => {
     const lessonId = Number(params.lessonId);
@@ -186,6 +202,25 @@ export default function LessonSessionPage() {
     moveToNextQuestion();
   };
 
+  const shuffledChoices = useMemo(() => {
+    if (!currentQuestion) return [];
+    if (currentQuestion.type === "choice") {
+      return shuffleArray((currentQuestion.data as ChoiceQuestionData).options);
+    }
+    if (currentQuestion.type === "hotspot") {
+      const spots = (currentQuestion.data as HotspotQuestionData).hotspots.map((spot) => ({
+        id: spot.id,
+        label: spot.label,
+      }));
+      return shuffleArray(spots);
+    }
+    if (currentQuestion.type === "scenario") {
+      const data = currentQuestion.data as ScenarioQuestionData;
+      return shuffleArray(data.steps[scenarioStep].choices);
+    }
+    return [];
+  }, [currentQuestion?.id, scenarioStep, isRetryRound]);
+
   const renderChoices = (options: { id: string; label: string }[]) => (
     <div className="mt-8 space-y-3">
       {options.map((option) => (
@@ -199,9 +234,9 @@ export default function LessonSessionPage() {
 
   const renderExercise = () => {
     if (!currentQuestion) return null;
-    if (currentQuestion.type === "choice") return renderChoices((currentQuestion.data as ChoiceQuestionData).options);
+    if (currentQuestion.type === "choice") return renderChoices(shuffledChoices);
     if (currentQuestion.type === "truefalse") return renderChoices([{ id: "true", label: "Fakta" }, { id: "false", label: "Mitos" }]);
-    if (currentQuestion.type === "hotspot") return renderChoices((currentQuestion.data as HotspotQuestionData).hotspots.map((spot) => ({ id: spot.id, label: spot.label })));
+    if (currentQuestion.type === "hotspot") return renderChoices(shuffledChoices);
     if (currentQuestion.type === "match") {
       const data = currentQuestion.data as MatchQuestionData;
       return renderChoices([{ id: data.pairs.map((pair) => `${pair.left}:${pair.right}`).join("|"), label: data.pairs.map((pair) => `${pair.left} -> ${pair.right}`).join(" • ") }]);
@@ -210,8 +245,7 @@ export default function LessonSessionPage() {
       const data = currentQuestion.data as OrderQuestionData;
       return renderChoices([{ id: data.answer.join("|"), label: data.items.join(" -> ") }]);
     }
-    const data = currentQuestion.data as ScenarioQuestionData;
-    return renderChoices(data.steps[scenarioStep].choices);
+    return renderChoices(shuffledChoices);
   };
 
   if (screen === "loading" || !lesson) {
@@ -231,7 +265,59 @@ export default function LessonSessionPage() {
 
         {(screen === "exercise" || screen === "feedback") && currentQuestion && <section className="my-auto rounded-3xl bg-surface-container-lowest p-6 shadow-xl ring-1 ring-outline-variant/30 sm:p-10"><p className="text-xs font-black uppercase tracking-[0.16em] text-primary">Exercise {questionIndex + 1} • {currentQuestion.type}</p><h1 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">{currentQuestion.prompt}</h1>{renderExercise()}{screen === "feedback" && <div className={`mt-6 rounded-2xl p-4 ${isCorrect ? "bg-secondary-fixed/40 text-on-secondary-fixed" : "bg-error-container/60 text-on-error-container"}`}><div className="flex items-center gap-2 font-black">{isCorrect ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}{isCorrect ? "Jawaban tepat" : "Belum tepat"}</div><p className="mt-2 text-sm font-semibold">{currentQuestion.why}</p></div>}<button type="button" disabled={!selectedAnswer} onClick={screen === "exercise" ? checkAnswer : continueAfterFeedback} className="mt-8 w-full rounded-full bg-primary px-6 py-4 text-base font-black text-on-primary shadow-[0_4px_0_0_#881f00] transition hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-50">{screen === "exercise" ? "Periksa" : "Lanjut"}</button></section>}
 
-        {screen === "gameover" && <section className="my-auto rounded-3xl bg-surface-container-lowest p-6 text-center shadow-xl ring-1 ring-outline-variant/30 sm:p-10"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-error-container text-error"><Lock className="h-8 w-8" /></div><h1 className="mt-6 text-3xl font-black">Hearts habis</h1><p className="mt-2 text-on-surface-variant">Ulangi sesi ini dan perhatikan konteks sebelum memilih tindakan.</p><button type="button" onClick={resetSession} className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 font-black text-on-primary shadow-[0_4px_0_0_#881f00]"><RotateCcw className="h-5 w-5" />Coba lagi</button></section>}
+        {screen === "gameover" && <section className="my-auto rounded-3xl bg-surface-container-lowest p-6 text-center shadow-xl ring-1 ring-outline-variant/30 sm:p-10"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-error-container text-error"><Lock className="h-8 w-8" /></div><h1 className="mt-6 text-3xl font-black">Hearts habis</h1><p className="mt-2 text-on-surface-variant">Ulangi sesi ini dan perhatikan konteks sebelum memilih tindakan.</p><div className="mt-8 flex flex-col items-center gap-3">{!hasUsedReview && <button type="button" onClick={() => { setHasUsedReview(true); setReviewIndex(0); setReviewCorrectCount(0); setReviewSelected(""); setReviewFeedback(null); setScreen("review"); }} className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-secondary-fixed px-6 py-3 font-black text-on-secondary-fixed shadow-[0_4px_0_0_#9a6400] transition hover:brightness-95"><Sparkles className="h-5 w-5" />Review singkat (+1 ❤️)</button>}<button type="button" onClick={resetSession} className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 font-black text-on-primary shadow-[0_4px_0_0_#881f00]"><RotateCcw className="h-5 w-5" />Coba lagi</button></div>{!hasUsedReview && <p className="mt-4 text-xs text-on-surface-variant">Jawab 2 dari 3 soal review untuk mendapatkan 1 heart kembali.</p>}</section>}
+
+        {screen === "review" && (() => {
+          const reviewQuestions = [
+            { prompt: "Kata Tabe dapat digunakan sebagai sapaan hormat saat melewati seseorang.", answer: true, why: "Tabe memang digunakan untuk meminta izin, menyapa, atau melewati seseorang dengan hormat." },
+            { prompt: "Buya Sabe adalah jenis perhiasan kalung dari kuningan.", answer: false, why: "Buya Sabe adalah kain tenun sutra Donggala, bukan perhiasan kalung." },
+            { prompt: "Dalam adat Kaili, menunggu sebelum menyapa tetua menunjukkan rasa hormat.", answer: true, why: "Memberi ruang menunjukkan bahwa kamu membaca situasi sebelum bertindak." },
+          ];
+          const currentReview = reviewQuestions[reviewIndex];
+          if (!currentReview) return null;
+          return (
+            <section className="my-auto rounded-3xl bg-surface-container-lowest p-6 shadow-xl ring-1 ring-outline-variant/30 sm:p-10">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-secondary">Review {reviewIndex + 1} dari 3</p>
+              <h1 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">Fakta atau Mitos?</h1>
+              <p className="mt-4 text-lg font-semibold text-on-surface leading-relaxed">{currentReview.prompt}</p>
+              <div className="mt-6 flex gap-3">
+                {[{ id: "true", label: "Fakta" }, { id: "false", label: "Mitos" }].map((opt) => (
+                  <button key={opt.id} type="button" disabled={reviewFeedback !== null} onClick={() => setReviewSelected(opt.id)} className={`flex-1 rounded-2xl border p-4 text-center font-bold transition ${reviewSelected === opt.id ? "border-primary bg-primary-fixed/30 ring-2 ring-primary" : "border-outline-variant/30 bg-surface-container-low hover:bg-surface-container"}`}>{opt.label}</button>
+                ))}
+              </div>
+              {reviewFeedback !== null && (
+                <div className={`mt-4 rounded-2xl p-4 ${reviewFeedback ? "bg-secondary-fixed/40 text-on-secondary-fixed" : "bg-error-container/60 text-on-error-container"}`}>
+                  <div className="flex items-center gap-2 font-black">{reviewFeedback ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}{reviewFeedback ? "Benar!" : "Kurang tepat"}</div>
+                  <p className="mt-2 text-sm font-semibold">{currentReview.why}</p>
+                </div>
+              )}
+              <button type="button" disabled={!reviewSelected} onClick={() => {
+                if (reviewFeedback === null) {
+                  const correct = reviewSelected === String(currentReview.answer);
+                  setReviewFeedback(correct);
+                  if (correct) setReviewCorrectCount((c) => c + 1);
+                } else {
+                  const nextIdx = reviewIndex + 1;
+                  if (nextIdx < reviewQuestions.length) {
+                    setReviewIndex(nextIdx);
+                    setReviewSelected("");
+                    setReviewFeedback(null);
+                  } else {
+                    const passed = reviewCorrectCount >= 2;
+                    if (passed) {
+                      setHearts(1);
+                      setSelectedAnswer("");
+                      setIsCorrect(null);
+                      setScreen("exercise");
+                    } else {
+                      setScreen("gameover");
+                    }
+                  }
+                }
+              }} className="mt-6 w-full rounded-full bg-primary px-6 py-4 text-base font-black text-on-primary shadow-[0_4px_0_0_#881f00] transition hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-50">{reviewFeedback === null ? "Periksa" : reviewIndex + 1 < 3 ? "Lanjut" : "Lihat hasil"}</button>
+            </section>
+          );
+        })()}
       </div>
     </main>
   );

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -9,34 +9,79 @@ import {
   BadgeCheck,
   Sparkles,
   GraduationCap,
+  ShieldCheck,
+  Flame,
+  Lock,
 } from "lucide-react";
 import { getSession } from "../../auth/authClient";
-import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
+import { DEFAULT_PROGRESS, loadProgress, readProgress, BADGE_DEFINITIONS, type UserProgress } from "../progress";
+import type { LucideIcon } from "lucide-react";
 
-const learningTracks = [
-  { title: "Bahasa Ledo", progress: 82, tag: "Active" },
-  { title: "Adab & sapaan", progress: 100, tag: "Done" },
-  { title: "Busana adat", progress: 35, tag: "Next" },
-];
+/** Learning tracks derived from the 3 lessons in Unit 1. */
+function buildLearningTracks(progress: UserProgress) {
+  const tracks = [
+    {
+      title: "Salam & Adab Tabe",
+      lessonId: 1,
+      totalLessons: 1,
+    },
+    {
+      title: "Busana Adat Kaili",
+      lessonId: 2,
+      totalLessons: 1,
+    },
+    {
+      title: "Skenario Souraja",
+      lessonId: 3,
+      totalLessons: 1,
+    },
+  ];
 
-const achievements = [
-  { title: "Pionir Salam", detail: "3 sesi sapaan selesai", Icon: Award },
-  { title: "Penjaga Adab", detail: "12 ekspresi hormat dikuasai", Icon: BadgeCheck },
-  { title: "Petualang Budaya", detail: "5 quest diselesaikan", Icon: Sparkles },
-  { title: "Riset Ledo", detail: "1 mini challenge selesai", Icon: GraduationCap },
-];
+  return tracks.map((track) => {
+    const completed = progress.completedLessons.includes(track.lessonId);
+    const unlocked = progress.unlockedLessons.includes(track.lessonId);
+    const progressPercent = completed ? 100 : 0;
+    const tag: "Done" | "Active" | "Next" = completed
+      ? "Done"
+      : unlocked
+        ? "Active"
+        : "Next";
+
+    return { ...track, progress: progressPercent, tag };
+  });
+}
+
+const badgeIcons: Record<string, LucideIcon> = {
+  "Pionir Salam": Award,
+  "Penjaga Busana": BadgeCheck,
+  "Tamu Sopan": ShieldCheck,
+  "Penjaga Adab": Sparkles,
+  "Petualang Budaya": Flame,
+  "Pejuang Ledo": GraduationCap,
+};
 
 export default function ProfilPage() {
   const [userName, setUserName] = useState("Pelajar LARAS");
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     getSession().then(async (session) => {
       if (!session) return;
+      setEmail(session.email);
       setUserName(session.name);
       setProgress(await loadProgress(session.email));
     });
   }, []);
+
+  useEffect(() => {
+    if (!email) return;
+    const refresh = () => setProgress(readProgress(email));
+    window.addEventListener("laras-progress-updated", refresh);
+    return () => window.removeEventListener("laras-progress-updated", refresh);
+  }, [email]);
+
+  const learningTracks = buildLearningTracks(progress);
 
   return (
     <>
@@ -107,13 +152,13 @@ export default function ProfilPage() {
                             : "bg-surface-container-high text-on-surface-variant"
                       }`}
                     >
-                      {track.tag}
+                      {track.tag === "Done" ? "Selesai" : track.tag === "Active" ? "Aktif" : "Terkunci"}
                     </span>
                   </div>
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-container-high">
                     <div
-                        className="h-full rounded-full bg-primary"
-                        style={{ width: `${track.title === "Adab & sapaan" && progress.completedLessons.includes(1) ? 100 : track.progress}%` }}
+                        className="h-full rounded-full bg-primary transition-all"
+                        style={{ width: `${track.progress}%` }}
                     />
                   </div>
                   <div className="mt-2 text-[11px] font-bold uppercase tracking-[0.12em] text-on-surface-variant">
@@ -131,17 +176,18 @@ export default function ProfilPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {achievements.map((item) => {
-                const { Icon } = item;
+              {BADGE_DEFINITIONS.map((badge) => {
+                const unlocked = progress.badges.includes(badge.name);
+                const Icon = badgeIcons[badge.name] ?? Award;
                 return (
-                  <div key={item.title} className="rounded-[18px] bg-surface-container p-3 ring-1 ring-outline-variant/20">
+                  <div key={badge.name} className={`rounded-[18px] bg-surface-container p-3 ring-1 ring-outline-variant/20 transition-opacity ${unlocked ? "" : "opacity-50"}`}>
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-fixed text-primary">
-                        <Icon className="w-5 h-5" />
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${unlocked ? "bg-primary-fixed text-primary" : "bg-surface-container-high text-outline"}`}>
+                        {unlocked ? <Icon className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
                       </div>
                       <div>
-                        <p className="text-sm font-extrabold text-on-surface">{item.title}</p>
-                        <p className="text-[11px] text-on-surface-variant">{item.detail}</p>
+                        <p className="text-sm font-extrabold text-on-surface">{badge.name}</p>
+                        <p className="text-[11px] text-on-surface-variant">{unlocked ? badge.description : badge.criteria}</p>
                       </div>
                     </div>
                   </div>
