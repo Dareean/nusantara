@@ -152,6 +152,11 @@ export function applyQuestDelta(
   };
 }
 
+export type StreakNotification = {
+  type: "freeze_used" | "freeze_earned";
+  message: string;
+};
+
 export type UserProgress = {
   xp: number;
   streak: number;
@@ -162,6 +167,8 @@ export type UserProgress = {
   lastLesson: LessonResult | null;
   lastStudyDate: string | null;
   dailyQuests?: DailyQuestsState;
+  streakFreezes?: number;
+  streakNotification?: StreakNotification | null;
 };
 
 const PROGRESS_PREFIX = "laras.progress.";
@@ -175,12 +182,155 @@ export const DEFAULT_PROGRESS: UserProgress = {
   badges: [],
   lastLesson: null,
   lastStudyDate: null,
+  streakFreezes: 0,
+  streakNotification: null,
   dailyQuests: {
     date: getDailyQuestDateKey(),
     quests: generateDailyQuestsForDate(getDailyQuestDateKey()),
     comboClaimed: false,
   },
 };
+
+export type StreakEvaluation = {
+  streak: number;
+  streakFreezes: number;
+  notification: StreakNotification | null;
+};
+
+export function evaluateStreak(
+  current: UserProgress,
+  today: string = getDailyQuestDateKey()
+): StreakEvaluation {
+  const previousDate = current.lastStudyDate;
+  let freezes = Math.min(3, Math.max(0, current.streakFreezes ?? 0));
+  let streak = current.streak;
+  let notification = current.streakNotification ?? null;
+
+  if (!previousDate) {
+    return {
+      streak: 1,
+      streakFreezes: freezes,
+      notification,
+    };
+  }
+
+  if (previousDate === today) {
+    return {
+      streak: current.streak,
+      streakFreezes: freezes,
+      notification,
+    };
+  }
+
+  const yesterday = new Date(`${today}T12:00:00`);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayKey = yesterday.toISOString().slice(0, 10);
+
+  const twoDaysAgo = new Date(`${today}T12:00:00`);
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+  const twoDaysAgoKey = twoDaysAgo.toISOString().slice(0, 10);
+
+  if (previousDate === yesterdayKey) {
+    // Normal consecutive day: streak + 1
+    const newStreak = current.streak + 1;
+    streak = newStreak;
+    // Milestone kelipatan 7 hari (7, 14, 21, ...)
+    if (newStreak > 0 && newStreak % 7 === 0 && newStreak !== current.streak) {
+      if (freezes < 3) {
+        freezes = Math.min(3, freezes + 1);
+        notification = {
+          type: "freeze_earned",
+          message: "Kamu mendapatkan 1 Streak Freeze!",
+        };
+      }
+    }
+  } else if (previousDate === twoDaysAgoKey) {
+    // Bolos 1 hari
+    if (freezes > 0) {
+      freezes = Math.max(0, freezes - 1);
+      streak = current.streak; // Dipertahankan, tidak reset
+      notification = {
+        type: "freeze_used",
+        message: "Streak Freeze digunakan! Streak-mu terselamatkan.",
+      };
+    } else {
+      // Tanpa freeze: streak reset ke 0
+      streak = 0;
+    }
+  } else {
+    // Bolos > 2 hari lalu: streak reset (freeze tidak menutupi)
+    streak = 0;
+  }
+
+  return {
+    streak,
+    streakFreezes: freezes,
+    notification,
+  };
+}
+
+export function ensureStreakFreezeState(
+  progress: UserProgress,
+  today: string = getDailyQuestDateKey()
+): UserProgress {
+  if (!progress.lastStudyDate || progress.lastStudyDate === today) {
+    return progress;
+  }
+
+  const yesterday = new Date(`${today}T12:00:00`);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayKey = yesterday.toISOString().slice(0, 10);
+
+  if (progress.lastStudyDate === yesterdayKey) {
+    return progress;
+  }
+
+  const twoDaysAgo = new Date(`${today}T12:00:00`);
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+  const twoDaysAgoKey = twoDaysAgo.toISOString().slice(0, 10);
+
+  const currentFreezes = Math.min(3, Math.max(0, progress.streakFreezes ?? 0));
+
+  if (progress.lastStudyDate === twoDaysAgoKey) {
+    if (currentFreezes > 0) {
+      return {
+        ...progress,
+        streakFreezes: currentFreezes - 1,
+        lastStudyDate: yesterdayKey, // mark yesterday as preserved by freeze
+        streakNotification: {
+          type: "freeze_used",
+          message: "Streak Freeze digunakan! Streak-mu terselamatkan.",
+        },
+      };
+    } else {
+      // Tanpa freeze: streak reset ke 0
+      return {
+        ...progress,
+        streak: 0,
+      };
+    }
+  }
+
+  // > 2 hari lalu: streak reset
+  if (progress.streak > 0) {
+    return {
+      ...progress,
+      streak: 0,
+    };
+  }
+
+  return progress;
+}
+
+export function dismissStreakNotification(email: string) {
+  const current = readProgress(email);
+  if (!current.streakNotification) return;
+  const updated: UserProgress = {
+    ...current,
+    streakNotification: null,
+  };
+  saveProgress(email, updated);
+}
 
 /** All badges and their unlock criteria. */
 export const BADGE_DEFINITIONS: { name: string; description: string; criteria: string }[] = [
@@ -225,9 +375,27 @@ export function readProgress(email: string): UserProgress {
       badges: parsed.badges ?? [],
       lastLesson: parsed.lastLesson ?? null,
       lastStudyDate: parsed.lastStudyDate ?? null,
+      streakFreezes: parsed.streakFreezes ?? 0,
+      streakNotification: parsed.streakNotification ?? null,
       dailyQuests: parsed.dailyQuests,
     };
-    return ensureDailyQuests(progress);
+    const withQuests = ensureDailyQuests(progress);
+    const withStreak = ensureStreakFreezeState(withQuests);
+    if (
+      withStreak.streak !== progress.streak ||
+      withStreak.streakFreezes !== progress.streakFreezes ||
+      withStreak.lastStudyDate !== progress.lastStudyDate ||
+      withStreak.streakNotification !== progress.streakNotification
+    ) {
+      window.localStorage.setItem(progressKey(email), JSON.stringify(withStreak));
+      void fetch("/api/progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, progress: withStreak }),
+      }).catch(() => {});
+    }
+    return withStreak;
   } catch {
     return DEFAULT_PROGRESS;
   }
@@ -264,9 +432,11 @@ export async function loadProgress(email: string): Promise<UserProgress> {
       badges: body.progress.badges ?? [],
       lastLesson: body.progress.lastLesson ?? null,
       lastStudyDate: body.progress.lastStudyDate ?? null,
+      streakFreezes: body.progress.streakFreezes ?? 0,
+      streakNotification: body.progress.streakNotification ?? null,
       dailyQuests: body.progress.dailyQuests,
     };
-    const ensured = ensureDailyQuests(remote);
+    const ensured = ensureStreakFreezeState(ensureDailyQuests(remote));
     window.localStorage.setItem(progressKey(email), JSON.stringify(ensured));
     return ensured;
   } catch {
@@ -278,15 +448,8 @@ export function recordLessonResult(email: string, result: LessonResult) {
   const current = readProgress(email);
   const alreadyCompleted = current.completedLessons.includes(result.lessonId);
   const today = result.completedAt.slice(0, 10);
-  const previousDate = current.lastStudyDate;
-  const yesterday = new Date(`${today}T12:00:00`);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayKey = yesterday.toISOString().slice(0, 10);
-  const streak = previousDate === today
-    ? current.streak
-    : previousDate === yesterdayKey
-      ? current.streak + 1
-      : 1;
+  const streakResult = evaluateStreak(current, today);
+
   const completedLessons = result.correct && !alreadyCompleted
     ? [...current.completedLessons, result.lessonId]
     : current.completedLessons;
@@ -296,7 +459,9 @@ export function recordLessonResult(email: string, result: LessonResult) {
   const draft: UserProgress = {
     ...current,
     xp: current.xp + (result.correct && !alreadyCompleted ? result.xp : 0),
-    streak,
+    streak: streakResult.streak,
+    streakFreezes: streakResult.streakFreezes,
+    streakNotification: streakResult.notification,
     hearts: result.correct || alreadyCompleted ? current.hearts : Math.max(0, current.hearts - 1),
     completedLessons,
     unlockedLessons,
@@ -320,15 +485,8 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
   const current = readProgress(email);
   const alreadyCompleted = current.completedLessons.includes(result.lessonId);
   const today = result.completedAt.slice(0, 10);
-  const previousDate = current.lastStudyDate;
-  const yesterday = new Date(`${today}T12:00:00`);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayKey = yesterday.toISOString().slice(0, 10);
-  const streak = previousDate === today
-    ? current.streak
-    : previousDate === yesterdayKey
-      ? current.streak + 1
-      : 1;
+  const streakResult = evaluateStreak(current, today);
+
   const lessonResult: LessonResult = {
     lessonId: result.lessonId,
     answered: result.answered,
@@ -345,7 +503,9 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
   const draft: UserProgress = {
     ...current,
     xp: alreadyCompleted ? current.xp : current.xp + result.xpEarned + result.bonusXp,
-    streak,
+    streak: streakResult.streak,
+    streakFreezes: streakResult.streakFreezes,
+    streakNotification: streakResult.notification,
     hearts: result.heartsRemaining,
     completedLessons: alreadyCompleted ? current.completedLessons : [...current.completedLessons, result.lessonId],
     unlockedLessons: alreadyCompleted
@@ -369,19 +529,14 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
 export function recordArcadeXp(email: string, arcadeXp: number) {
   const current = readProgress(email);
   const today = new Date().toISOString().slice(0, 10);
-  const previousDate = current.lastStudyDate;
-  const yesterday = new Date(`${today}T12:00:00`);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayKey = yesterday.toISOString().slice(0, 10);
-  const streak = previousDate === today
-    ? current.streak
-    : previousDate === yesterdayKey
-      ? current.streak + 1
-      : 1;
+  const streakResult = evaluateStreak(current, today);
+
   const draft: UserProgress = {
     ...current,
     xp: current.xp + arcadeXp,
-    streak,
+    streak: streakResult.streak,
+    streakFreezes: streakResult.streakFreezes,
+    streakNotification: streakResult.notification,
     lastStudyDate: today,
   };
   const withQuests = applyQuestDelta(draft, {

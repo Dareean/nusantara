@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, CheckCircle2, Flame, Gift, Heart, Lock, MapPin, Play, Sparkles, Star, Trophy, Zap } from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, Flame, Gift, Heart, Lock, MapPin, Play, Shield, Sparkles, Star, Trophy, X, Zap } from "lucide-react";
 import { getSession } from "../auth/authClient";
-import { DEFAULT_PROGRESS, loadProgress, readProgress, ensureDailyQuests, type UserProgress } from "./progress";
+import { DEFAULT_PROGRESS, loadProgress, readProgress, ensureDailyQuests, dismissStreakNotification, type UserProgress } from "./progress";
 
 type PathNode = {
   id: number;
@@ -66,6 +66,12 @@ export default function DashboardPage() {
     window.addEventListener("laras-progress-updated", refresh);
     return () => window.removeEventListener("laras-progress-updated", refresh);
   }, [email]);
+
+  const handleDismissNotification = () => {
+    if (!email) return;
+    dismissStreakNotification(email);
+    setProgress((prev) => ({ ...prev, streakNotification: null }));
+  };
 
   const nodes = pathNodes.map((node) => ({ ...node, status: getNodeStatus(node, progress) }));
   const activeNode = nodes.find((node) => node.status === "active") ?? nodes[nodes.length - 1];
@@ -129,6 +135,44 @@ export default function DashboardPage() {
           </section>
 
           <aside className="space-y-4 xl:col-start-2 xl:row-start-1">
+            {/* Streak Notification Banner */}
+            {progress.streakNotification && (
+              <div
+                className={`flex items-start justify-between gap-3 rounded-3xl p-4 ring-1 transition-all ${
+                  progress.streakNotification.type === "freeze_used"
+                    ? "bg-cyan-500/10 text-cyan-950 dark:text-cyan-100 ring-cyan-500/30"
+                    : "bg-amber-500/10 text-amber-950 dark:text-amber-100 ring-amber-500/30"
+                }`}
+              >
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl ${
+                    progress.streakNotification.type === "freeze_used"
+                      ? "bg-cyan-500/20 text-cyan-600 dark:text-cyan-300"
+                      : "bg-amber-500/20 text-amber-600 dark:text-amber-300"
+                  }`}>
+                    <Shield className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black leading-snug">
+                      {progress.streakNotification.message}
+                    </p>
+                    <p className="mt-1 text-[11px] font-medium opacity-80">
+                      {progress.streakNotification.type === "freeze_used"
+                        ? "Streak-mu aman dan dipertahankan. Terus belajar setiap hari!"
+                        : "Milestone streak tercapai! Maksimal 3 freeze tersimpan."}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleDismissNotification}
+                  className="shrink-0 rounded-xl p-1 text-on-surface-variant hover:bg-surface-container transition"
+                  title="Tutup notifikasi"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
             {/* Daily Quests Card */}
             <section className="rounded-3xl bg-surface-container-lowest p-5 ring-1 ring-outline-variant/25 shadow-xs">
               <div className="flex items-center justify-between">
@@ -215,7 +259,34 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl bg-surface-container-lowest p-5 ring-1 ring-outline-variant/25"><div className="flex items-center justify-between"><h2 className="font-black">Hari ini</h2><Flame className="h-5 w-5 text-primary" /></div><p className="mt-5 text-3xl font-black">{progress.streak} <span className="text-sm text-on-surface-variant">hari streak</span></p><div className="mt-5 flex items-center justify-between text-xs font-bold text-on-surface-variant"><span>Target XP</span><span>{dailyXp}/50</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-high"><div className="h-full rounded-full bg-secondary" style={{ width: `${dailyXp * 2}%` }} /></div></section>
+            <section className="rounded-3xl bg-surface-container-lowest p-5 ring-1 ring-outline-variant/25 shadow-xs">
+              <div className="flex items-center justify-between">
+                <h2 className="font-black text-sm text-on-surface">Hari ini</h2>
+                <Flame className="h-5 w-5 text-primary" />
+              </div>
+              <div className="mt-4 flex items-center justify-between">
+                <p className="text-3xl font-black">
+                  {progress.streak} <span className="text-sm font-bold text-on-surface-variant">hari streak</span>
+                </p>
+                <div
+                  className="flex items-center gap-1.5 rounded-2xl bg-surface-container-low px-3 py-1.5 ring-1 ring-outline-variant/20"
+                  title={`Streak Freeze: ${progress.streakFreezes ?? 0}/3 tersimpan`}
+                >
+                  <Shield className={`h-4 w-4 ${((progress.streakFreezes ?? 0) > 0) ? "text-secondary" : "text-on-surface-variant/40"}`} />
+                  <span className="text-xs font-black text-on-surface">
+                    {progress.streakFreezes ?? 0}
+                    <span className="text-[10px] font-bold text-on-surface-variant">/3</span>
+                  </span>
+                </div>
+              </div>
+              <div className="mt-5 flex items-center justify-between text-xs font-bold text-on-surface-variant">
+                <span>Target XP</span>
+                <span>{dailyXp}/50</span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-high">
+                <div className="h-full rounded-full bg-secondary" style={{ width: `${dailyXp * 2}%` }} />
+              </div>
+            </section>
             <section className="rounded-3xl bg-surface-container-lowest p-5 ring-1 ring-outline-variant/25"><div className="flex items-center justify-between"><h2 className="font-black">Status</h2><Zap className="h-5 w-5 text-secondary" /></div><div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-2xl bg-surface-container-low p-3"><Heart className="h-4 w-4 text-error" /><p className="mt-2 text-lg font-black">{progress.hearts}</p><p className="text-xs font-bold text-on-surface-variant">hearts</p></div><div className="rounded-2xl bg-surface-container-low p-3"><Trophy className="h-4 w-4 text-secondary" /><p className="mt-2 text-lg font-black">{progress.xp}</p><p className="text-xs font-bold text-on-surface-variant">total XP</p></div></div></section>
             <Link href="/dashboard/paspor" className="flex items-center justify-between rounded-3xl bg-secondary-fixed p-5 text-on-secondary-fixed transition hover:brightness-95"><div><p className="text-xs font-black uppercase tracking-[0.14em]">Reward berikutnya</p><p className="mt-1 font-black">Tamu Sopan</p><p className="mt-1 text-xs font-semibold">Buka Paspor Budaya</p></div><ArrowRight className="h-5 w-5" /></Link>
           </aside>
