@@ -21,7 +21,9 @@ import {
   PlusCircle,
   X,
   AudioWaveform,
+  Gamepad2,
 } from "lucide-react";
+import GameFlowBuilder from "./GameFlowBuilder";
 
 interface CulturalEntry {
   id: string;
@@ -132,6 +134,7 @@ export default function AdminPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<CulturalEntry | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [adminTab, setAdminTab] = useState<"builder" | "corpus">("builder");
 
   // New entry form state
   const [newTerm, setNewTerm] = useState("");
@@ -295,8 +298,41 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Panel Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        {/* Main Admin Mode Switcher Tabs */}
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-surface-container-high border border-outline-variant/30 w-fit">
+          <button
+            type="button"
+            onClick={() => setAdminTab("builder")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-label-md font-bold transition-all cursor-pointer ${
+              adminTab === "builder"
+                ? "bg-primary text-on-primary shadow-sm"
+                : "text-on-surface-variant hover:bg-surface-container"
+            }`}
+          >
+            <Gamepad2 className="w-4 h-4" />
+            <span>Penyusun Alur Game &amp; Soal</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAdminTab("corpus")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-label-md font-bold transition-all cursor-pointer ${
+              adminTab === "corpus"
+                ? "bg-primary text-on-primary shadow-sm"
+                : "text-on-surface-variant hover:bg-surface-container"
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Verifikasi Korpus Budaya ({entries.length})</span>
+          </button>
+        </div>
+
+        {adminTab === "builder" ? (
+          <GameFlowBuilder />
+        ) : (
+          <>
+            {/* Panel Header */}
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="space-y-1.5 max-w-3xl">
             <div className="flex items-center gap-2 text-on-surface-variant text-label-md">
               <BadgeCheck className="w-5 h-5 text-primary" />
@@ -829,7 +865,9 @@ export default function AdminPage() {
             </button>
           </div>
         </div>
-      </main>
+      </>
+    )}
+  </main>
 
       {/* Add New Entry Modal */}
       {isModalOpen && (
