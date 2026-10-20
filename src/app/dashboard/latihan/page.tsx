@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import CulturalGameEngine from "../../components/game-engine/CulturalGameEngine";
+import { sampleKailiLesson } from "../../components/game-engine/mockData";
 
-export default function LegacyLessonRedirect() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace("/dashboard/latihan/1");
-  }, [router]);
-
-  return <div className="min-h-screen bg-background flex items-center justify-center text-on-surface-variant">Membuka sesi lesson...</div>;
+export default function LatihanPage() {
+  return (
+    <CulturalGameEngine
+      session={sampleKailiLesson}
+      onExitHref="/dashboard"
+    />
+  );
 }
