@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -18,11 +18,26 @@ import {
   ShieldAlert,
   ArrowRight,
 } from "lucide-react";
+import { getSession } from "../../auth/authClient";
+import { loadProgress, type LessonResult } from "../progress";
 
 export default function EvaluasiJawabanPage() {
   const router = useRouter();
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [timerCount, setTimerCount] = useState(4);
+  const [lessonResult, setLessonResult] = useState<LessonResult | null>(null);
+
+  useEffect(() => {
+    getSession().then(async (session) => {
+      if (!session) return;
+      const result = (await loadProgress(session.email)).lastLesson;
+      if (!result) {
+        router.replace("/dashboard/latihan");
+        return;
+      }
+      setLessonResult(result);
+    });
+  }, [router]);
 
   const toggleAudio = () => {
     setIsPlayingAudio((prev) => {
@@ -30,7 +45,7 @@ export default function EvaluasiJawabanPage() {
       if (currentlyPlaying) {
         setTimerCount(4);
       }
-      return !currentlyPlaying;
+      return currentlyPlaying;
     });
   };
 
@@ -54,7 +69,7 @@ export default function EvaluasiJawabanPage() {
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 bg-error-container text-on-error-container rounded-full text-label-md font-bold">
           <Heart className="w-4 h-4 text-error fill-current" />
-          <span>2/3</span>
+          <span>{lessonResult?.correct ? "3/3" : "2/3"}</span>
         </div>
       </header>
 
@@ -79,7 +94,7 @@ export default function EvaluasiJawabanPage() {
 
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-label-sm shadow-xs">
               <span className="w-2 h-2 rounded-full bg-secondary-container"></span>
-              <span className="font-bold">Evaluasi Jawaban Terpadu</span>
+              <span className="font-bold">Refleksi Sesi Belajar</span>
             </div>
           </div>
 
@@ -202,15 +217,14 @@ export default function EvaluasiJawabanPage() {
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center justify-between">
                     <span className="text-primary text-label-md tracking-wider uppercase font-bold">
-                      PERTANYAAN 03 • TATA KRAMA TUTUR SULAWESI TENGAH
+                      JEJAK SESI • TATA KRAMA TUTUR SULAWESI TENGAH
                     </span>
                     <span className="px-2.5 py-0.5 bg-surface-container-high rounded text-on-surface text-label-sm font-semibold">
-                      Tingkat Kesulitan: Madya
+                      {lessonResult?.correctExercises ?? 0}/{lessonResult?.totalExercises ?? 0} exercise tepat
                     </span>
                   </div>
                   <h2 className="text-headline-lg text-on-surface font-extrabold leading-tight mt-1">
-                    Ungkapan manakah yang tepat diucapkan saat menyapa tetua adat
-                    di pelataran Souraja?
+                    Bagaimana pilihanmu membentuk cara bertamu di pelataran Souraja?
                   </h2>
                 </div>
 
@@ -228,7 +242,7 @@ export default function EvaluasiJawabanPage() {
                             &ldquo;Tabe pue, nalompa kami ri Souraja...&rdquo;
                           </span>
                           <span className="px-2 py-0.5 rounded bg-primary text-on-primary text-label-sm uppercase font-bold">
-                            Kunci Jawaban Tepat
+                            Jejak pilihan paling selaras
                           </span>
                         </div>
                         <p className="text-body-sm text-on-surface-variant">
@@ -329,18 +343,18 @@ export default function EvaluasiJawabanPage() {
                       <BadgeCheck className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-title-md font-bold text-primary">
-                        Penjelasan Konseptual Tuntas (+20 XP)
+                        <h4 className={`text-title-md font-bold ${lessonResult?.correct ? "text-primary" : "text-error"}`}>
+                        {lessonResult?.correct ? `Sesi tuntas (+${lessonResult.xp + (lessonResult.bonusXp ?? 0)} XP)` : "Sesi perlu diulang"}
                       </h4>
                       <p className="text-body-sm text-on-surface-variant">
-                        Selamat! Pemahaman adab tuturan Anda telah terverifikasi.
+                        {lessonResult?.correct ? "Semua exercise selesai. Reward dan unlock sudah dicatat." : "Tidak apa-apa. Ulangi sesi untuk memperkuat konteks budaya."}
                       </p>
                     </div>
                   </div>
                 </div>
 
                 <p className="text-body-md text-on-surface leading-relaxed bg-surface-container-lowest/80 p-4 rounded-xl border border-outline-variant/20">
-                  Memasuki wilayah tetua adat Souraja menuntut penggunaan partikel
+                    {lessonResult?.correct ? "Memasuki wilayah tetua adat Souraja menuntut penggunaan partikel" : "Jawaban yang tepat untuk konteks ini menggunakan partikel"}{" "}
                   honorifik <strong>Tabe</strong> (mohon maaf lahir batin / izin
                   melangkah) dan sapaan <strong>Pue</strong> (tokoh yang
                   dituakan). Lanjutkan untuk merayakan penyelesaian modul ini!

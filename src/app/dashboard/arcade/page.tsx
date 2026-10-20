@@ -255,8 +255,8 @@ export default function ArcadePage() {
                 Uji Ketangkasan Adat &amp; Bahasa Lokal
               </h2>
               <p className="text-body-md text-on-surface-variant leading-relaxed">
-                Jawab cepat tantangan seputar kosakata bahasa Kaili, ragam tata busana tradisional,
-                dan filosofi adat Lembah Palu sebelum waktu habis!
+                Jelajahi kosakata, busana, dan filosofi adat Kaili melalui challenge cepat.
+                Pilihanmu membuka lore sebelum waktu habis.
               </p>
             </div>
 
@@ -265,7 +265,7 @@ export default function ArcadePage() {
               <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/20">
                 <Timer className="w-6 h-6 text-primary" />
                 <h4 className="text-title-md font-bold text-on-surface mt-1">15 Detik</h4>
-                <p className="text-body-sm text-on-surface-variant">Batas waktu tiap pertanyaan</p>
+                <p className="text-body-sm text-on-surface-variant">Batas waktu tiap challenge</p>
               </div>
               <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/20">
                 <Flame className="w-6 h-6 text-secondary" />
@@ -388,7 +388,7 @@ export default function ArcadePage() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-label-sm font-bold">
-                {currentQ.category} • Soal {currentIdx + 1}/{quizData.length}
+                {currentQ.category} • Challenge {currentIdx + 1}/{quizData.length}
               </span>
               <span className="text-body-sm text-on-surface-variant italic">
                 {currentQ.hint}
@@ -396,8 +396,9 @@ export default function ArcadePage() {
             </div>
 
             <h3 className="text-xl sm:text-2xl font-extrabold text-on-surface tracking-tight">
-              {currentQ.question}
+              Temukan tindakan atau istilah yang paling sesuai
             </h3>
+            <p className="text-body-lg text-on-surface-variant">{currentQ.question}</p>
           </div>
 
           {/* Options Grid */}
@@ -453,7 +454,7 @@ export default function ArcadePage() {
               )}
               <div>
                 <p className="font-bold">
-                  {answerStatus === "correct" ? "Jawaban Benar! 🎉" : "Kurang Tepat!"}
+                  {answerStatus === "correct" ? "Pilihanmu membuka lore!" : "Coba baca situasinya lagi"}
                 </p>
                 <p className="mt-0.5">{currentQ.lore}</p>
               </div>
