@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ShieldAlert,
@@ -126,8 +126,35 @@ const initialEntries: CulturalEntry[] = [
   },
 ];
 
+const CMS_STORAGE_KEY = "laras_cms_entries";
+
+function loadCmsEntries(): CulturalEntry[] {
+  if (typeof window === "undefined") return initialEntries;
+  try {
+    const raw = localStorage.getItem(CMS_STORAGE_KEY);
+    if (!raw) return initialEntries;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
+    }
+  } catch (err) {
+    console.warn("Gagal membaca laras_cms_entries dari localStorage:", err);
+  }
+  return initialEntries;
+}
+
 export default function AdminPage() {
-  const [entries, setEntries] = useState<CulturalEntry[]>(initialEntries);
+  const [entries, setEntries] = useState<CulturalEntry[]>(() => loadCmsEntries());
+
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(CMS_STORAGE_KEY, JSON.stringify(entries));
+      }
+    } catch (err) {
+      console.warn("Gagal menyimpan laras_cms_entries ke localStorage:", err);
+    }
+  }, [entries]);
   const [filterTab, setFilterTab] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");

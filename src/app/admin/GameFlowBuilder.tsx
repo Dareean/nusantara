@@ -19,6 +19,7 @@ import {
   Layers,
   MapPin,
   Flame,
+  Download,
 } from "lucide-react";
 import { GameSession, GameQuestion, QuestionOption, HotspotItem } from "../components/game-engine/types";
 import { getStoredSessions, saveSingleSession } from "../components/game-engine/sessionStore";
@@ -235,6 +236,25 @@ export default function GameFlowBuilder() {
     setTimeout(() => setSaveToast(false), 2500);
   };
 
+  // Export active session as JSON
+  const handleExportJson = () => {
+    if (!activeSession) return;
+    try {
+      const dataStr = JSON.stringify(activeSession, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${activeSession.id || "session"}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Gagal mengekspor JSON:", err);
+    }
+  };
+
   if (!activeSession) {
     return <div className="p-8 text-center text-on-surface-variant">Memuat data sesi game...</div>;
   }
@@ -267,6 +287,16 @@ export default function GameFlowBuilder() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          <button
+            type="button"
+            onClick={handleExportJson}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-bold border border-outline-variant/30 transition-all cursor-pointer"
+            title={`Unduh ${activeSession.id}.json`}
+          >
+            <Download className="w-4 h-4 text-primary" />
+            <span>Export JSON</span>
+          </button>
+
           <button
             onClick={handleCreateNewSession}
             className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-bold transition-all cursor-pointer"
