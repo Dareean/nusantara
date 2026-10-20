@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "motion/react";
 import {
   Flame,
@@ -374,12 +375,22 @@ export default function LandingPage() {
 
       {/* ── Minimal Footer ── */}
       <footer className="border-t-2 border-outline-variant/30 py-8 bg-surface-container-low text-center text-xs text-on-surface-variant font-bold">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col items-center gap-5">
+          <Image
+            src="/logo/logo-munas-landscape.png"
+            alt="Logo Munas IX Permikomnas"
+            width={220}
+            height={44}
+            className="h-11 w-auto"
+            priority={false}
+          />
+          <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="text-primary font-black text-sm">LARAS NUSANTARA</span>
           <span>© 2026 LARAS — Nusantara Before It&apos;s Gone.</span>
           <div className="flex gap-4">
             <Link href="/auth" className="hover:underline">Masuk</Link>
             <Link href="/dashboard/paspor" className="hover:underline">Paspor</Link>
+          </div>
           </div>
         </div>
       </footer>
