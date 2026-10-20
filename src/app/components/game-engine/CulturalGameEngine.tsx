@@ -237,9 +237,9 @@ export default function CulturalGameEngine({
     const accuracy = Math.round((correctAnswersCount / (totalQuestions - 1 || 1)) * 100);
     const sourceCard = session.culturalSourceCard || {
       institution: "Dewan Adat Kaili (LAK) & Balai Pelestarian Kebudayaan XVIII",
-      informant: "Magau Palu • Drs. Rusdi M.Pd.",
+      informant: "Pemangku Adat Kaili Ledo (Lembah Palu)",
       registrationCode: "SULTENG-BBS-2024/KL-01",
-      verifiedDate: "Sidang Pleno Kurasi Adat Kaili",
+      verifiedDate: "Tahap Kurasi Etnolinguistik 2024",
       summary:
         "Materi kosakata, tata busana adat, dan etika tutur dalam sesi ini telah disahkan berdasarkan korpus budaya asli tanpa fabrikasi budaya.",
     };
@@ -287,6 +287,7 @@ export default function CulturalGameEngine({
               <div className="flex items-center gap-1.5 text-secondary font-black text-xs uppercase tracking-wider">
                 <ShieldCheck className="w-4 h-4 text-secondary" />
                 <span>Cultural Source Card</span>
+                <span className="ml-1 px-1.5 py-0.5 rounded bg-tertiary-container text-on-tertiary-container text-[9px] font-black tracking-widest">DATA DEMO</span>
               </div>
               <span className="text-[10px] font-mono text-outline font-bold">
                 {sourceCard.registrationCode}
@@ -301,6 +302,7 @@ export default function CulturalGameEngine({
               <span>Narahubung: <strong>{sourceCard.informant}</strong></span>
               <span className="text-secondary font-bold">Terverifikasi Sah</span>
             </div>
+            <p className="text-[10px] text-outline italic mt-1">Draft — dalam proses validasi</p>
           </div>
 
           <div className="w-full pt-1 flex flex-col sm:flex-row gap-3">

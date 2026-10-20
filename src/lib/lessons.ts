@@ -55,6 +55,15 @@ export type Question = {
   xp: number;
 };
 
+export type CulturalSource = {
+  institution: string;
+  informant: string;
+  registrationCode: string;
+  verifiedDate: string;
+  summary: string;
+  status?: string;
+};
+
 export type Lesson = {
   id: number;
   slug: string;
@@ -64,6 +73,7 @@ export type Lesson = {
   intro: string;
   rewardXp: number;
   badge: string;
+  source?: CulturalSource;
   questions: Question[];
 };
 
@@ -77,6 +87,14 @@ export const lessons: Lesson[] = [
     intro: "Tabe adalah cara meminta ruang dan menunjukkan hormat sebelum melangkah atau berbicara.",
     rewardXp: 20,
     badge: "Pionir Salam",
+    source: {
+      institution: "Dewan Adat Kaili (LAK) & Balai Pelestarian Kebudayaan Wilayah XVIII",
+      informant: "Tokoh Adat Kaili Ledo (Lembah Palu)",
+      registrationCode: "SULTENG-BBS-2024/KL-01",
+      verifiedDate: "Oktober 2024",
+      summary: "Materi etika tutur dan salam santun Tabe didasarkan pada tata krama pergaulan masyarakat Kaili Ledo.",
+      status: "Draft — dalam proses validasi",
+    },
     questions: [
       {
         id: "tabe-choice",
@@ -169,6 +187,14 @@ export const lessons: Lesson[] = [
     intro: "Baju Nggembe dan Buya Sabe mengajarkan cara membaca bentuk busana sekaligus konteks pemakaiannya.",
     rewardXp: 25,
     badge: "Penjaga Busana",
+    source: {
+      institution: "Komunitas Pelestari Tenun & Busana Tradisional Kaili",
+      informant: "Pemerhati Busana Adat Kaili & Tenun Donggala",
+      registrationCode: "SULTENG-BSN-2024/KL-02",
+      verifiedDate: "November 2024",
+      summary: "Karakteristik busana Baju Nggembe dan Buya Sabe dikurasi dari dokumentasi etnografi busana adat Sulawesi Tengah.",
+      status: "Draft — dalam proses validasi",
+    },
     questions: [
       {
         id: "nggembe-choice",
@@ -243,6 +269,14 @@ export const lessons: Lesson[] = [
     intro: "Dalam skenario ini kamu tidak hanya mengingat istilah, tetapi memilih sikap yang tepat sebagai tamu.",
     rewardXp: 30,
     badge: "Tamu Sopan",
+    source: {
+      institution: "Pengelola Cagar Budaya Banua Oge (Souraja) & Disbud Sulteng",
+      informant: "Pemandu Cagar Budaya Souraja Palu Barat",
+      registrationCode: "SULTENG-CGB-2024/KL-03",
+      verifiedDate: "Desember 2024",
+      summary: "Skenario adab bertamu dan tata ruang Banua Oge disusun sesuai protokol adat penerimaan tamu Souraja.",
+      status: "Draft — dalam proses validasi",
+    },
     questions: [
       {
         id: "souraja-choice",

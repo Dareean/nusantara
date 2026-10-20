@@ -9,7 +9,7 @@ export const sampleKailiLesson: GameSession = {
   xpReward: 50,
   culturalSourceCard: {
     institution: "Dewan Adat Kaili (LAK) & Balai Pelestarian Kebudayaan XVIII",
-    informant: "Magau Palu • Drs. Rusdi M.Pd.",
+    informant: "Pemangku Adat Kaili Ledo (Lembah Palu)",
     registrationCode: "SULTENG-BBS-2024/KL-01",
     verifiedDate: "Sidang Pleno Kurasi Etnolinguistik 2024",
     summary:
