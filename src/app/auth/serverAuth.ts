@@ -71,6 +71,19 @@ function saveStore() {
 
 // Initialize store on module load
 loadStore();
+ensureDemoUser();
+
+function ensureDemoUser() {
+  const demoEmail = 'demo@gmail.com';
+  if (!users.has(demoEmail)) {
+    users.set(demoEmail, {
+      name: 'Demo User',
+      email: demoEmail,
+      passwordHash: hashPassword('demo123'),
+    });
+    saveStore();
+  }
+}
 
 export function hashPassword(password: string) {
   return crypto.createHash('sha256').update(password).digest('hex');
