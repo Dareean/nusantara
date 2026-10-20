@@ -262,166 +262,159 @@ export default function GameFlowBuilder() {
   const currentQ = activeSession.questions[selectedQuestionIdx] || activeSession.questions[0];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Toast Alert */}
       {saveToast && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-secondary text-on-secondary rounded-2xl shadow-xl animate-bounce">
-          <CheckCircle2 className="w-5 h-5" />
-          <span className="text-label-md font-bold">Alur Game Berhasil Disimpan &amp; Siap Dimainkan!</span>
+        <div className="fixed top-16 right-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-secondary text-on-secondary rounded-xl shadow-lg border border-secondary-container animate-in fade-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-4 h-4" />
+          <span className="text-label-sm font-bold">Alur Game Berhasil Disimpan &amp; Siap Dimainkan!</span>
         </div>
       )}
 
-      {/* Header Panel */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 text-primary text-label-md font-bold mb-1">
-            <Gamepad2 className="w-5 h-5" />
-            <span className="uppercase tracking-wider">CMS Game Flow &amp; Question Builder</span>
+      {/* Sticky Top Action Bar for Builder */}
+      <div className="sticky top-14 z-20 -mt-2 py-2.5 px-4 bg-surface-container-lowest/95 backdrop-blur-md rounded-xl border border-outline-variant/30 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Gamepad2 className="w-4 h-4" />
           </div>
-          <h2 className="text-2xl font-black text-on-surface tracking-tight">
-            Atur Alur Game &amp; Variasi Soal Suka-Suka
-          </h2>
-          <p className="text-body-sm text-on-surface-variant mt-0.5">
-            Admin bebas menentukan urutan tipe soal (Hotspot Visual Alat Musik / Busana / Arsitektur, Pilihan Ganda &amp; Audio, dsb.).
-          </p>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-label-sm font-extrabold text-on-surface truncate">
+                {activeSession.title}
+              </span>
+              <span className="text-[11px] px-2 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant font-bold shrink-0">
+                {activeSession.chapter}
+              </span>
+            </div>
+            <p className="text-[12px] text-on-surface-variant truncate">
+              {activeSession.questions.length} soal terkonfigurasi • {activeSession.subEthnic || "Kaili Ledo"}
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap ml-auto">
           <button
             type="button"
             onClick={handleExportJson}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-bold border border-outline-variant/30 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-sm font-semibold border border-outline-variant/30 transition-colors cursor-pointer"
             title={`Unduh ${activeSession.id}.json`}
           >
-            <Download className="w-4 h-4 text-primary" />
+            <Download className="w-3.5 h-3.5 text-primary" />
             <span>Export JSON</span>
           </button>
 
           <button
+            type="button"
             onClick={handleCreateNewSession}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-bold transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-sm font-semibold border border-outline-variant/30 transition-colors cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            <span>+ Buat Sesi Baru</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Sesi Baru</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setIsPreviewOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-secondary text-on-secondary text-label-md font-bold shadow-[0_3px_0_0_#653e00] hover:bg-secondary-container active:translate-y-0.5 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-secondary text-on-secondary text-label-sm font-bold shadow-xs hover:bg-secondary-container active:scale-95 transition-all cursor-pointer"
           >
-            <Eye className="w-4 h-4" />
-            <span>Uji Coba Game (Preview)</span>
+            <Eye className="w-3.5 h-3.5" />
+            <span>Uji Coba Game</span>
           </button>
 
           <button
+            type="button"
             onClick={handleSave}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-on-primary text-label-md font-bold shadow-[0_3px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary text-on-primary text-label-sm font-bold shadow-xs hover:bg-primary-container active:scale-95 transition-all cursor-pointer"
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-3.5 h-3.5" />
             <span>Simpan Alur Sesi</span>
           </button>
         </div>
       </div>
 
-      {/* Main Grid: Session Selector & Questions Flow */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Col: Sessions List & Question Sequence Timeline (4 cols) */}
-        <div className="lg:col-span-4 space-y-4">
-          {/* Active Session Card Settings */}
-          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm space-y-3">
-            <label className="text-label-xs uppercase font-extrabold text-on-surface-variant tracking-wider">
-              Pilih Paket Sesi Pembelajaran
-            </label>
-            <select
-              value={activeSessionId}
-              onChange={(e) => handleSelectSession(e.target.value)}
-              className="w-full p-2.5 rounded-xl bg-surface-container-low text-on-surface text-body-sm font-semibold border border-outline-variant/20 focus:ring-1 focus:ring-primary focus:outline-none"
-            >
-              {sessions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.title} ({s.questions.length} Soal)
-                </option>
-              ))}
-            </select>
+      {/* Main 2-Panel Layout: Left (Session & Questions list) + Right (Question Editor) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        {/* Panel Kiri: ±320px on desktop (lg:col-span-4 / xl:col-span-3) */}
+        <div className="lg:col-span-4 xl:col-span-4 space-y-3.5">
+          {/* Sesi & Metadata Ringkas */}
+          <div className="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-2.5">
+            <div>
+              <label className="text-[11px] uppercase font-bold tracking-wider text-on-surface-variant block mb-1">
+                Pilih Paket Sesi
+              </label>
+              <select
+                value={activeSessionId}
+                onChange={(e) => handleSelectSession(e.target.value)}
+                className="w-full px-2.5 py-1.5 rounded-lg bg-surface-container-low text-on-surface text-body-sm font-semibold border border-outline-variant/20 focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer"
+              >
+                {sessions.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.title} ({s.questions.length} Soal)
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <div className="space-y-2 pt-2 border-t border-outline-variant/20">
+            <div className="space-y-2 pt-2 border-t border-outline-variant/20 text-body-sm">
               <div>
-                <label className="text-label-xs font-bold text-on-surface-variant">Judul Sesi</label>
+                <label className="text-[11px] font-bold text-on-surface-variant">Judul Sesi</label>
                 <input
                   type="text"
                   value={activeSession.title}
                   onChange={(e) => setActiveSession({ ...activeSession, title: e.target.value })}
-                  className="w-full mt-1 p-2 rounded-lg bg-surface-container-low text-body-sm text-on-surface border border-outline-variant/20"
+                  className="w-full mt-0.5 px-2.5 py-1.5 rounded-lg bg-surface-container-low text-body-sm text-on-surface border border-outline-variant/20 focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-label-xs font-bold text-on-surface-variant">Bab</label>
+                  <label className="text-[11px] font-bold text-on-surface-variant">Bab</label>
                   <input
                     type="text"
                     value={activeSession.chapter}
                     onChange={(e) => setActiveSession({ ...activeSession, chapter: e.target.value })}
-                    className="w-full mt-1 p-2 rounded-lg bg-surface-container-low text-body-sm text-on-surface border border-outline-variant/20"
+                    className="w-full mt-0.5 px-2.5 py-1.5 rounded-lg bg-surface-container-low text-body-sm text-on-surface border border-outline-variant/20 focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
                 <div>
-                  <label className="text-label-xs font-bold text-on-surface-variant">XP Reward</label>
+                  <label className="text-[11px] font-bold text-on-surface-variant">XP Reward</label>
                   <input
                     type="number"
                     value={activeSession.xpReward}
                     onChange={(e) => setActiveSession({ ...activeSession, xpReward: Number(e.target.value) })}
-                    className="w-full mt-1 p-2 rounded-lg bg-surface-container-low text-body-sm text-on-surface border border-outline-variant/20"
+                    className="w-full mt-0.5 px-2.5 py-1.5 rounded-lg bg-surface-container-low text-body-sm text-on-surface border border-outline-variant/20 focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Question Sequence List (Timeline) */}
-          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-label-xs uppercase font-extrabold text-on-surface-variant tracking-wider">
-                Alur Urutan Soal ({activeSession.questions.length})
+          {/* Daftar Soal Sesi Aktif */}
+          <div className="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex flex-col">
+            <div className="flex items-center justify-between pb-2 border-b border-outline-variant/20 mb-2">
+              <span className="text-[11px] uppercase font-bold tracking-wider text-on-surface-variant">
+                Daftar Soal Sesi ({activeSession.questions.length})
               </span>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => handleAddQuestion("hotspot")}
-                  className="text-label-xs px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-bold hover:opacity-90 flex items-center gap-1 cursor-pointer"
-                  title="Tambah Soal Hotspot Visual"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Hotspot</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAddQuestion("multiple_choice")}
-                  className="text-label-xs px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-bold hover:opacity-90 flex items-center gap-1 cursor-pointer"
-                  title="Tambah Soal Pilihan Ganda & Audio"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Pilihan Ganda</span>
-                </button>
-              </div>
+              <span className="text-[11px] text-on-surface-variant font-medium">Klik untuk edit</span>
             </div>
 
-            <div className="space-y-2 mt-2">
+            {/* Scrollable vertical list */}
+            <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1">
               {activeSession.questions.map((q, idx) => {
                 const isSelected = selectedQuestionIdx === idx;
                 return (
                   <div
                     key={q.id}
                     onClick={() => setSelectedQuestionIdx(idx)}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                    className={`p-2.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-2.5 text-left ${
                       isSelected
-                        ? "bg-primary-fixed/20 border-primary ring-1 ring-primary shadow-xs"
+                        ? "bg-primary/10 border-primary ring-1 ring-primary shadow-xs"
                         : "bg-surface-container-low hover:bg-surface-container border-outline-variant/20"
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                        className={`w-6 h-6 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${
                           isSelected ? "bg-primary text-on-primary" : "bg-surface-container-highest text-on-surface-variant"
                         }`}
                       >
@@ -429,22 +422,24 @@ export default function GameFlowBuilder() {
                       </div>
                       <div className="truncate">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-label-sm font-bold text-on-surface truncate">
+                          <span className="text-[13px] font-bold text-on-surface truncate">
                             {q.title || `Soal ${idx + 1}`}
                           </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
                           <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase shrink-0 ${
+                            className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase shrink-0 ${
                               q.type === "hotspot"
                                 ? "bg-secondary-fixed text-on-secondary-fixed"
                                 : "bg-surface-container-highest text-on-surface-variant"
                             }`}
                           >
-                            {q.type === "hotspot" ? "Hotspot Visual" : "Pilihan Ganda"}
+                            {q.type === "hotspot" ? "Hotspot" : "Pilihan Ganda"}
+                          </span>
+                          <span className="text-[11px] text-on-surface-variant truncate">
+                            {q.prompt}
                           </span>
                         </div>
-                        <p className="text-body-xs text-on-surface-variant truncate mt-0.5">
-                          {q.prompt}
-                        </p>
                       </div>
                     </div>
 
@@ -455,21 +450,42 @@ export default function GameFlowBuilder() {
                           e.stopPropagation();
                           handleDeleteQuestion(idx);
                         }}
-                        className="p-1 rounded-lg text-outline hover:text-error hover:bg-error-container/30 transition-colors"
+                        className="p-1 rounded text-outline hover:text-error hover:bg-error-container/30 transition-colors shrink-0"
                         title="Hapus Soal Ini"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     )}
                   </div>
                 );
               })}
             </div>
+
+            {/* Bottom Add Buttons */}
+            <div className="grid grid-cols-2 gap-2 pt-3 mt-2 border-t border-outline-variant/20">
+              <button
+                type="button"
+                onClick={() => handleAddQuestion("hotspot")}
+                className="py-1.5 px-2 rounded-lg bg-secondary-fixed text-on-secondary-fixed text-[12px] font-bold hover:opacity-90 flex items-center justify-center gap-1 transition-all cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Hotspot</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAddQuestion("multiple_choice")}
+                className="py-1.5 px-2 rounded-lg bg-primary-fixed text-on-primary-fixed text-[12px] font-bold hover:opacity-90 flex items-center justify-center gap-1 transition-all cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Pilihan Ganda</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Right Col: Active Question Customizer Form (8 cols) */}
-        <div className="lg:col-span-8 p-6 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm space-y-6">
+        {/* Panel Kanan: Editor Soal Terpilih (lg:col-span-8) */}
+        <div className="lg:col-span-8 xl:col-span-8 p-4 sm:p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-4">
+
           <div className="flex items-center justify-between pb-3 border-b border-outline-variant/20 flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <span className="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs">
@@ -878,30 +894,37 @@ export default function GameFlowBuilder() {
         </div>
       </div>
 
-      {/* ── MODAL PREVIEW GAME LIVE ── */}
+      {/* ── MODAL / DRAWER PREVIEW GAME LIVE (Phone Frame) ── */}
       {isPreviewOpen && (
-        <div className="fixed inset-0 z-50 bg-inverse-surface/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto bg-background rounded-3xl shadow-2xl border border-outline-variant/30 flex flex-col relative">
-            <div className="sticky top-0 z-50 bg-surface/95 backdrop-blur-md px-6 py-3 border-b border-outline-variant/20 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-label-sm uppercase font-bold text-primary">
-                  Live Test-Run: {activeSession.title}
-                </span>
+        <div className="fixed inset-0 z-50 bg-inverse-surface/60 backdrop-blur-sm flex items-center justify-center sm:justify-end p-2 sm:p-4">
+          <div className="w-full sm:w-auto h-full max-h-[96vh] flex flex-col items-center justify-center animate-in slide-in-from-right-4 duration-300">
+            {/* Phone Bezel Container (±410px) */}
+            <div className="w-full max-w-[410px] h-[840px] max-h-[92vh] bg-surface rounded-[36px] shadow-2xl border-[8px] border-surface-container-highest flex flex-col relative overflow-hidden ring-1 ring-outline-variant/30">
+              {/* Phone Top Notch / Header Bar */}
+              <div className="shrink-0 bg-surface-container-lowest/95 backdrop-blur-md px-4 py-2.5 border-b border-outline-variant/20 flex items-center justify-between z-20">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                  <span className="text-[12px] font-bold text-on-surface truncate">
+                    Preview: {activeSession.title}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPreviewOpen(false)}
+                  className="p-1 rounded-full hover:bg-surface-container text-on-surface-variant transition-colors cursor-pointer"
+                  title="Tutup Preview"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsPreviewOpen(false)}
-                className="p-1.5 rounded-full hover:bg-surface-container-high text-on-surface-variant cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            <div className="p-2">
-              <CulturalGameEngine
-                session={activeSession}
-                onExitHref="/admin"
-              />
+              {/* Engine Container with Internal Scroll */}
+              <div className="flex-1 overflow-y-auto bg-surface">
+                <CulturalGameEngine
+                  session={activeSession}
+                  onExitHref="/admin"
+                />
+              </div>
             </div>
           </div>
         </div>

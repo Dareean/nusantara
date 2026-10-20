@@ -22,8 +22,12 @@ import {
   X,
   AudioWaveform,
   Gamepad2,
+  LayoutDashboard,
+  ChevronRight,
+  Filter,
 } from "lucide-react";
 import GameFlowBuilder from "./GameFlowBuilder";
+import { getStoredSessions } from "../components/game-engine/sessionStore";
 
 interface CulturalEntry {
   id: string;
@@ -145,7 +149,10 @@ function loadCmsEntries(): CulturalEntry[] {
 
 export default function AdminPage() {
   const [entries, setEntries] = useState<CulturalEntry[]>(() => loadCmsEntries());
+  const [adminTab, setAdminTab] = useState<"summary" | "builder" | "corpus">("summary");
+  const [sessionCount, setSessionCount] = useState<number>(4);
 
+  // Sync entries to localStorage
   useEffect(() => {
     try {
       if (typeof window !== "undefined") {
@@ -155,13 +162,23 @@ export default function AdminPage() {
       console.warn("Gagal menyimpan laras_cms_entries ke localStorage:", err);
     }
   }, [entries]);
+
+  // Read stored sessions count
+  useEffect(() => {
+    try {
+      const list = getStoredSessions();
+      setSessionCount(list.length);
+    } catch {
+      setSessionCount(4);
+    }
+  }, [adminTab]);
+
   const [filterTab, setFilterTab] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<CulturalEntry | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [adminTab, setAdminTab] = useState<"builder" | "corpus">("builder");
 
   // New entry form state
   const [newTerm, setNewTerm] = useState("");
@@ -233,698 +250,792 @@ export default function AdminPage() {
     }
   };
 
+  // Stats calculation
+  const verifiedCount = entries.filter((e) => e.status === "verified").length;
+  const pendingCount = entries.filter((e) => e.status === "pending").length;
+  const draftCount = entries.filter((e) => e.status === "draft").length;
+  const disputedCount = entries.filter((e) => e.status === "disputed").length;
+  const pendingOrDraftQueue = entries.filter((e) => e.status === "pending" || e.status === "draft").slice(0, 5);
+
   return (
-    <div className="min-h-screen bg-surface font-body-md text-on-surface">
-      {/* Top Admin Header */}
-      <header className="sticky top-0 z-40 h-16 bg-surface-container-lowest/95 backdrop-blur-md border-b border-outline-variant/30 flex items-center justify-between px-4 lg:px-8">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="flex items-center gap-2 group">
+    <div className="min-h-screen bg-surface flex text-on-surface font-body-md antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
+      {/* ── 1. SIDEBAR KIRI TETAP (±240px desktop, collapsed on <1024px) ── */}
+      <aside className="w-16 lg:w-60 shrink-0 bg-surface-container-low border-r border-outline-variant/30 flex flex-col justify-between sticky top-0 h-screen z-30 transition-all">
+        {/* Atas: Logo + Info CMS */}
+        <div className="p-3 lg:p-4">
+          <Link href="/dashboard" className="flex items-center gap-2.5 group">
             <img
               alt="LARAS Logo"
-              className="h-9 w-auto object-contain"
+              className="h-8 w-auto object-contain shrink-0"
               src="/logo/logo_laras.png"
             />
-            <div className="flex flex-col">
-              <span className="font-headline-sm text-primary tracking-tight font-bold">
+            <div className="hidden lg:flex flex-col min-w-0">
+              <span className="font-headline-sm text-primary tracking-tight font-black leading-tight text-base truncate">
                 LARAS CMS
               </span>
-              <span className="text-[10px] text-secondary font-bold tracking-wider uppercase -mt-0.5">
+              <span className="text-[10px] text-secondary font-bold tracking-wider uppercase -mt-0.5 truncate">
                 Panel Kurasi Budaya
               </span>
             </div>
           </Link>
-          <span className="hidden sm:inline-block text-outline-variant">•</span>
-          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold">
-            <ShieldAlert className="w-4 h-4" />
-            <span>Dewan Kurator Adat Wilayah XVIII</span>
-          </span>
+
+          <div className="hidden lg:block mt-3 px-2 py-1 rounded-md bg-secondary-fixed/50 text-[10px] text-on-secondary-fixed font-bold border border-secondary-fixed">
+            Dewan Kurator Adat Wil. XVIII
+          </div>
+
+          {/* Menu Navigasi Vertikal */}
+          <nav className="mt-4 space-y-1">
+            <button
+              type="button"
+              onClick={() => setAdminTab("summary")}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-bold transition-all text-left cursor-pointer ${
+                adminTab === "summary"
+                  ? "bg-primary text-on-primary shadow-xs"
+                  : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+              }`}
+              title="Ringkasan"
+            >
+              <LayoutDashboard className="w-4 h-4 shrink-0" />
+              <span className="hidden lg:inline">Ringkasan</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setAdminTab("builder")}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-bold transition-all text-left cursor-pointer ${
+                adminTab === "builder"
+                  ? "bg-primary text-on-primary shadow-xs"
+                  : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+              }`}
+              title="Penyusun Alur & Soal"
+            >
+              <Gamepad2 className="w-4 h-4 shrink-0" />
+              <span className="hidden lg:inline truncate">Penyusun Alur &amp; Soal</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setAdminTab("corpus")}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-bold transition-all text-left cursor-pointer ${
+                adminTab === "corpus"
+                  ? "bg-primary text-on-primary shadow-xs"
+                  : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+              }`}
+              title="Verifikasi Korpus Budaya"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <BookOpen className="w-4 h-4 shrink-0" />
+                <span className="hidden lg:inline truncate">Verifikasi Korpus</span>
+              </div>
+              <span
+                className={`hidden lg:inline-block text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  adminTab === "corpus"
+                    ? "bg-on-primary/20 text-on-primary"
+                    : "bg-surface-container-highest text-on-surface-variant"
+                }`}
+              >
+                {entries.length}
+              </span>
+            </button>
+          </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Bawah Sidebar: Tombol Kembali ke Dashboard Murid */}
+        <div className="p-3 lg:p-4 border-t border-outline-variant/30">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md transition-all"
+            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-[12px] font-bold text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all"
+            title="Kembali ke Dashboard Murid"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Kembali ke Dashboard Murid</span>
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span className="hidden lg:inline truncate">← Dashboard Murid</span>
           </Link>
-          <div className="flex items-center gap-2 pl-2 border-l border-outline-variant/30">
-            <img
-              alt="Admin Profile"
-              className="w-8 h-8 rounded-full object-cover ring-2 ring-primary-fixed"
-              src="https://lh3.googleusercontent.com/aida/AEtjO1Vhf8Tpf1UP_r76LEL-9Olxy-KamrRKdvbuw_IdSOUdsPnutS-ucQSUNrUwCmvv79RwssCekEhlPat9dql81M0_w3TdFVqc0hENXtxegKWhP1UapZD9OlTcn4MiCZZPhuf7VNtyofbbQ8ByHlCDXGq8phTykzER2D0OKlgZrlUIKLycgNPOKpSjSCeQYrau-XCBnFjpIEDXwO8PKFKpjzvu77uKgmWMakGwQ2PeNYy_zuHKKvm8sSrmGaG3"
-            />
-            <div className="hidden md:flex flex-col text-left">
-              <span className="text-label-md font-bold text-on-surface leading-tight">
-                Drs. Rusdi M.Pd.
-              </span>
-              <span className="text-[11px] text-on-surface-variant leading-none">
-                Kurator Adat Kaili
-              </span>
-            </div>
-          </div>
         </div>
-      </header>
+      </aside>
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 overflow-x-clip">
-        {/* Hard Rule Advisory Banner */}
-        <div className="rounded-2xl bg-surface-container-high p-4 sm:p-5 shadow-sm border border-outline-variant/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-start sm:items-center gap-3.5">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shrink-0 shadow-sm">
-              <ShieldAlert className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-label-sm uppercase tracking-wider text-primary font-bold">
-                  Hard Rule: Otentisitas Kaili
-                </span>
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
-                <span className="text-label-sm text-on-surface-variant font-semibold">
-                  Protokol Kurasi Adat #P-17
-                </span>
-              </div>
-              <p className="text-body-sm text-on-surface mt-0.5 font-medium leading-relaxed">
-                Seluruh entri berstatus{" "}
-                <span className="text-error font-bold bg-error-container/40 px-1.5 py-0.5 rounded">
-                  Draft
-                </span>{" "}
-                atau{" "}
-                <span className="text-secondary font-bold bg-secondary-fixed/50 px-1.5 py-0.5 rounded">
-                  Menunggu Verifikasi
-                </span>{" "}
-                otomatis diblokir dari antarmuka murid demi menjaga prinsip{" "}
-                <em>&ldquo;No Cultural Fabrication&rdquo;</em>.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
-            <span className="text-label-sm px-3 py-1 rounded-full bg-surface-container text-on-surface-variant font-semibold">
-              Balai Pelestarian Kebudayaan Wilayah XVIII
-            </span>
-          </div>
-        </div>
-
-        {/* Main Admin Mode Switcher Tabs */}
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-surface-container-high border border-outline-variant/30 w-fit">
-          <button
-            type="button"
-            onClick={() => setAdminTab("builder")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-label-md font-bold transition-all cursor-pointer ${
-              adminTab === "builder"
-                ? "bg-primary text-on-primary shadow-sm"
-                : "text-on-surface-variant hover:bg-surface-container"
-            }`}
-          >
-            <Gamepad2 className="w-4 h-4" />
-            <span>Penyusun Alur Game &amp; Soal</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setAdminTab("corpus")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-label-md font-bold transition-all cursor-pointer ${
-              adminTab === "corpus"
-                ? "bg-primary text-on-primary shadow-sm"
-                : "text-on-surface-variant hover:bg-surface-container"
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>Verifikasi Korpus Budaya ({entries.length})</span>
-          </button>
-        </div>
-
-        {adminTab === "builder" ? (
-          <GameFlowBuilder />
-        ) : (
-          <>
-            {/* Panel Header */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <div className="space-y-1.5 max-w-3xl">
-            <div className="flex items-center gap-2 text-on-surface-variant text-label-md">
-              <BadgeCheck className="w-5 h-5 text-primary" />
-              <span className="uppercase tracking-wider text-primary font-bold">
-                Sistem Verifikasi &amp; Sumber Konten Budaya
-              </span>
-              <span className="text-outline">•</span>
-              <span className="text-secondary font-semibold">
-                Central Sulawesi Corpus v2.4
-              </span>
-            </div>
-            <h1 className="font-headline-lg text-2xl sm:text-3xl text-on-surface tracking-tight font-extrabold">
-              Verifikasi Sumber Adat Kaili
+      {/* ── MAIN WORKSPACE AREA (Topbar + Area Konten) ── */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* 2. TOPBAR RAMPING (±56px) */}
+        <header className="sticky top-0 z-20 h-14 bg-surface-container-lowest/95 backdrop-blur-md border-b border-outline-variant/30 flex items-center justify-between px-4 lg:px-6">
+          {/* Kiri: Judul Seksi Aktif + Subjudul */}
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-lg font-black text-on-surface tracking-tight truncate leading-tight">
+              {adminTab === "summary" && "Ringkasan Kurasi Budaya"}
+              {adminTab === "builder" && "Penyusun Alur Game & Soal"}
+              {adminTab === "corpus" && "Verifikasi Korpus Budaya Kaili"}
             </h1>
-            <p className="text-body-md text-on-surface-variant">
-              Memastikan seluruh materi bahasa lokal (Ledo, Tara, Da&apos;a) dan tata busana adat
-              tervalidasi secara faktual oleh Dewan Adat serta Balai Bahasa sebelum dirilis ke
-              aplikasi murid.
+            <p className="text-[11px] text-on-surface-variant truncate hidden sm:block">
+              {adminTab === "summary" && "Ikhtisar status validasi naskah adat, korpus dan alur modul"}
+              {adminTab === "builder" && "Rancang urutan permainan, format hotspot visual, dan audio adat"}
+              {adminTab === "corpus" && "Audit keabsahan istilah vernakular Kaili, busana & narasumber adat"}
             </p>
           </div>
 
-          {/* Action CTAs */}
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container-low text-on-surface border border-outline-variant/30">
-              <Sparkles className="w-5 h-5 text-tertiary" />
-              <div className="flex flex-col">
-                <span className="text-label-sm text-on-surface-variant leading-none">
-                  Wilayah Riset
+          {/* Kanan: Aksi Global + Chip Profil Admin */}
+          <div className="flex items-center gap-3 shrink-0">
+            {adminTab === "corpus" && (
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-[12px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">+ Tambah Entri Budaya</span>
+              </button>
+            )}
+
+            <div className="flex items-center gap-2 pl-2 border-l border-outline-variant/30">
+              <img
+                alt="Admin Profile"
+                className="w-7 h-7 rounded-full object-cover ring-1 ring-primary-fixed"
+                src="https://lh3.googleusercontent.com/aida/AEtjO1Vhf8Tpf1UP_r76LEL-9Olxy-KamrRKdvbuw_IdSOUdsPnutS-ucQSUNrUwCmvv79RwssCekEhlPat9dql81M0_w3TdFVqc0hENXtxegKWhP1UapZD9OlTcn4MiCZZPhuf7VNtyofbbQ8ByHlCDXGq8phTykzER2D0OKlgZrlUIKLycgNPOKpSjSCeQYrau-XCBnFjpIEDXwO8PKFKpjzvu77uKgmWMakGwQ2PeNYy_zuHKKvm8sSrmGaG3"
+              />
+              <div className="hidden md:flex flex-col text-left">
+                <span className="text-[12px] font-bold text-on-surface leading-tight">
+                  Drs. Rusdi M.Pd.
                 </span>
-                <span className="text-label-md text-on-surface font-bold">
-                  Sulawesi Tengah • Lembah Palu
+                <span className="text-[10px] text-on-surface-variant leading-none">
+                  Kurator Adat Kaili
                 </span>
               </div>
-            </div>
-
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary hover:bg-primary-container text-on-primary text-label-lg font-bold transition-transform active:translate-y-0.5 shadow-[0_3px_0_0_#881f00] cursor-pointer"
-            >
-              <PlusCircle className="w-5 h-5" />
-              <span>+ Tambah Entri Budaya</span>
-            </button>
-          </div>
-        </div>
-
-        {/* 4 KPI Metric Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1: Total */}
-          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-            <div className="flex items-center justify-between">
-              <span className="text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">
-                Total Konten Aktif
-              </span>
-              <div className="w-9 h-9 rounded-xl bg-surface-container-low flex items-center justify-center text-on-surface">
-                <BookOpen className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="text-display-lg text-3xl font-extrabold text-on-surface tracking-tight">
-                {entries.length}
-              </span>
-              <span className="text-body-sm text-on-surface-variant">Entri Korpus</span>
-            </div>
-            <div className="mt-2 flex items-center gap-1 text-body-sm">
-              <span className="text-secondary font-bold">+6 entri</span>
-              <span className="text-on-surface-variant">bulan ini dari ekspedisi Kulawi</span>
-            </div>
-            <div className="w-full bg-surface-container rounded-full h-1.5 mt-3 overflow-hidden">
-              <div className="bg-primary h-full rounded-full" style={{ width: "100%" }} />
             </div>
           </div>
+        </header>
 
-          {/* Card 2: Terverifikasi */}
-          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-            <div className="flex items-center justify-between">
-              <span className="text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">
-                Terverifikasi (Verified)
-              </span>
-              <div className="w-9 h-9 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
-                <BadgeCheck className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="text-display-lg text-3xl font-extrabold text-secondary tracking-tight">
-                {entries.filter((e) => e.status === "verified").length}
-              </span>
-              <span className="text-label-md px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-bold">
-                {Math.round(
-                  (entries.filter((e) => e.status === "verified").length / entries.length) * 100
-                )}
-                %
-              </span>
-            </div>
-            <div className="mt-2 flex items-center gap-1 text-body-sm text-on-surface-variant">
-              <CheckCircle2 className="w-4 h-4 text-secondary" />
-              <span>Disahkan Tetua Adat &amp; BPK XVIII</span>
-            </div>
-            <div className="w-full bg-surface-container rounded-full h-1.5 mt-3 overflow-hidden">
-              <div className="bg-secondary h-full rounded-full" style={{ width: "81%" }} />
-            </div>
-          </div>
-
-          {/* Card 3: Menunggu Review */}
-          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-            <div className="flex items-center justify-between">
-              <span className="text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">
-                Menunggu Review
-              </span>
-              <div className="w-9 h-9 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
-                <Timer className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="text-display-lg text-3xl font-extrabold text-primary tracking-tight">
-                {entries.filter((e) => e.status === "pending").length}
-              </span>
-              <span className="text-body-sm text-on-surface-variant">Perlu Sidang Adat</span>
-            </div>
-            <div className="mt-2 flex items-center gap-1.5 text-body-sm text-primary font-semibold">
-              <span className="inline-block w-2 h-2 rounded-full bg-primary float-lift" />
-              <span>Rekaman audio fonetik baru</span>
-            </div>
-            <div className="w-full bg-surface-container rounded-full h-1.5 mt-3 overflow-hidden">
-              <div className="bg-primary h-full rounded-full" style={{ width: "35%" }} />
-            </div>
-          </div>
-
-          {/* Card 4: Disputed / Catatan Varian */}
-          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-            <div className="flex items-center justify-between">
-              <span className="text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">
-                Disputed (Catatan Varian)
-              </span>
-              <div className="w-9 h-9 rounded-xl bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
-                <BookOpen className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="text-display-lg text-3xl font-extrabold text-tertiary tracking-tight">
-                {entries.filter((e) => e.status === "disputed").length}
-              </span>
-              <span className="text-body-sm text-on-surface-variant">Dialek Varian</span>
-            </div>
-            <div className="mt-2 flex items-center gap-1 text-body-sm text-on-surface-variant">
-              <Info className="w-4 h-4 text-tertiary" />
-              <span>Memerlukan catatan komparatif</span>
-            </div>
-            <div className="w-full bg-surface-container rounded-full h-1.5 mt-3 overflow-hidden">
-              <div className="bg-tertiary h-full rounded-full" style={{ width: "20%" }} />
-            </div>
-          </div>
-        </div>
-
-        {/* Content Management Matrix Table */}
-        <div className="rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm overflow-hidden">
-          {/* Toolbar & Filters */}
-          <div className="p-4 sm:p-5 border-b border-outline-variant/20 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-            {/* Status Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
-              <button
-                onClick={() => setFilterTab("all")}
-                className={`px-4 py-2 rounded-full text-label-md whitespace-nowrap transition-all ${
-                  filterTab === "all"
-                    ? "bg-primary-container text-on-primary-container font-bold shadow-[0_2px_0_0_#881f00]"
-                    : "text-on-surface-variant hover:bg-surface-container-high"
-                }`}
-              >
-                Semua Konten ({entries.length})
-              </button>
-              <button
-                onClick={() => setFilterTab("verified")}
-                className={`px-4 py-2 rounded-full text-label-md whitespace-nowrap transition-all ${
-                  filterTab === "verified"
-                    ? "bg-primary-container text-on-primary-container font-bold shadow-[0_2px_0_0_#881f00]"
-                    : "text-on-surface-variant hover:bg-surface-container-high"
-                }`}
-              >
-                Terverifikasi{" "}
-                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[11px] font-bold">
-                  {entries.filter((e) => e.status === "verified").length}
-                </span>
-              </button>
-              <button
-                onClick={() => setFilterTab("pending")}
-                className={`px-4 py-2 rounded-full text-label-md whitespace-nowrap transition-all ${
-                  filterTab === "pending"
-                    ? "bg-primary-container text-on-primary-container font-bold shadow-[0_2px_0_0_#881f00]"
-                    : "text-on-surface-variant hover:bg-surface-container-high"
-                }`}
-              >
-                Menunggu Tinjauan{" "}
-                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed text-[11px] font-bold">
-                  {entries.filter((e) => e.status === "pending").length}
-                </span>
-              </button>
-              <button
-                onClick={() => setFilterTab("disputed")}
-                className={`px-4 py-2 rounded-full text-label-md whitespace-nowrap transition-all ${
-                  filterTab === "disputed"
-                    ? "bg-primary-container text-on-primary-container font-bold shadow-[0_2px_0_0_#881f00]"
-                    : "text-on-surface-variant hover:bg-surface-container-high"
-                }`}
-              >
-                Disputed{" "}
-                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-bold">
-                  {entries.filter((e) => e.status === "disputed").length}
-                </span>
-              </button>
-              <button
-                onClick={() => setFilterTab("draft")}
-                className={`px-4 py-2 rounded-full text-label-md whitespace-nowrap transition-all ${
-                  filterTab === "draft"
-                    ? "bg-primary-container text-on-primary-container font-bold shadow-[0_2px_0_0_#881f00]"
-                    : "text-on-surface-variant hover:bg-surface-container-high"
-                }`}
-              >
-                Draft{" "}
-                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant text-[11px] font-bold">
-                  {entries.filter((e) => e.status === "draft").length}
-                </span>
-              </button>
-            </div>
-
-            {/* Search & Category Filter */}
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <div className="relative w-full sm:w-60">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-outline w-4 h-4 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Cari materi / dialek..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-surface-container-low text-on-surface text-body-sm focus:outline-none focus:ring-1 focus:ring-primary border border-outline-variant/20"
-                />
-              </div>
-
-              <div className="relative w-full sm:w-48">
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="w-full pl-3 pr-8 py-1.5 rounded-xl bg-surface-container-low text-on-surface text-body-sm focus:outline-none appearance-none cursor-pointer border border-outline-variant/20"
+        {/* 3. AREA KONTEN (Densitas alat kerja, latar abu krem sangat muda) */}
+        <main className="flex-1 p-3.5 sm:p-5 lg:p-6 overflow-y-auto min-h-[calc(100vh-56px)] bg-surface/50">
+          {/* ── SEKSI 1: RINGKASAN ── */}
+          {adminTab === "summary" && (
+            <div className="space-y-4 max-w-6xl mx-auto">
+              {/* Baris 4 Kartu Statistik Kecil Sejajar */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Stat 1: Total Entri Korpus */}
+                <div
+                  onClick={() => setAdminTab("corpus")}
+                  className="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex flex-col justify-between hover:border-primary/50 transition-all cursor-pointer group"
                 >
-                  <option value="all">Semua Kategori</option>
-                  <option value="bahasa">Kosakata &amp; Bahasa</option>
-                  <option value="busana">Busana &amp; Rias Adat</option>
-                  <option value="tenun">Tenun &amp; Kriya</option>
-                </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline w-4 h-4 pointer-events-none" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
+                      Total Entri Korpus
+                    </span>
+                    <div className="w-7 h-7 rounded-lg bg-surface-container-low flex items-center justify-center text-on-surface group-hover:text-primary transition-colors">
+                      <BookOpen className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-on-surface tracking-tight">
+                      {entries.length}
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant font-medium">Entri</span>
+                  </div>
+                  <span className="text-[11px] text-secondary font-semibold mt-1">
+                    {verifiedCount} telah disahkan
+                  </span>
+                </div>
+
+                {/* Stat 2: Menunggu Verifikasi */}
+                <div
+                  onClick={() => {
+                    setFilterTab("pending");
+                    setAdminTab("corpus");
+                  }}
+                  className="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex flex-col justify-between hover:border-primary/50 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
+                      Menunggu Verifikasi
+                    </span>
+                    <div className="w-7 h-7 rounded-lg bg-primary-fixed/40 flex items-center justify-center text-on-primary-fixed">
+                      <Timer className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-primary tracking-tight">
+                      {pendingCount}
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant font-medium">Perlu Tinjauan</span>
+                  </div>
+                  <span className="text-[11px] text-primary font-semibold mt-1">
+                    Menunggu sidang pleno
+                  </span>
+                </div>
+
+                {/* Stat 3: Status Draft */}
+                <div
+                  onClick={() => {
+                    setFilterTab("draft");
+                    setAdminTab("corpus");
+                  }}
+                  className="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex flex-col justify-between hover:border-primary/50 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
+                      Status Draft
+                    </span>
+                    <div className="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+                      <Lock className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-on-surface tracking-tight">
+                      {draftCount}
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant font-medium">Terkunci</span>
+                  </div>
+                  <span className="text-[11px] text-on-surface-variant font-semibold mt-1">
+                    Draf kurator independen
+                  </span>
+                </div>
+
+                {/* Stat 4: Jumlah Sesi Game */}
+                <div
+                  onClick={() => setAdminTab("builder")}
+                  className="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex flex-col justify-between hover:border-primary/50 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
+                      Jumlah Sesi Game
+                    </span>
+                    <div className="w-7 h-7 rounded-lg bg-secondary-fixed/40 flex items-center justify-center text-on-secondary-fixed">
+                      <Gamepad2 className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-secondary tracking-tight">
+                      {sessionCount}
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant font-medium">Paket Alur</span>
+                  </div>
+                  <span className="text-[11px] text-secondary font-semibold mt-1">
+                    Siap dimainkan di app
+                  </span>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-surface-container-low text-label-md text-on-surface-variant font-bold border-b border-outline-variant/20">
-                  <th className="py-3 px-4 lg:px-6">Entri Budaya &amp; Tipe</th>
-                  <th className="py-3 px-4">Bab &amp; Modul</th>
-                  <th className="py-3 px-4">Sumber &amp; Informan Adat</th>
-                  <th className="py-3 px-4 text-center">Status Verifikasi</th>
-                  <th className="py-3 px-4 text-center">Akses Murid (Gating)</th>
-                  <th className="py-3 px-4 lg:px-6 text-right">Aksi Audit</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/20">
-                {filteredEntries.map((entry) => (
-                  <tr
-                    key={entry.id}
-                    className="hover:bg-surface-container-low/50 transition-colors"
-                  >
-                    {/* Column 1: Entri Budaya */}
-                    <td className="py-4 px-4 lg:px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center shrink-0 overflow-hidden border border-outline-variant/20">
-                          {entry.thumbnail ? (
-                            <img
-                              src={entry.thumbnail}
-                              alt={entry.term}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <BookOpen className="text-primary w-6 h-6" />
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-headline-sm text-on-surface font-bold">
-                              {entry.term}
-                            </span>
-                            {entry.ipa && (
-                              <button
-                                onClick={() => {
-                                  setIsPlayingAudio(true);
-                                  setTimeout(() => setIsPlayingAudio(false), 1500);
-                                }}
-                                className="text-tertiary hover:text-tertiary-container cursor-pointer"
-                                title="Dengarkan Fonetik"
-                              >
-                                {isPlayingAudio ? (
-                                  <AudioWaveform className="w-4 h-4 animate-pulse" />
-                                ) : (
-                                  <Volume2 className="w-4 h-4" />
-                                )}
-                              </button>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed text-label-sm font-semibold">
-                              {entry.type} • {entry.category}
-                            </span>
-                            {entry.ipa && (
-                              <span className="text-body-sm text-on-surface-variant font-mono">
-                                IPA: {entry.ipa}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Column 2: Bab & Modul */}
-                    <td className="py-4 px-4">
-                      <div className="flex flex-col">
-                        <span className="text-title-md font-bold text-on-surface">
-                          {entry.chapter}
-                        </span>
-                        <span className="text-body-sm text-on-surface-variant">
-                          {entry.module}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* Column 3: Sumber & Informan */}
-                    <td className="py-4 px-4">
-                      <div className="flex flex-col">
-                        <span className="text-body-md font-semibold text-on-surface">
-                          {entry.source}
-                        </span>
-                        <span className="text-body-sm text-on-surface-variant">
-                          {entry.informant}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* Column 4: Status Verifikasi */}
-                    <td className="py-4 px-4 text-center">
-                      {entry.status === "verified" && (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold shadow-sm">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Verified ✓</span>
-                        </span>
-                      )}
-                      {entry.status === "pending" && (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed text-label-sm font-bold shadow-sm float-lift">
-                          <Timer className="w-3.5 h-3.5" />
-                          <span>Pending Review ⏳</span>
-                        </span>
-                      )}
-                      {entry.status === "disputed" && (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-bold shadow-sm">
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                          <span>Disputed ⚠️</span>
-                        </span>
-                      )}
-                      {entry.status === "draft" && (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-label-sm font-bold shadow-sm">
-                          <Lock className="w-3.5 h-3.5" />
-                          <span>Draft 🔒</span>
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Column 5: Gating Status */}
-                    <td className="py-4 px-4 text-center">
-                      {entry.gating === "published" && (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-on-surface text-label-sm font-medium">
-                          <span className="w-2 h-2 rounded-full bg-secondary" />
-                          <span>Tayang di App</span>
-                        </div>
-                      )}
-                      {entry.gating === "blocked" && (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-error-container text-on-error-container text-label-sm font-bold">
-                          <Lock className="w-3.5 h-3.5" />
-                          <span>Ditahan / Blocked</span>
-                        </div>
-                      )}
-                      {entry.gating === "educational_note" && (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-on-surface text-label-sm font-medium">
-                          <span className="w-2 h-2 rounded-full bg-tertiary" />
-                          <span>Tayang dg Catatan</span>
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Column 6: Aksi */}
-                    <td className="py-4 px-4 lg:px-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => setSelectedEntry(entry)}
-                          className="px-3 py-1.5 rounded-lg bg-primary-fixed text-on-primary-fixed text-label-md font-bold hover:bg-primary hover:text-on-primary transition-colors"
-                        >
-                          Tinjau
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Footer Info */}
-          <div className="p-4 bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-3 text-body-sm text-on-surface-variant border-t border-outline-variant/20">
-            <div className="flex items-center gap-2">
-              <span>
-                Menampilkan <strong>{filteredEntries.length}</strong> dari{" "}
-                <strong>{entries.length}</strong> Entri Korpus Adat
-              </span>
-              <span className="text-outline">•</span>
-              <span className="text-primary font-semibold">
-                Sync DB Balai Bahasa Sulteng: Aktif
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-label-sm text-on-surface-variant">Halaman 1 dari 1</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Provenance Ledger & Elder Contacts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Verification Ledger */}
-          <div className="lg:col-span-2 rounded-2xl bg-surface-container-lowest p-6 border border-outline-variant/30 shadow-sm flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
-                    <History className="w-5 h-5" />
+              {/* Kartu Pengingat Protokol Kurasi (Isi Ringkas HARD RULE) */}
+              <div className="p-3.5 sm:p-4 rounded-xl bg-surface-container-high border border-outline-variant/30 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-xs">
+                    <ShieldAlert className="w-4 h-4" />
                   </div>
                   <div>
-                    <h2 className="text-title-md font-bold text-on-surface">
-                      Catatan Sidang Validasi Adat Terbaru
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] uppercase tracking-wider text-primary font-black">
+                        Hard Rule: Otentisitas Kaili
+                      </span>
+                      <span className="inline-block w-1 h-1 rounded-full bg-primary" />
+                      <span className="text-[11px] text-on-surface-variant font-semibold">
+                        Protokol Kurasi Adat #P-17
+                      </span>
+                    </div>
+                    <p className="text-[12px] text-on-surface mt-0.5 leading-snug">
+                      Seluruh entri berstatus{" "}
+                      <span className="text-error font-bold bg-error-container/40 px-1 py-0.2 rounded text-[11px]">
+                        Draft
+                      </span>{" "}
+                      atau{" "}
+                      <span className="text-secondary font-bold bg-secondary-fixed/50 px-1 py-0.2 rounded text-[11px]">
+                        Menunggu Verifikasi
+                      </span>{" "}
+                      otomatis diblokir dari antarmuka murid demi prinsip <em>&ldquo;No Cultural Fabrication&rdquo;</em>.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-semibold shrink-0">
+                  BPK Wilayah XVIII
+                </span>
+              </div>
+
+              {/* Antrean Verifikasi Budaya (Maks 5 item berstatus pending/draft) */}
+              <div className="p-4 sm:p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-3">
+                <div className="flex items-center justify-between pb-2.5 border-b border-outline-variant/20">
+                  <div>
+                    <h2 className="text-[15px] font-bold text-on-surface tracking-tight">
+                      Antrean Verifikasi Budaya
                     </h2>
-                    <span className="text-body-sm text-on-surface-variant">
-                      Lembaga Adat Kaili (LAK) Wilayah Palu Barat
-                    </span>
+                    <p className="text-[12px] text-on-surface-variant mt-0.5">
+                      Entri yang memerlukan penetapan status sidang adat atau kelengkapan berkas informan.
+                    </p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFilterTab("pending");
+                      setAdminTab("corpus");
+                    }}
+                    className="text-[12px] text-primary font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Buka Semua di Korpus</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <span className="text-label-sm text-secondary font-bold">Risalah Pleno</span>
+
+                {pendingOrDraftQueue.length === 0 ? (
+                  <div className="py-6 text-center text-on-surface-variant text-[13px]">
+                    Semua entri telah diverifikasi secara sah.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-outline-variant/20">
+                    {pendingOrDraftQueue.map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="py-2.5 flex items-center justify-between gap-3 hover:bg-surface-container-low/40 px-2 rounded-lg transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center shrink-0 overflow-hidden border border-outline-variant/20">
+                            {entry.thumbnail ? (
+                              <img
+                                src={entry.thumbnail}
+                                alt={entry.term}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <BookOpen className="text-primary w-4 h-4" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px] font-bold text-on-surface truncate">
+                                {entry.term}
+                              </span>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-surface-container-high text-on-surface-variant font-bold">
+                                {entry.type} • {entry.category}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-on-surface-variant truncate mt-0.5">
+                              {entry.source} • {entry.informant}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          {entry.status === "pending" && (
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-bold">
+                              Menunggu Verifikasi
+                            </span>
+                          )}
+                          {entry.status === "draft" && (
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-bold">
+                              Draft
+                            </span>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => setSelectedEntry(entry)}
+                            className="px-2.5 py-1 rounded-md bg-primary text-on-primary text-[11px] font-bold hover:bg-primary-container transition-colors cursor-pointer"
+                          >
+                            Tinjau
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="space-y-3">
-                <div className="p-3.5 rounded-xl bg-surface-container-low flex items-start justify-between gap-4 border border-outline-variant/20">
-                  <div className="flex items-start gap-3">
-                    <BadgeCheck className="w-5 h-5 text-secondary mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-label-md font-bold text-on-surface">
-                        Pemberian Status Sah: Frasa &ldquo;Tabe&rdquo; &amp; &ldquo;Nggembe&rdquo;
+              {/* Provenance Ledger & Elder Contacts (2 Kolom Bawah) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+                {/* Catatan Sidang Adat Terbaru */}
+                <div className="lg:col-span-2 p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-outline-variant/20">
+                    <div className="flex items-center gap-2">
+                      <History className="w-4 h-4 text-secondary" />
+                      <h3 className="text-[13px] font-bold text-on-surface">
+                        Risalah Pleno Validasi Adat Terbaru
+                      </h3>
+                    </div>
+                    <span className="text-[11px] text-secondary font-bold">LAK Palu Barat</span>
+                  </div>
+
+                  <div className="space-y-2 text-[12px]">
+                    <div className="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/20">
+                      <div className="flex items-center justify-between font-bold text-on-surface">
+                        <span>Pemberian Status Sah: Frasa &ldquo;Tabe&rdquo; &amp; &ldquo;Nggembe&rdquo;</span>
+                        <span className="text-[10px] text-outline font-normal">14 Feb 2025</span>
+                      </div>
+                      <p className="text-[11px] text-on-surface-variant mt-0.5">
+                        Disahkan dalam sidang pleno ke-12 bersama BPK Wilayah XVIII dan tetua 5 sub-etnis Kaili.
                       </p>
-                      <p className="text-body-sm text-on-surface-variant mt-0.5">
-                        Telah disahkan dalam sidang pleno kurasi ke-12 bersama BPK Wilayah XVIII
-                        dan perwakilan 5 sub-etnis Kaili.
+                    </div>
+
+                    <div className="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/20">
+                      <div className="flex items-center justify-between font-bold text-on-surface">
+                        <span>Catatan Edukatif Disematkan: Istilah &ldquo;Sampa&rdquo;</span>
+                        <span className="text-[10px] text-outline font-normal">11 Feb 2025</span>
+                      </div>
+                      <p className="text-[11px] text-on-surface-variant mt-0.5">
+                        Ketetapan varian: Donggala menyebut &ldquo;Dali&rdquo;, Sigi menyebut &ldquo;Sampa&rdquo;. Keduanya diakui berdampingan.
                       </p>
                     </div>
                   </div>
-                  <span className="text-label-sm text-outline shrink-0">14 Feb 2025</span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-surface-container-low flex items-start justify-between gap-4 border border-outline-variant/20">
-                  <div className="flex items-start gap-3">
-                    <Info className="w-5 h-5 text-tertiary mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-label-md font-bold text-on-surface">
-                        Catatan Edukatif Disematkan pada Istilah &ldquo;Sampa&rdquo;
-                      </p>
-                      <p className="text-body-sm text-on-surface-variant mt-0.5">
-                        Ketetapan varian: Di wilayah Donggala disebut &ldquo;Dali&rdquo;, sedangkan di
-                        Sigi disebut &ldquo;Sampa&rdquo;. Keduanya diakui sah berdampingan.
-                      </p>
+                {/* Hotline Narahubung Tetua */}
+                <div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 pb-2 border-b border-outline-variant/20 mb-2">
+                      <Landmark className="w-4 h-4 text-tertiary" />
+                      <h3 className="text-[13px] font-bold text-on-surface">
+                        Narahubung Tetua Adat
+                      </h3>
+                    </div>
+                    <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                      Konsultasikan keraguan istilah dialek atau naskah tutur lisan dengan majelis tetua terverifikasi.
+                    </p>
+
+                    <div className="mt-2.5 space-y-1.5 text-[11px]">
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-surface-container-low border border-outline-variant/20">
+                        <span className="font-bold text-on-surface">Dewan Adat Kaili (LAK)</span>
+                        <span className="text-secondary font-bold">Aktif • Palu</span>
+                      </div>
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-surface-container-low border border-outline-variant/20">
+                        <span className="font-bold text-on-surface">Balai Bahasa Sulteng</span>
+                        <span className="text-secondary font-bold">Terhubung</span>
+                      </div>
                     </div>
                   </div>
-                  <span className="text-label-sm text-outline shrink-0">11 Feb 2025</span>
+
+                  <button
+                    type="button"
+                    onClick={() => alert("Menghubungkan ke saluran kurator Balai Pelestarian Kebudayaan XVIII...")}
+                    className="mt-3 w-full py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-[12px] font-bold transition-all text-center cursor-pointer"
+                  >
+                    Hubungi Hotline Kurator
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Contact Informant */}
-          <div className="rounded-2xl bg-surface-container-lowest p-6 border border-outline-variant/30 shadow-sm flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
-                  <Landmark className="w-5 h-5" />
+          {/* ── SEKSI 2: PENYUSUN ALUR & SOAL ── */}
+          {adminTab === "builder" && (
+            <div className="max-w-7xl mx-auto">
+              <GameFlowBuilder />
+            </div>
+          )}
+
+          {/* ── SEKSI 3: VERIFIKASI KORPUS BUDAYA ── */}
+          {adminTab === "corpus" && (
+            <div className="space-y-3.5 max-w-7xl mx-auto">
+              {/* Content Management Matrix Table Card */}
+              <div className="rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs overflow-hidden">
+                {/* Toolbar & Filters (Padat, 1 baris responsif) */}
+                <div className="p-3 sm:p-4 border-b border-outline-variant/20 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                  {/* Status Chips */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+                    <button
+                      type="button"
+                      onClick={() => setFilterTab("all")}
+                      className={`px-3 py-1.5 rounded-lg text-[12px] whitespace-nowrap transition-all cursor-pointer ${
+                        filterTab === "all"
+                          ? "bg-primary text-on-primary font-bold shadow-xs"
+                          : "text-on-surface-variant hover:bg-surface-container-high"
+                      }`}
+                    >
+                      Semua ({entries.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFilterTab("verified")}
+                      className={`px-3 py-1.5 rounded-lg text-[12px] whitespace-nowrap transition-all cursor-pointer ${
+                        filterTab === "verified"
+                          ? "bg-secondary text-on-secondary font-bold shadow-xs"
+                          : "text-on-surface-variant hover:bg-surface-container-high"
+                      }`}
+                    >
+                      Terverifikasi ({verifiedCount})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFilterTab("pending")}
+                      className={`px-3 py-1.5 rounded-lg text-[12px] whitespace-nowrap transition-all cursor-pointer ${
+                        filterTab === "pending"
+                          ? "bg-primary text-on-primary font-bold shadow-xs"
+                          : "text-on-surface-variant hover:bg-surface-container-high"
+                      }`}
+                    >
+                      Menunggu Tinjauan ({pendingCount})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFilterTab("disputed")}
+                      className={`px-3 py-1.5 rounded-lg text-[12px] whitespace-nowrap transition-all cursor-pointer ${
+                        filterTab === "disputed"
+                          ? "bg-tertiary text-on-tertiary font-bold shadow-xs"
+                          : "text-on-surface-variant hover:bg-surface-container-high"
+                      }`}
+                    >
+                      Disputed ({disputedCount})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFilterTab("draft")}
+                      className={`px-3 py-1.5 rounded-lg text-[12px] whitespace-nowrap transition-all cursor-pointer ${
+                        filterTab === "draft"
+                          ? "bg-surface-container-highest text-on-surface font-bold shadow-xs"
+                          : "text-on-surface-variant hover:bg-surface-container-high"
+                      }`}
+                    >
+                      Draft ({draftCount})
+                    </button>
+                  </div>
+
+                  {/* Search, Category Filter, and Add Button */}
+                  <div className="flex flex-col sm:flex-row items-center gap-2">
+                    <div className="relative w-full sm:w-56">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-outline w-3.5 h-3.5 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Cari materi / narasumber..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-8 pr-2.5 py-1.5 rounded-lg bg-surface-container-low text-on-surface text-[12px] focus:outline-none focus:ring-1 focus:ring-primary border border-outline-variant/20"
+                      />
+                    </div>
+
+                    <div className="relative w-full sm:w-44">
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="w-full pl-2.5 pr-7 py-1.5 rounded-lg bg-surface-container-low text-on-surface text-[12px] focus:outline-none appearance-none cursor-pointer border border-outline-variant/20 font-medium"
+                      >
+                        <option value="all">Semua Kategori</option>
+                        <option value="bahasa">Kosakata &amp; Bahasa</option>
+                        <option value="busana">Busana &amp; Rias Adat</option>
+                        <option value="tenun">Tenun &amp; Kriya</option>
+                      </select>
+                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-outline w-3.5 h-3.5 pointer-events-none" />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(true)}
+                      className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-[12px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer shrink-0"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      <span>+ Entri Baru</span>
+                    </button>
+                  </div>
                 </div>
-                <h2 className="text-title-md font-bold text-on-surface">Pusat Narahubung Tetua</h2>
-              </div>
-              <p className="text-body-sm text-on-surface-variant leading-relaxed">
-                Punya keraguan data dialek atau dokumentasi foto lama? Hubungi dewan tetua adat
-                yang terdaftar pada sistem LARAS.
-              </p>
 
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/20">
+                {/* Table Data Dense */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-surface-container-low text-[11px] uppercase tracking-wider text-on-surface-variant font-bold border-b border-outline-variant/20">
+                        <th className="py-2.5 px-3 lg:px-4">Istilah &amp; Kategori</th>
+                        <th className="py-2.5 px-3">Bab &amp; Modul</th>
+                        <th className="py-2.5 px-3">Sumber &amp; Informan</th>
+                        <th className="py-2.5 px-3 text-center">Status Verifikasi</th>
+                        <th className="py-2.5 px-3 text-center">Akses Murid (Gating)</th>
+                        <th className="py-2.5 px-3 lg:px-4 text-right">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-outline-variant/20 text-[13px]">
+                      {filteredEntries.map((entry) => (
+                        <tr
+                          key={entry.id}
+                          onClick={() => setSelectedEntry(entry)}
+                          className="hover:bg-surface-container-low/60 transition-colors cursor-pointer"
+                        >
+                          {/* Column 1: Istilah */}
+                          <td className="py-2.5 px-3 lg:px-4">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center shrink-0 overflow-hidden border border-outline-variant/20">
+                                {entry.thumbnail ? (
+                                  <img
+                                    src={entry.thumbnail}
+                                    alt={entry.term}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <BookOpen className="text-primary w-4 h-4" />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-bold text-on-surface truncate">
+                                    {entry.term}
+                                  </span>
+                                  {entry.ipa && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsPlayingAudio(true);
+                                        setTimeout(() => setIsPlayingAudio(false), 1500);
+                                      }}
+                                      className="text-tertiary hover:text-tertiary-container cursor-pointer"
+                                      title="Dengarkan Fonetik"
+                                    >
+                                      {isPlayingAudio ? (
+                                        <AudioWaveform className="w-3.5 h-3.5 animate-pulse" />
+                                      ) : (
+                                        <Volume2 className="w-3.5 h-3.5" />
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-primary-fixed text-on-primary-fixed font-semibold">
+                                    {entry.type} • {entry.category}
+                                  </span>
+                                  {entry.ipa && (
+                                    <span className="text-[11px] text-on-surface-variant font-mono">
+                                      {entry.ipa}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Column 2: Bab & Modul */}
+                          <td className="py-2.5 px-3">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-on-surface text-[12px]">
+                                {entry.chapter}
+                              </span>
+                              <span className="text-[11px] text-on-surface-variant">
+                                {entry.module}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Column 3: Sumber & Informan */}
+                          <td className="py-2.5 px-3">
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-on-surface text-[12px] truncate max-w-[200px]">
+                                {entry.source}
+                              </span>
+                              <span className="text-[11px] text-on-surface-variant truncate max-w-[200px]">
+                                {entry.informant}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Column 4: Status Verifikasi */}
+                          <td className="py-2.5 px-3 text-center">
+                            {entry.status === "verified" && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[11px] font-bold">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>Terverifikasi</span>
+                              </span>
+                            )}
+                            {entry.status === "pending" && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed text-[11px] font-bold">
+                                <Timer className="w-3 h-3" />
+                                <span>Menunggu</span>
+                              </span>
+                            )}
+                            {entry.status === "disputed" && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-bold">
+                                <AlertTriangle className="w-3 h-3" />
+                                <span>Disputed</span>
+                              </span>
+                            )}
+                            {entry.status === "draft" && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant text-[11px] font-bold">
+                                <Lock className="w-3 h-3" />
+                                <span>Draft</span>
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Column 5: Gating Status */}
+                          <td className="py-2.5 px-3 text-center">
+                            {entry.gating === "published" && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary-fixed/50 text-on-secondary-fixed text-[11px] font-medium">
+                                <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
+                                <span>Tayang di App</span>
+                              </span>
+                            )}
+                            {entry.gating === "blocked" && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-error-container text-on-error-container text-[11px] font-bold">
+                                <Lock className="w-3 h-3" />
+                                <span>Ditahan</span>
+                              </span>
+                            )}
+                            {entry.gating === "educational_note" && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-tertiary-fixed/50 text-on-tertiary-fixed text-[11px] font-medium">
+                                <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
+                                <span>Catatan Varian</span>
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Column 6: Aksi */}
+                          <td className="py-2.5 px-3 lg:px-4 text-right">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedEntry(entry);
+                              }}
+                              className="px-2.5 py-1 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface text-[11px] font-bold transition-colors cursor-pointer"
+                            >
+                              Tinjau
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Footer Info */}
+                <div className="p-3 bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-on-surface-variant border-t border-outline-variant/20">
                   <div className="flex items-center gap-2">
-                    <BadgeCheck className="text-primary w-4 h-4" />
-                    <span className="text-label-md text-on-surface font-semibold">
-                      Dewan Adat Kaili (LAK)
+                    <span>
+                      Menampilkan <strong>{filteredEntries.length}</strong> dari{" "}
+                      <strong>{entries.length}</strong> entri korpus adat
+                    </span>
+                    <span className="text-outline">•</span>
+                    <span className="text-primary font-semibold">
+                      Sync DB Balai Bahasa Sulteng: Aktif
                     </span>
                   </div>
-                  <span className="text-label-sm text-secondary font-bold">Aktif • Palu</span>
-                </div>
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/20">
-                  <div className="flex items-center gap-2">
-                    <Landmark className="text-tertiary w-4 h-4" />
-                    <span className="text-label-md text-on-surface font-semibold">
-                      Balai Pelestarian Wil. XVIII
-                    </span>
+                  <div>
+                    <span>Tersimpan di LocalStorage (laras_cms_entries)</span>
                   </div>
-                  <span className="text-label-sm text-secondary font-bold">Terhubung</span>
                 </div>
               </div>
             </div>
+          )}
+        </main>
+      </div>
 
-            <button
-              onClick={() => alert("Menghubungkan ke Saluran Tetua Adat Kaili...")}
-              className="mt-6 w-full py-2.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-bold transition-all text-center"
-            >
-              Hubungi Hotline Kurator Adat
-            </button>
-          </div>
-        </div>
-      </>
-    )}
-  </main>
-
-      {/* Add New Entry Modal */}
+      {/* ── MODAL: TAMBAH ENTRI BUDAYA BARU ── */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-xl rounded-2xl bg-surface-container-lowest shadow-2xl p-6 sm:p-8 flex flex-col gap-5 border border-outline-variant/30 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-surface-container-lowest shadow-2xl p-5 sm:p-6 flex flex-col gap-4 border border-outline-variant/30 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
-                  <PlusCircle className="w-6 h-6" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+                  <PlusCircle className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-headline-sm text-on-surface font-bold">
+                  <h3 className="font-bold text-[16px] text-on-surface">
                     Tambah Entri Budaya Baru
                   </h3>
-                  <p className="text-body-sm text-on-surface-variant">
-                    Sesuai standar validasi kearifan lokal Sulteng
+                  <p className="text-[11px] text-on-surface-variant">
+                    Sesuai standar validasi kearifan lokal Sulawesi Tengah
                   </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors"
+                className="p-1 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleAddEntry} className="space-y-4">
+            <form onSubmit={handleAddEntry} className="space-y-3 text-[12px]">
               <div>
-                <label className="block text-label-sm text-on-surface-variant uppercase font-bold mb-1">
+                <label className="block text-[11px] text-on-surface-variant uppercase font-bold mb-1">
                   Entri Vernakular / Istilah Kaili
                 </label>
                 <input
@@ -933,19 +1044,19 @@ export default function AdminPage() {
                   value={newTerm}
                   onChange={(e) => setNewTerm(e.target.value)}
                   placeholder="Contoh: Salonde, Palapi, Baju Nggembe..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-surface-container-low text-on-surface text-body-md focus:outline-none focus:ring-2 focus:ring-primary border border-outline-variant/30"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-container-low text-on-surface text-[13px] focus:outline-none focus:ring-1 focus:ring-primary border border-outline-variant/30"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-label-sm text-on-surface-variant uppercase font-bold mb-1">
+                  <label className="block text-[11px] text-on-surface-variant uppercase font-bold mb-1">
                     Kategori Kebudayaan
                   </label>
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-surface-container-low text-on-surface text-body-md focus:outline-none border border-outline-variant/30 cursor-pointer"
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-surface-container-low text-on-surface text-[12px] focus:outline-none border border-outline-variant/30 cursor-pointer"
                   >
                     <option>Bahasa &amp; Dialek (Ledo/Tara/Da&apos;a)</option>
                     <option>Busana &amp; Tata Rias Adat</option>
@@ -954,13 +1065,13 @@ export default function AdminPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-label-sm text-on-surface-variant uppercase font-bold mb-1">
+                  <label className="block text-[11px] text-on-surface-variant uppercase font-bold mb-1">
                     Target Bab Modul
                   </label>
                   <select
                     value={newChapter}
                     onChange={(e) => setNewChapter(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-surface-container-low text-on-surface text-body-md focus:outline-none border border-outline-variant/30 cursor-pointer"
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-surface-container-low text-on-surface text-[12px] focus:outline-none border border-outline-variant/30 cursor-pointer"
                   >
                     <option>Bab 1: Sapaan Harian</option>
                     <option>Bab 2: Kekeluargaan</option>
@@ -972,7 +1083,7 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-label-sm text-on-surface-variant uppercase font-bold mb-1">
+                <label className="block text-[11px] text-on-surface-variant uppercase font-bold mb-1">
                   Narasumber / Informan Validasi Adat
                 </label>
                 <input
@@ -980,38 +1091,38 @@ export default function AdminPage() {
                   value={newInformant}
                   onChange={(e) => setNewInformant(e.target.value)}
                   placeholder="Nama Tetua Adat / Asal Lembaga / No. Arsip BPK"
-                  className="w-full px-4 py-2.5 rounded-xl bg-surface-container-low text-on-surface text-body-md focus:outline-none focus:ring-2 focus:ring-primary border border-outline-variant/30"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-container-low text-on-surface text-[12px] focus:outline-none focus:ring-1 focus:ring-primary border border-outline-variant/30"
                 />
               </div>
 
               <div>
-                <label className="block text-label-sm text-on-surface-variant uppercase font-bold mb-1">
+                <label className="block text-[11px] text-on-surface-variant uppercase font-bold mb-1">
                   Unggah Rekaman Fonetik / Bukti Visual Adat
                 </label>
-                <div className="border-2 border-dashed border-outline-variant rounded-xl p-6 text-center bg-surface-container-low/50 hover:bg-surface-container-low transition-colors cursor-pointer">
-                  <AudioWaveform className="w-9 h-9 text-primary mx-auto" />
-                  <p className="text-body-sm text-on-surface font-semibold mt-1">
+                <div className="border border-dashed border-outline-variant rounded-lg p-4 text-center bg-surface-container-low/50 hover:bg-surface-container-low transition-colors cursor-pointer">
+                  <AudioWaveform className="w-6 h-6 text-primary mx-auto" />
+                  <p className="text-[12px] text-on-surface font-semibold mt-1">
                     Seret audio WAV/MP3 atau Foto Resolusi Tinggi
                   </p>
-                  <p className="text-label-sm text-outline mt-0.5">
+                  <p className="text-[10px] text-outline mt-0.5">
                     Wajib memiliki persetujuan narasumber (Informed Consent)
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/20">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/20">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-full text-label-md text-on-surface-variant hover:bg-surface-container transition-colors"
+                  className="px-3.5 py-1.5 rounded-lg text-[12px] text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-full bg-primary hover:bg-primary-container text-on-primary text-label-md font-bold transition-all shadow-[0_2px_0_0_#881f00]"
+                  className="px-4 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-[12px] font-bold transition-all shadow-xs cursor-pointer"
                 >
-                  Simpan sebagai Draf Terkunci
+                  Simpan sebagai Draft
                 </button>
               </div>
             </form>
@@ -1019,68 +1130,69 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Review & Verification Drawer / Modal */}
+      {/* ── MODAL / DRAWER: DETAIL & AUDIT VERIFIKASI ── */}
       {selectedEntry && (
-        <div className="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl rounded-2xl bg-surface-container-lowest shadow-2xl p-6 sm:p-8 flex flex-col gap-6 border border-outline-variant/30 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="w-full max-w-xl rounded-2xl bg-surface-container-lowest shadow-2xl p-5 sm:p-6 flex flex-col gap-4 border border-outline-variant/30 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-label-sm uppercase tracking-wider font-bold text-primary">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-primary">
                   Audit Verifikasi Konten Budaya
                 </span>
-                <h3 className="font-headline-lg text-2xl text-on-surface font-extrabold mt-0.5">
+                <h3 className="font-extrabold text-xl text-on-surface mt-0.5">
                   {selectedEntry.term}
                 </h3>
-                <span className="text-body-sm text-on-surface-variant">
+                <span className="text-[12px] text-on-surface-variant">
                   {selectedEntry.chapter} • {selectedEntry.module}
                 </span>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedEntry(null)}
-                className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant cursor-pointer"
+                className="p-1 rounded-lg hover:bg-surface-container text-on-surface-variant cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Content Details */}
-            <div className="space-y-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/20">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-3 bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/20 text-[12px]">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <span className="text-label-sm text-on-surface-variant font-bold uppercase">
+                  <span className="text-[10px] text-on-surface-variant font-bold uppercase">
                     Klasifikasi
                   </span>
-                  <p className="text-body-md font-semibold text-on-surface">
+                  <p className="font-semibold text-on-surface">
                     {selectedEntry.type} ({selectedEntry.category})
                   </p>
                 </div>
                 <div>
-                  <span className="text-label-sm text-on-surface-variant font-bold uppercase">
+                  <span className="text-[10px] text-on-surface-variant font-bold uppercase">
                     Status Saat Ini
                   </span>
-                  <p className="text-body-md font-bold capitalize text-primary">
+                  <p className="font-bold capitalize text-primary">
                     {selectedEntry.status}
                   </p>
                 </div>
               </div>
 
               <div>
-                <span className="text-label-sm text-on-surface-variant font-bold uppercase">
+                <span className="text-[10px] text-on-surface-variant font-bold uppercase">
                   Narasumber &amp; Validasi Lembaga
                 </span>
-                <p className="text-body-md font-semibold text-on-surface">
+                <p className="font-semibold text-on-surface">
                   {selectedEntry.source}
                 </p>
-                <p className="text-body-sm text-on-surface-variant">
+                <p className="text-[11px] text-on-surface-variant">
                   {selectedEntry.informant}
                 </p>
               </div>
 
               <div>
-                <span className="text-label-sm text-on-surface-variant font-bold uppercase">
+                <span className="text-[10px] text-on-surface-variant font-bold uppercase">
                   Kebijakan Gating Murid (Akses Pembelajaran)
                 </span>
-                <p className="text-body-sm text-on-surface mt-0.5">
+                <p className="text-[11px] text-on-surface mt-0.5">
                   {selectedEntry.gating === "published" && (
                     <span className="text-secondary font-bold">
                       ✓ Tayang Penuh: Murid dapat mengakses materi ini di Jalur Belajar dan Latihan Interaktif.
@@ -1100,46 +1212,50 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Quick Actions */}
+            {/* Quick Actions Decision */}
             <div>
-              <span className="text-label-sm uppercase font-bold text-on-surface-variant mb-2 block">
+              <span className="text-[11px] uppercase font-bold text-on-surface-variant mb-2 block">
                 Ubah Keputusan Sidang Pleno
               </span>
               <div className="grid grid-cols-3 gap-2">
                 <button
+                  type="button"
                   onClick={() =>
                     handleUpdateStatus(selectedEntry.id, "verified", "published")
                   }
-                  className="py-2.5 px-3 rounded-xl bg-secondary-fixed text-on-secondary-fixed font-bold text-label-sm hover:bg-secondary hover:text-on-secondary transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-2 px-2.5 rounded-lg bg-secondary-fixed text-on-secondary-fixed font-bold text-[11px] hover:bg-secondary hover:text-on-secondary transition-all flex items-center justify-center gap-1 cursor-pointer"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Sahkan (Verified)</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() =>
                     handleUpdateStatus(selectedEntry.id, "disputed", "educational_note")
                   }
-                  className="py-2.5 px-3 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed font-bold text-label-sm hover:bg-tertiary hover:text-on-tertiary transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-2 px-2.5 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed font-bold text-[11px] hover:bg-tertiary hover:text-on-tertiary transition-all flex items-center justify-center gap-1 cursor-pointer"
                 >
-                  <BookOpen className="w-4 h-4" />
+                  <BookOpen className="w-3.5 h-3.5" />
                   <span>Varian Dialek</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() =>
                     handleUpdateStatus(selectedEntry.id, "draft", "blocked")
                   }
-                  className="py-2.5 px-3 rounded-xl bg-error-container text-on-error-container font-bold text-label-sm hover:bg-error hover:text-on-error transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-2 px-2.5 rounded-lg bg-error-container text-on-error-container font-bold text-[11px] hover:bg-error hover:text-on-error transition-all flex items-center justify-center gap-1 cursor-pointer"
                 >
-                  <Lock className="w-4 h-4" />
-                  <span>Tahan (Block)</span>
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Tahan (Draft)</span>
                 </button>
               </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-1">
               <button
+                type="button"
                 onClick={() => setSelectedEntry(null)}
-                className="px-6 py-2 rounded-full bg-primary hover:bg-primary-container text-on-primary font-bold text-label-md transition-all shadow-[0_2px_0_0_#881f00]"
+                className="px-4 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold text-[12px] transition-all shadow-xs cursor-pointer"
               >
                 Selesai Tinjauan
               </button>
