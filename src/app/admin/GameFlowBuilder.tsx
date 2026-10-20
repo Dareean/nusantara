@@ -271,73 +271,12 @@ export default function GameFlowBuilder() {
         </div>
       )}
 
-      {/* Sticky Top Action Bar for Builder */}
-      <div className="sticky top-14 z-20 -mt-2 py-2.5 px-4 bg-surface-container-lowest/95 backdrop-blur-md rounded-xl border border-outline-variant/30 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Gamepad2 className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-label-sm font-extrabold text-on-surface truncate">
-                {activeSession.title}
-              </span>
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant font-bold shrink-0">
-                {activeSession.chapter}
-              </span>
-            </div>
-            <p className="text-[12px] text-on-surface-variant truncate">
-              {activeSession.questions.length} soal terkonfigurasi • {activeSession.subEthnic || "Kaili Ledo"}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap ml-auto">
-          <button
-            type="button"
-            onClick={handleExportJson}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-sm font-semibold border border-outline-variant/30 transition-colors cursor-pointer"
-            title={`Unduh ${activeSession.id}.json`}
-          >
-            <Download className="w-3.5 h-3.5 text-primary" />
-            <span>Export JSON</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleCreateNewSession}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-sm font-semibold border border-outline-variant/30 transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>+ Sesi Baru</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsPreviewOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-secondary text-on-secondary text-label-sm font-bold shadow-xs hover:bg-secondary-container active:scale-95 transition-all cursor-pointer"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span>Uji Coba Game</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleSave}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary text-on-primary text-label-sm font-bold shadow-xs hover:bg-primary-container active:scale-95 transition-all cursor-pointer"
-          >
-            <Save className="w-3.5 h-3.5" />
-            <span>Simpan Alur Sesi</span>
-          </button>
-        </div>
-      </div>
-
       {/* Main 2-Panel Layout: Left (Session & Questions list) + Right (Question Editor) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* Panel Kiri: ±320px on desktop (lg:col-span-4 / xl:col-span-3) */}
+        {/* Panel Kiri: ±320px on desktop (lg:col-span-4 / xl:col-span-4) */}
         <div className="lg:col-span-4 xl:col-span-4 space-y-3.5">
-          {/* Sesi & Metadata Ringkas */}
-          <div className="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-2.5">
+          {/* Card 1: Paket Sesi & Metadata Ringkas */}
+          <div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-3">
             <div>
               <label className="text-[11px] uppercase font-bold tracking-wider text-on-surface-variant block mb-1">
                 Pilih Paket Sesi
@@ -345,7 +284,7 @@ export default function GameFlowBuilder() {
               <select
                 value={activeSessionId}
                 onChange={(e) => handleSelectSession(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-lg bg-surface-container-low text-on-surface text-body-sm font-semibold border border-outline-variant/20 focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer"
+                className="w-full px-3 py-2 rounded-lg bg-surface-container-low text-on-surface text-body-sm font-semibold border border-outline-variant/20 focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer"
               >
                 {sessions.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -389,17 +328,17 @@ export default function GameFlowBuilder() {
             </div>
           </div>
 
-          {/* Daftar Soal Sesi Aktif */}
-          <div className="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex flex-col">
+          {/* Card 2: Daftar Soal Sesi Aktif */}
+          <div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex flex-col">
             <div className="flex items-center justify-between pb-2 border-b border-outline-variant/20 mb-2">
               <span className="text-[11px] uppercase font-bold tracking-wider text-on-surface-variant">
                 Daftar Soal Sesi ({activeSession.questions.length})
               </span>
-              <span className="text-[11px] text-on-surface-variant font-medium">Klik untuk edit</span>
+              <span className="text-[11px] text-on-surface-variant font-medium">Pilih untuk mengedit</span>
             </div>
 
             {/* Scrollable vertical list */}
-            <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1">
+            <div className="space-y-1.5 max-h-[360px] overflow-y-auto pr-1">
               {activeSession.questions.map((q, idx) => {
                 const isSelected = selectedQuestionIdx === idx;
                 return (
@@ -412,7 +351,7 @@ export default function GameFlowBuilder() {
                         : "bg-surface-container-low hover:bg-surface-container border-outline-variant/20"
                     }`}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <div
                         className={`w-6 h-6 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${
                           isSelected ? "bg-primary text-on-primary" : "bg-surface-container-highest text-on-surface-variant"
@@ -450,7 +389,7 @@ export default function GameFlowBuilder() {
                           e.stopPropagation();
                           handleDeleteQuestion(idx);
                         }}
-                        className="p-1 rounded text-outline hover:text-error hover:bg-error-container/30 transition-colors shrink-0"
+                        className="p-1 rounded text-outline hover:text-error hover:bg-error-container/30 transition-colors shrink-0 cursor-pointer"
                         title="Hapus Soal Ini"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -466,89 +405,143 @@ export default function GameFlowBuilder() {
               <button
                 type="button"
                 onClick={() => handleAddQuestion("hotspot")}
-                className="py-1.5 px-2 rounded-lg bg-secondary-fixed text-on-secondary-fixed text-[12px] font-bold hover:opacity-90 flex items-center justify-center gap-1 transition-all cursor-pointer"
+                className="py-2 px-2.5 rounded-lg bg-secondary-fixed text-on-secondary-fixed text-[12px] font-bold hover:opacity-90 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>+ Hotspot</span>
+                <span>Hotspot</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleAddQuestion("multiple_choice")}
-                className="py-1.5 px-2 rounded-lg bg-primary-fixed text-on-primary-fixed text-[12px] font-bold hover:opacity-90 flex items-center justify-center gap-1 transition-all cursor-pointer"
+                className="py-2 px-2.5 rounded-lg bg-primary-fixed text-on-primary-fixed text-[12px] font-bold hover:opacity-90 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>+ Pilihan Ganda</span>
+                <span>Pilihan Ganda</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* Panel Kanan: Editor Soal Terpilih (lg:col-span-8) */}
-        <div className="lg:col-span-8 xl:col-span-8 p-4 sm:p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-4">
-
-          <div className="flex items-center justify-between pb-3 border-b border-outline-variant/20 flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs">
+        <div className="lg:col-span-8 xl:col-span-8 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs overflow-hidden">
+          {/* Header Action Bar di Atas Panel Kanan */}
+          <div className="p-3.5 sm:p-4 bg-surface-container-lowest border-b border-outline-variant/20 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-7 h-7 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold text-xs shrink-0">
                 {selectedQuestionIdx + 1}
               </span>
-              <h3 className="text-title-md font-bold text-on-surface">
-                Kustomisasi Soal #{selectedQuestionIdx + 1}
-              </h3>
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-bold text-on-surface truncate">
+                  Edit Soal #{selectedQuestionIdx + 1}: {currentQ.title || `Soal ${selectedQuestionIdx + 1}`}
+                </h3>
+                <span className="text-[11px] text-on-surface-variant">
+                  {currentQ.type === "hotspot" ? "Format Hotspot Visual" : "Format Pilihan Ganda / Audio"}
+                </span>
+              </div>
             </div>
 
-            {/* Type Switcher */}
-            <div className="flex items-center gap-1 bg-surface-container p-1 rounded-full border border-outline-variant/20">
+            {/* Tombol Aksi Sesi Game */}
+            <div className="flex items-center gap-2 flex-wrap ml-auto">
               <button
                 type="button"
-                onClick={() => {
-                  const updatedQuestions = [...activeSession.questions];
-                  updatedQuestions[selectedQuestionIdx] = {
-                    ...currentQ,
-                    type: "hotspot",
-                    imageUrl: currentQ.imageUrl || IMAGE_PRESETS[0].url,
-                    hotspots: currentQ.hotspots || [
-                      {
-                        id: 1,
-                        name: "Titik Hotspot A",
-                        title: "Bagian Kustom",
-                        description: "Penjelasan detail bagian.",
-                        tag: "Ornamen",
-                        top: "30%",
-                        left: "40%",
-                      },
-                    ],
-                  };
-                  setActiveSession({ ...activeSession, questions: updatedQuestions });
-                }}
-                className={`px-3 py-1.5 rounded-full text-label-xs font-bold transition-all ${
-                  currentQ.type === "hotspot" || currentQ.type === "visual"
-                    ? "bg-secondary text-on-secondary shadow-xs"
-                    : "text-on-surface-variant hover:text-on-surface"
-                }`}
+                onClick={handleExportJson}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-[12px] font-semibold border border-outline-variant/30 transition-colors cursor-pointer"
+                title={`Unduh ${activeSession.id}.json`}
               >
-                Format 1: Gambar Adat (Baju / Alat Musik / Objek)
+                <Download className="w-3.5 h-3.5 text-primary" />
+                <span>Export JSON</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => {
-                  const updatedQuestions = [...activeSession.questions];
-                  updatedQuestions[selectedQuestionIdx] = {
-                    ...currentQ,
-                    type: "audio",
-                  };
-                  setActiveSession({ ...activeSession, questions: updatedQuestions });
-                }}
-                className={`px-3 py-1.5 rounded-full text-label-xs font-bold transition-all ${
-                  currentQ.type === "audio" || currentQ.type === "multiple_choice"
-                    ? "bg-primary text-on-primary shadow-xs"
-                    : "text-on-surface-variant hover:text-on-surface"
-                }`}
+                onClick={handleCreateNewSession}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-[12px] font-semibold border border-outline-variant/30 transition-colors cursor-pointer"
               >
-                Format 2: Dengarkan &amp; Pahami (Gelombang Suara)
+                <Plus className="w-3.5 h-3.5" />
+                <span>Sesi Baru</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsPreviewOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-on-secondary text-[12px] font-bold shadow-xs hover:bg-secondary-container active:scale-95 transition-all cursor-pointer"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Uji Coba Game</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSave}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-primary text-on-primary text-[12px] font-bold shadow-xs hover:bg-primary-container active:scale-95 transition-all cursor-pointer"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Simpan Alur Sesi</span>
               </button>
             </div>
           </div>
+
+          {/* Form Editor Body */}
+          <div className="p-4 sm:p-5 space-y-4">
+            {/* Format Soal Switcher */}
+            <div>
+              <label className="text-[11px] uppercase font-bold tracking-wider text-on-surface-variant block mb-1.5">
+                Tipe Format Soal
+              </label>
+              <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-surface-container-low border border-outline-variant/20">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updatedQuestions = [...activeSession.questions];
+                    updatedQuestions[selectedQuestionIdx] = {
+                      ...currentQ,
+                      type: "hotspot",
+                      imageUrl: currentQ.imageUrl || IMAGE_PRESETS[0].url,
+                      hotspots: currentQ.hotspots || [
+                        {
+                          id: 1,
+                          name: "Titik Hotspot A",
+                          title: "Bagian Kustom",
+                          description: "Penjelasan detail bagian.",
+                          tag: "Ornamen",
+                          top: "30%",
+                          left: "40%",
+                        },
+                      ],
+                    };
+                    setActiveSession({ ...activeSession, questions: updatedQuestions });
+                  }}
+                  className={`py-2 px-3 rounded-lg text-[12px] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    currentQ.type === "hotspot" || currentQ.type === "visual"
+                      ? "bg-secondary text-on-secondary shadow-xs"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Format 1: Hotspot Gambar Adat</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updatedQuestions = [...activeSession.questions];
+                    updatedQuestions[selectedQuestionIdx] = {
+                      ...currentQ,
+                      type: "audio",
+                    };
+                    setActiveSession({ ...activeSession, questions: updatedQuestions });
+                  }}
+                  className={`py-2 px-3 rounded-lg text-[12px] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    currentQ.type === "audio" || currentQ.type === "multiple_choice"
+                      ? "bg-primary text-on-primary shadow-xs"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  <Music className="w-4 h-4" />
+                  <span>Format 2: Pilihan Ganda &amp; Audio</span>
+                </button>
+              </div>
+            </div>
 
           {/* Form Fields */}
           <div className="space-y-4">
@@ -893,6 +886,7 @@ export default function GameFlowBuilder() {
           </div>
         </div>
       </div>
+    </div>
 
       {/* ── MODAL / DRAWER PREVIEW GAME LIVE (Phone Frame) ── */}
       {isPreviewOpen && (

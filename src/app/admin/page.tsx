@@ -257,29 +257,52 @@ export default function AdminPage() {
   const disputedCount = entries.filter((e) => e.status === "disputed").length;
   const pendingOrDraftQueue = entries.filter((e) => e.status === "pending" || e.status === "draft").slice(0, 5);
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-surface flex text-on-surface font-body-md antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
-      {/* ── 1. SIDEBAR KIRI TETAP (±240px desktop, collapsed on <1024px) ── */}
-      <aside className="w-16 lg:w-60 shrink-0 bg-surface-container-low border-r border-outline-variant/30 flex flex-col justify-between sticky top-0 h-screen z-30 transition-all">
-        {/* Atas: Logo + Info CMS */}
-        <div className="p-3 lg:p-4">
-          <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <img
-              alt="LARAS Logo"
-              className="h-8 w-auto object-contain shrink-0"
-              src="/logo/logo_laras.png"
-            />
-            <div className="hidden lg:flex flex-col min-w-0">
-              <span className="font-headline-sm text-primary tracking-tight font-black leading-tight text-base truncate">
-                LARAS CMS
-              </span>
-              <span className="text-[10px] text-secondary font-bold tracking-wider uppercase -mt-0.5 truncate">
-                Panel Kurasi Budaya
-              </span>
-            </div>
-          </Link>
+      {/* Backdrop for mobile sidebar */}
+      {isMobileMenuOpen && (
+        <div
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 bg-inverse-surface/40 backdrop-blur-xs z-30 md:hidden"
+        />
+      )}
 
-          <div className="hidden lg:block mt-3 px-2 py-1 rounded-md bg-secondary-fixed/50 text-[10px] text-on-secondary-fixed font-bold border border-secondary-fixed">
+      {/* ── 1. SIDEBAR KIRI TETAP (±240px, selalu jelas & terbaca) ── */}
+      <aside
+        className={`fixed md:sticky top-0 h-screen z-40 bg-surface-container-low border-r border-outline-variant/30 flex flex-col justify-between transition-transform md:translate-x-0 w-60 shrink-0 ${
+          isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
+        }`}
+      >
+        {/* Atas: Logo + Info CMS */}
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <Link href="/dashboard" className="flex items-center gap-2.5 group">
+              <img
+                alt="LARAS Logo"
+                className="h-8 w-auto object-contain shrink-0"
+                src="/logo/logo_laras.png"
+              />
+              <div className="flex flex-col min-w-0">
+                <span className="font-headline-sm text-primary tracking-tight font-black leading-tight text-base truncate">
+                  LARAS CMS
+                </span>
+                <span className="text-[10px] text-secondary font-bold tracking-wider uppercase -mt-0.5 truncate">
+                  Panel Kurasi Budaya
+                </span>
+              </div>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="md:hidden p-1 rounded-lg text-on-surface-variant hover:bg-surface-container"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="mt-3 px-2 py-1 rounded-md bg-secondary-fixed/50 text-[10px] text-on-secondary-fixed font-bold border border-secondary-fixed">
             Dewan Kurator Adat Wil. XVIII
           </div>
 
@@ -287,7 +310,10 @@ export default function AdminPage() {
           <nav className="mt-4 space-y-1">
             <button
               type="button"
-              onClick={() => setAdminTab("summary")}
+              onClick={() => {
+                setAdminTab("summary");
+                setIsMobileMenuOpen(false);
+              }}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-bold transition-all text-left cursor-pointer ${
                 adminTab === "summary"
                   ? "bg-primary text-on-primary shadow-xs"
@@ -296,12 +322,15 @@ export default function AdminPage() {
               title="Ringkasan"
             >
               <LayoutDashboard className="w-4 h-4 shrink-0" />
-              <span className="hidden lg:inline">Ringkasan</span>
+              <span>Ringkasan</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setAdminTab("builder")}
+              onClick={() => {
+                setAdminTab("builder");
+                setIsMobileMenuOpen(false);
+              }}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-bold transition-all text-left cursor-pointer ${
                 adminTab === "builder"
                   ? "bg-primary text-on-primary shadow-xs"
@@ -310,12 +339,15 @@ export default function AdminPage() {
               title="Penyusun Alur & Soal"
             >
               <Gamepad2 className="w-4 h-4 shrink-0" />
-              <span className="hidden lg:inline truncate">Penyusun Alur &amp; Soal</span>
+              <span className="truncate">Penyusun Alur &amp; Soal</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setAdminTab("corpus")}
+              onClick={() => {
+                setAdminTab("corpus");
+                setIsMobileMenuOpen(false);
+              }}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-bold transition-all text-left cursor-pointer ${
                 adminTab === "corpus"
                   ? "bg-primary text-on-primary shadow-xs"
@@ -325,10 +357,10 @@ export default function AdminPage() {
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <BookOpen className="w-4 h-4 shrink-0" />
-                <span className="hidden lg:inline truncate">Verifikasi Korpus</span>
+                <span className="truncate">Verifikasi Korpus</span>
               </div>
               <span
-                className={`hidden lg:inline-block text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                   adminTab === "corpus"
                     ? "bg-on-primary/20 text-on-primary"
                     : "bg-surface-container-highest text-on-surface-variant"
@@ -341,14 +373,14 @@ export default function AdminPage() {
         </div>
 
         {/* Bawah Sidebar: Tombol Kembali ke Dashboard Murid */}
-        <div className="p-3 lg:p-4 border-t border-outline-variant/30">
+        <div className="p-4 border-t border-outline-variant/30">
           <Link
             href="/dashboard"
             className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-[12px] font-bold text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all"
             title="Kembali ke Dashboard Murid"
           >
             <ArrowLeft className="w-4 h-4 shrink-0" />
-            <span className="hidden lg:inline truncate">← Dashboard Murid</span>
+            <span className="truncate">← Dashboard Murid</span>
           </Link>
         </div>
       </aside>
@@ -357,9 +389,18 @@ export default function AdminPage() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* 2. TOPBAR RAMPING (±56px) */}
         <header className="sticky top-0 z-20 h-14 bg-surface-container-lowest/95 backdrop-blur-md border-b border-outline-variant/30 flex items-center justify-between px-4 lg:px-6">
-          {/* Kiri: Judul Seksi Aktif + Subjudul */}
-          <div className="min-w-0">
-            <h1 className="text-base sm:text-lg font-black text-on-surface tracking-tight truncate leading-tight">
+          {/* Kiri: Mobile hamburger + Judul Seksi Aktif + Subjudul */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-1.5 rounded-lg text-on-surface hover:bg-surface-container cursor-pointer shrink-0"
+              title="Buka Menu"
+            >
+              <LayoutDashboard className="w-5 h-5 text-primary" />
+            </button>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-black text-on-surface tracking-tight truncate leading-tight">
               {adminTab === "summary" && "Ringkasan Kurasi Budaya"}
               {adminTab === "builder" && "Penyusun Alur Game & Soal"}
               {adminTab === "corpus" && "Verifikasi Korpus Budaya Kaili"}
@@ -370,9 +411,10 @@ export default function AdminPage() {
               {adminTab === "corpus" && "Audit keabsahan istilah vernakular Kaili, busana & narasumber adat"}
             </p>
           </div>
+        </div>
 
-          {/* Kanan: Aksi Global + Chip Profil Admin */}
-          <div className="flex items-center gap-3 shrink-0">
+        {/* Kanan: Aksi Global + Chip Profil Admin */}
+        <div className="flex items-center gap-3 shrink-0">
             {adminTab === "corpus" && (
               <button
                 type="button"
