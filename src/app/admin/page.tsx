@@ -148,20 +148,36 @@ function loadCmsEntries(): CulturalEntry[] {
 }
 
 export default function AdminPage() {
-  const [entries, setEntries] = useState<CulturalEntry[]>(() => loadCmsEntries());
+  const [entries, setEntries] = useState<CulturalEntry[]>(initialEntries);
+  const [isMounted, setIsMounted] = useState(false);
   const [adminTab, setAdminTab] = useState<"summary" | "builder" | "corpus">("summary");
   const [sessionCount, setSessionCount] = useState<number>(4);
 
-  // Sync entries to localStorage
+  // Load entries from localStorage after initial client mount to prevent hydration mismatch
   useEffect(() => {
     try {
-      if (typeof window !== "undefined") {
-        localStorage.setItem(CMS_STORAGE_KEY, JSON.stringify(entries));
+      const raw = localStorage.getItem(CMS_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setEntries(parsed);
+        }
       }
+    } catch (err) {
+      console.warn("Gagal membaca laras_cms_entries dari localStorage:", err);
+    }
+    setIsMounted(true);
+  }, []);
+
+  // Sync entries to localStorage only after mounted
+  useEffect(() => {
+    if (!isMounted) return;
+    try {
+      localStorage.setItem(CMS_STORAGE_KEY, JSON.stringify(entries));
     } catch (err) {
       console.warn("Gagal menyimpan laras_cms_entries ke localStorage:", err);
     }
-  }, [entries]);
+  }, [entries, isMounted]);
 
   // Read stored sessions count
   useEffect(() => {
