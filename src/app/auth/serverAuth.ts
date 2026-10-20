@@ -69,9 +69,17 @@ function saveStore() {
   }
 }
 
+export const ADMIN_EMAILS = ["admin@laras.id"];
+
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email);
+}
+
 // Initialize store on module load
 loadStore();
 ensureDemoUser();
+ensureAdminUser();
 
 function ensureDemoUser() {
   const demoEmail = 'demo@gmail.com';
@@ -80,6 +88,18 @@ function ensureDemoUser() {
       name: 'Demo User',
       email: demoEmail,
       passwordHash: hashPassword('demo123'),
+    });
+    saveStore();
+  }
+}
+
+function ensureAdminUser() {
+  const adminEmail = 'admin@laras.id';
+  if (!users.has(adminEmail)) {
+    users.set(adminEmail, {
+      name: 'Admin LARAS',
+      email: adminEmail,
+      passwordHash: hashPassword('admin123'),
     });
     saveStore();
   }
