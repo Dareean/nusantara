@@ -1,12 +1,15 @@
 "use client";
 
 import CulturalGameEngine from "../../components/game-engine/CulturalGameEngine";
-import { sampleKailiLesson } from "../../components/game-engine/mockData";
+import { lessonToGameSession } from "../../components/game-engine/lessonAdapter";
+import { lessons } from "../../../lib/lessons";
 
 export default function LatihanPage() {
+  const session = lessonToGameSession(lessons[0]);
+
   return (
     <CulturalGameEngine
-      session={sampleKailiLesson}
+      session={session}
       onExitHref="/dashboard"
     />
   );

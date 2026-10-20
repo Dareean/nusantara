@@ -67,6 +67,7 @@ export interface CulturalSourceCard {
   registrationCode: string;
   verifiedDate: string;
   summary: string;
+  status?: string;
 }
 
 export interface GameSession {

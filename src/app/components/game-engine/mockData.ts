@@ -11,9 +11,10 @@ export const sampleKailiLesson: GameSession = {
     institution: "Dewan Adat Kaili (LAK) & Balai Pelestarian Kebudayaan XVIII",
     informant: "Pemangku Adat Kaili Ledo (Lembah Palu)",
     registrationCode: "SULTENG-BBS-2024/KL-01",
-    verifiedDate: "Sidang Pleno Kurasi Etnolinguistik 2024",
+    verifiedDate: "Tahap Kurasi Etnolinguistik 2024",
     summary:
-      "Seluruh materi kata sapaan Tabe, frasa penyambutan Nalompa Mai Kami, dan busana adat Baju Nggembe telah diverifikasi keabsahannya berdasarkan korpus budaya asli tanpa fabrikasi adat.",
+      "Materi kata sapaan Tabe, frasa penyambutan, dan busana adat Baju Nggembe dikurasi dari dokumentasi budaya Kaili Ledo sebagai data percontohan.",
+    status: "Draft — dalam proses validasi",
   },
   questions: [
     // -------------------------------------------------------------

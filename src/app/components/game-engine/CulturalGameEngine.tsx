@@ -241,7 +241,8 @@ export default function CulturalGameEngine({
       registrationCode: "SULTENG-BBS-2024/KL-01",
       verifiedDate: "Tahap Kurasi Etnolinguistik 2024",
       summary:
-        "Materi kosakata, tata busana adat, dan etika tutur dalam sesi ini telah disahkan berdasarkan korpus budaya asli tanpa fabrikasi budaya.",
+        "Materi kosakata, tata busana adat, dan etika tutur dalam sesi ini dikurasi berdasarkan korpus budaya asli sebagai data percontohan.",
+      status: "Draft — dalam proses validasi",
     };
 
     return (
@@ -282,12 +283,16 @@ export default function CulturalGameEngine({
           </div>
 
           {/* CULTURAL SOURCE CARD (Validasi Keaslian Materi) */}
-          <div className="w-full text-left p-4 rounded-2xl bg-surface-container-low border border-outline-variant/30 space-y-2">
-            <div className="flex items-center justify-between">
+          <div className="w-full text-left p-4 rounded-2xl bg-surface-container-low border border-outline-variant/30 space-y-2.5">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-1.5 text-secondary font-black text-xs uppercase tracking-wider">
                 <ShieldCheck className="w-4 h-4 text-secondary" />
                 <span>Cultural Source Card</span>
-                <span className="ml-1 px-1.5 py-0.5 rounded bg-tertiary-container text-on-tertiary-container text-[9px] font-black tracking-widest">DATA DEMO</span>
+                {sourceCard.status && (
+                  <span className="ml-1 px-1.5 py-0.5 rounded bg-tertiary-container text-on-tertiary-container text-[9px] font-black tracking-widest">
+                    DATA DEMO
+                  </span>
+                )}
               </div>
               <span className="text-[10px] font-mono text-outline font-bold">
                 {sourceCard.registrationCode}
@@ -298,11 +303,17 @@ export default function CulturalGameEngine({
               {sourceCard.summary}
             </p>
 
-            <div className="pt-2 border-t border-outline-variant/20 flex items-center justify-between text-[11px] text-on-surface-variant">
-              <span>Narahubung: <strong>{sourceCard.informant}</strong></span>
-              <span className="text-secondary font-bold">Terverifikasi Sah</span>
+            <div className="pt-2 border-t border-outline-variant/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[11px] text-on-surface-variant">
+              <span>Lembaga / Narahubung: <strong>{sourceCard.institution}</strong>{sourceCard.informant ? ` • ${sourceCard.informant}` : ""}</span>
+              <span className="text-secondary font-bold">
+                {sourceCard.status || "Draft — dalam proses validasi"}
+              </span>
             </div>
-            <p className="text-[10px] text-outline italic mt-1">Draft — dalam proses validasi</p>
+            {sourceCard.status && (
+              <p className="text-[10px] text-outline italic">
+                {sourceCard.status}
+              </p>
+            )}
           </div>
 
           <div className="w-full pt-1 flex flex-col sm:flex-row gap-3">
@@ -503,6 +514,46 @@ export default function CulturalGameEngine({
                   );
                 })}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* PILIHAN GANDA UMUM (MULTIPLE CHOICE TANPA GAMBAR)        */}
+        {/* ======================================================== */}
+        {currentQ.type === "multiple_choice" && !isVisualMode && (
+          <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
+            <div className="w-full bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border-2 border-outline-variant/30 shadow-sm mb-6">
+              <h2 className="text-xl sm:text-2xl font-black text-on-surface text-center tracking-tight">
+                {currentQ.prompt}
+              </h2>
+              {currentQ.subPrompt && (
+                <p className="text-center text-sm text-on-surface-variant font-medium mt-2">
+                  {currentQ.subPrompt}
+                </p>
+              )}
+            </div>
+            <div className="grid grid-cols-1 gap-3.5 w-full">
+              {currentQ.options?.map((opt) => {
+                const isSelected = selectedOptionId === opt.id;
+                const isLocked = feedbackState !== "idle";
+
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={isLocked}
+                    onClick={() => setSelectedOptionId(opt.id)}
+                    className={`w-full py-4 px-6 rounded-2xl text-left font-black text-base sm:text-lg transition-all border-2 cursor-pointer shadow-[0_3px_0_0_#e0bfb7] active:translate-y-0.5 ${
+                      isSelected
+                        ? "border-primary bg-primary-fixed/30 text-primary shadow-[0_3px_0_0_#ca4a28] ring-2 ring-primary"
+                        : "border-outline-variant/30 bg-surface-container-lowest text-on-surface hover:border-primary/60 hover:bg-surface-container-low"
+                    } ${isLocked ? "cursor-default" : ""}`}
+                  >
+                    <span className="block">{opt.title}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

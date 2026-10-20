@@ -8,6 +8,15 @@ export const laloveMusicLesson: GameSession = {
   subEthnic: "Suku Kaili • Lembah Palu & Sigi",
   streakDays: 7,
   xpReward: 40,
+  culturalSourceCard: {
+    institution: "Komunitas Musik Tradisional & Balai Pelestarian Kebudayaan XVIII",
+    informant: "Pelestari Kesenian Tradisional Kaili",
+    registrationCode: "SULTENG-MSK-2024/LL-01",
+    verifiedDate: "Tahap Kurasi Musik Tradisional 2024",
+    summary:
+      "Materi organologi instrumen Lalove dan Gimba disusun dari studi dokumentasi musik sakral Balia sebagai data percontohan.",
+    status: "Draft — dalam proses validasi",
+  },
   questions: [
     {
       id: "Q1-LALOVE-HOTSPOT",
