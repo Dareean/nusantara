@@ -46,6 +46,7 @@ export interface GameQuestion {
   meaning?: string;
   speakerInfo?: string;
   audioDuration?: string;
+  audioUrl?: string;
   imageUrl?: string;
   imageCaption?: string;
   options?: QuestionOption[];

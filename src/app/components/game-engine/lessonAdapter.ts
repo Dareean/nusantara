@@ -59,6 +59,7 @@ export function questionToGameQuestion(
         prompt: question.prompt,
         options,
         curatorNote,
+        audioUrl: question.audioUrl,
       };
     }
 
@@ -82,6 +83,7 @@ export function questionToGameQuestion(
         prompt: data.statement || question.prompt,
         options,
         curatorNote,
+        audioUrl: question.audioUrl,
       };
     }
 
@@ -98,6 +100,7 @@ export function questionToGameQuestion(
         prompt: question.prompt,
         matchingPairs,
         curatorNote,
+        audioUrl: question.audioUrl,
       };
     }
 
@@ -111,6 +114,7 @@ export function questionToGameQuestion(
         wordTiles,
         targetSentence: data.answer || [],
         curatorNote,
+        audioUrl: question.audioUrl,
       };
     }
 
@@ -136,6 +140,7 @@ export function questionToGameQuestion(
         hotspots,
         options,
         curatorNote,
+        audioUrl: question.audioUrl,
       };
     }
 
@@ -158,6 +163,7 @@ export function questionToGameQuestion(
         npcDialogue: firstStep?.prompt || question.prompt,
         options,
         curatorNote,
+        audioUrl: question.audioUrl,
       };
     }
 
@@ -168,6 +174,7 @@ export function questionToGameQuestion(
         prompt: question.prompt,
         options: [],
         curatorNote,
+        audioUrl: question.audioUrl,
       };
     }
   }

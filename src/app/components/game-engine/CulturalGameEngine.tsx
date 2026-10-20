@@ -58,12 +58,21 @@ export default function CulturalGameEngine({
     ((currentIdx + (feedbackState !== "idle" ? 1 : 0)) / totalQuestions) * 100
   );
 
-  // Audio Play Simulation
+  // Audio Play
   const handlePlayAudio = () => {
-    setIsPlayingAudio(true);
-    setTimeout(() => {
+    if (!currentQ.audioUrl) return;
+    try {
+      setIsPlayingAudio(true);
+      const audio = new Audio(currentQ.audioUrl);
+      audio.onended = () => setIsPlayingAudio(false);
+      audio.onerror = () => setIsPlayingAudio(false);
+      audio.play().catch((err) => {
+        console.warn("Gagal memutar audio:", err);
+        setIsPlayingAudio(false);
+      });
+    } catch {
       setIsPlayingAudio(false);
-    }, 2200);
+    }
   };
 
   // Submit Answer
@@ -410,19 +419,21 @@ export default function CulturalGameEngine({
               )}
             </div>
 
-            {/* Audio Tap Button */}
-            <button
-              type="button"
-              onClick={handlePlayAudio}
-              className="flex items-center gap-3 px-6 py-3 rounded-full bg-primary text-on-primary font-bold shadow-md hover:bg-primary-container active:scale-95 transition-all cursor-pointer"
-            >
-              {isPlayingAudio ? (
-                <AudioWaveform className="w-6 h-6 animate-pulse" />
-              ) : (
-                <Volume2 className="w-6 h-6" />
-              )}
-              <span>{isPlayingAudio ? "Memutar Suara..." : "Dengarkan Pelafalan Asli"}</span>
-            </button>
+            {/* Audio Tap Button (hanya tampil jika audioUrl ada) */}
+            {currentQ.audioUrl && (
+              <button
+                type="button"
+                onClick={handlePlayAudio}
+                className="flex items-center gap-3 px-6 py-3 rounded-full bg-primary text-on-primary font-bold shadow-md hover:bg-primary-container active:scale-95 transition-all cursor-pointer"
+              >
+                {isPlayingAudio ? (
+                  <AudioWaveform className="w-6 h-6 animate-pulse" />
+                ) : (
+                  <Volume2 className="w-6 h-6" />
+                )}
+                <span>{isPlayingAudio ? "Memutar Suara..." : "Dengarkan Pelafalan Asli"}</span>
+              </button>
+            )}
 
             {currentQ.curatorNote && (
               <p className="text-xs text-on-surface-variant leading-relaxed max-w-md bg-surface-container-low p-3 rounded-xl border border-outline-variant/20">
@@ -567,40 +578,43 @@ export default function CulturalGameEngine({
               {currentQ.prompt || "Dengarkan audio berikut dan pilih arti yang tepat:"}
             </h2>
 
-            {/* Kotak Gelombang Suara */}
-            <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-6 sm:p-7 border-2 border-outline-variant/30 shadow-sm flex items-center justify-between gap-4">
-              <div className="flex flex-col gap-2">
-                <span className="text-lg sm:text-xl font-black text-on-surface">
-                  Gelombang Suara
-                </span>
+            {/* Kotak Gelombang Suara (hanya tampil jika audioUrl ada) */}
+            {currentQ.audioUrl && (
+              <>
+                <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-6 sm:p-7 border-2 border-outline-variant/30 shadow-sm flex items-center justify-between gap-4">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-lg sm:text-xl font-black text-on-surface">
+                      Gelombang Suara
+                    </span>
 
-                <div className="flex items-center gap-1.5 h-6">
-                  <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-6 animate-pulse" : "h-3"}`} />
-                  <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-8" : "h-4"}`} />
-                  <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-4" : "h-2"}`} />
-                  <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-7 animate-pulse" : "h-5"}`} />
-                  <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-5" : "h-3"}`} />
-                  <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-7" : "h-6"}`} />
-                  <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-4" : "h-3"}`} />
-                  <span className="w-1.5 h-2 rounded-full bg-outline-variant" />
+                    <div className="flex items-center gap-1.5 h-6">
+                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-6 animate-pulse" : "h-3"}`} />
+                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-8" : "h-4"}`} />
+                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-4" : "h-2"}`} />
+                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-7 animate-pulse" : "h-5"}`} />
+                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-5" : "h-3"}`} />
+                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-7" : "h-6"}`} />
+                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-4" : "h-3"}`} />
+                      <span className="w-1.5 h-2 rounded-full bg-outline-variant" />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handlePlayAudio}
+                    className="w-14 h-14 rounded-2xl bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container active:scale-95 transition-all shadow-md cursor-pointer shrink-0"
+                    title="Putar Suara"
+                  >
+                    {isPlayingAudio ? (
+                      <AudioWaveform className="w-7 h-7 animate-pulse" />
+                    ) : (
+                      <Play className="w-7 h-7 fill-current ml-0.5" />
+                    )}
+                  </button>
                 </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handlePlayAudio}
-                className="w-14 h-14 rounded-2xl bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container active:scale-95 transition-all shadow-md cursor-pointer shrink-0"
-                title="Putar Suara"
-              >
-                {isPlayingAudio ? (
-                  <AudioWaveform className="w-7 h-7 animate-pulse" />
-                ) : (
-                  <Play className="w-7 h-7 fill-current ml-0.5" />
-                )}
-              </button>
-            </div>
-
-            <div className="w-56 h-1 bg-outline-variant/50 rounded-full my-8" />
+                <div className="w-56 h-1 bg-outline-variant/50 rounded-full my-8" />
+              </>
+            )}
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
               {currentQ.options?.map((opt) => {

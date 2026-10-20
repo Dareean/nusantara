@@ -53,6 +53,7 @@ export type Question = {
   data: QuestionData;
   why: string;
   xp: number;
+  audioUrl?: string;
 };
 
 export type CulturalSource = {
