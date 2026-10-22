@@ -14,7 +14,7 @@ import {
   ArrowRight,
   RotateCcw,
   Trophy,
-  Sparkles,
+  Zap,
   Play,
   ShieldCheck,
   Landmark,
@@ -262,7 +262,7 @@ export default function CulturalGameEngine({
               <Trophy className="w-10 h-10 text-surface-container-lowest" />
             </div>
             <div className="absolute -bottom-1 -right-1 bg-surface-container-lowest p-1.5 rounded-full shadow-md">
-              <Sparkles className="w-4 h-4 text-secondary" />
+              <Zap className="w-4 h-4 text-secondary" />
             </div>
           </div>
 

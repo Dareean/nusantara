@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Flame, Gift, Heart, Lock, MapPin, Play, Sparkles, Star, Trophy, Zap } from "lucide-react";
+import { ArrowRight, Award, Check, Flame, Gift, Heart, Lock, MapPin, Play, Star, Trophy, Zap } from "lucide-react";
 import { getSession } from "../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "./progress";
 import { getStoredSessions } from "../components/game-engine/sessionStore";
@@ -44,7 +44,7 @@ function NodeIcon({ node, status }: { node: PathNode; status: NodeStatus }) {
   if (status === "locked") return <Lock className="h-7 w-7" />;
   if (status === "completed") return <Check className="h-8 w-8 stroke-[3]" />;
   if (node.type === "chest") return <Gift className="h-8 w-8" />;
-  if (node.type === "review") return <Sparkles className="h-8 w-8" />;
+  if (node.type === "review") return <Award className="h-8 w-8" />;
   return <Star className="h-8 w-8 fill-current" />;
 }
 
@@ -153,6 +153,28 @@ export default function DashboardPage() {
             <section className="rounded-3xl bg-surface-container-lowest p-5 ring-1 ring-outline-variant/25"><div className="flex items-center justify-between"><h2 className="font-black">Status</h2><Zap className="h-5 w-5 text-secondary" /></div><div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-2xl bg-surface-container-low p-3"><Heart className="h-4 w-4 text-error" /><p className="mt-2 text-lg font-black">{progress.hearts}</p><p className="text-xs font-bold text-on-surface-variant">hearts</p></div><div className="rounded-2xl bg-surface-container-low p-3"><Trophy className="h-4 w-4 text-secondary" /><p className="mt-2 text-lg font-black">{progress.xp}</p><p className="text-xs font-bold text-on-surface-variant">total XP</p></div></div></section>
             <Link href="/dashboard/paspor" className="flex items-center justify-between rounded-3xl bg-secondary-fixed p-5 text-on-secondary-fixed transition hover:brightness-95"><div><p className="text-xs font-black uppercase tracking-[0.14em]">Reward berikutnya</p><p className="mt-1 font-black">Tamu Sopan</p><p className="mt-1 text-xs font-semibold">Buka Paspor Budaya</p></div><ArrowRight className="h-5 w-5" /></Link>
           </aside>
+        </div>
+
+        {/* Strip Logo Munas IX & Permikomnas untuk Mobile (Sidebar tidak tampil di < md) */}
+        <div className="mt-12 pt-6 border-t border-outline-variant/30 flex md:hidden flex-col items-center gap-2 text-center">
+          <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-white shadow-xs border border-outline-variant/30">
+            <img
+              src="/logo-munas-ix.png"
+              alt="Logo Munas IX PERMIKOMNAS"
+              className="h-8 w-8 object-contain"
+            />
+            <img
+              src="/logo-permikomnas.png"
+              alt="Logo Permikomnas RI"
+              className="h-8 w-8 object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+          <span className="text-[11px] font-black uppercase tracking-wider text-on-surface-variant">
+            Munas IX • PERMIKOMNAS RI
+          </span>
         </div>
       </div>
     </main>

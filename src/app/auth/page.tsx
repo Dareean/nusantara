@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion } from "motion/react";
 import {
-  Flame,
+  X,
   User,
   Mail,
   Lock,
@@ -13,14 +15,27 @@ import {
   Compass,
   ArrowRight,
   BadgeCheck,
+  Zap,
 } from "lucide-react";
 
 function AuthPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = (searchParams && searchParams.get("redirect")) || "/dashboard";
+  const modeParam = searchParams ? searchParams.get("mode") : null;
 
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authMode, setAuthMode] = useState<"login" | "register">(
+    modeParam === "daftar" ? "register" : "login"
+  );
+
+  useEffect(() => {
+    if (modeParam === "daftar") {
+      setAuthMode("register");
+    } else if (modeParam === "masuk") {
+      setAuthMode("login");
+    }
+  }, [modeParam]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,14 +49,12 @@ function AuthPageContent() {
     setIsSubmitting(true);
     try {
       if (authMode === "register") {
-        // register locally
-        const { register } = await import('./authClient');
+        const { register } = await import("./authClient");
         await register(name.trim(), email.trim(), password);
       } else {
-        const { login } = await import('./authClient');
+        const { login } = await import("./authClient");
         await login(email.trim(), password);
       }
-      // on success redirect (respect redirect param if present)
       router.push(redirectTo);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Terjadi kesalahan autentikasi");
@@ -50,304 +63,262 @@ function AuthPageContent() {
     }
   };
 
+  const handleFillDemo = () => {
+    setAuthMode("login");
+    setEmail("demo@gmail.com");
+    setPassword("demo123");
+    setErrorMessage("");
+  };
+
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-4 bg-surface relative overflow-hidden">
-      {/* Background Glows */}
-      <div className="absolute -top-16 -left-12 w-96 h-96 rounded-full bg-gradient-to-br from-primary-fixed/30 via-secondary-fixed/20 to-transparent blur-3xl pointer-events-none -z-10"></div>
-      <div className="absolute -bottom-20 -right-8 w-80 h-80 rounded-full bg-gradient-to-tl from-tertiary-fixed/30 via-primary-fixed-dim/20 to-transparent blur-3xl pointer-events-none -z-10"></div>
+    <main className="relative min-h-screen w-full flex flex-col justify-between overflow-x-hidden bg-gradient-to-br from-[#6f1700] via-[#942b0e] to-[#450e00] text-on-surface antialiased">
+      {/* ── TABIR LATAR (Motif Tenun Kaili & Siluet Budaya) ── */}
+      <svg
+        className="absolute inset-0 w-full h-full opacity-10 pointer-events-none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <defs>
+          <pattern id="tabir-kaili" width="48" height="48" patternUnits="userSpaceOnUse">
+            <path d="M24 0 L48 24 L24 48 L0 24 Z" fill="none" stroke="#ffdbd1" strokeWidth="1" />
+            <path
+              d="M24 8 L40 24 L24 40 L8 24 Z"
+              fill="none"
+              stroke="#ffddb8"
+              strokeWidth="1"
+              strokeDasharray="2,2"
+            />
+            <circle cx="24" cy="24" r="2.5" fill="#ffdbd1" />
+            <path d="M0 0 L8 8 M48 0 L40 8 M48 48 L40 40 M0 48 L8 40" stroke="#ffdbd1" strokeWidth="1" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#tabir-kaili)" />
+      </svg>
 
-      <div className="flex flex-col w-full items-center justify-center py-8 relative">
-        <div className="w-full max-w-[480px] bg-surface-container-lowest rounded-2xl shadow-xl overflow-hidden relative border border-outline-variant/30">
-          {/* Top Rainbow Accent Strip */}
-          <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-primary via-secondary-container to-tertiary"></div>
+      {/* Ambient Radial Highlight */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-secondary-fixed/15 blur-3xl pointer-events-none" />
 
-          <div className="p-6 md:p-8 flex flex-col gap-6">
-            {/* Header / Brand */}
-            <div className="flex flex-col items-center text-center gap-1 relative">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed">
-                <Flame className="w-4 h-4 fill-current" />
-                <span className="text-label-sm uppercase tracking-wider font-bold">
-                  Nusantara — Before It&apos;s Gone
-                </span>
-              </div>
+      {/* ── BAR ATAS MINIMAL (× di kiri, Pill Mode di kanan) ── */}
+      <header className="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-3 sm:pt-4 flex items-center justify-between shrink-0">
+        {/* Tombol Tutup / Kembali */}
+        <Link
+          href="/"
+          aria-label="Kembali ke beranda"
+          className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/45 text-white flex items-center justify-center backdrop-blur-md transition-all active:scale-95 shadow-sm"
+        >
+          <X className="w-5 h-5 stroke-[2.5]" />
+        </Link>
 
-              <div className="flex items-center justify-center gap-3 mt-3">
-                <img
-                  alt="LARAS Logo"
-                  className="h-11 w-auto object-contain"
-                  src="/logo/logo_laras.png"
-                />
-                <h1 className="text-display-lg text-primary font-black tracking-tight">
-                  LARAS
-                </h1>
-              </div>
+        {/* Pill Ganti Mode (Chunky Faux-3D Tegas) */}
+        <button
+          type="button"
+          onClick={() => {
+            setAuthMode(authMode === "login" ? "register" : "login");
+            setErrorMessage("");
+          }}
+          className="h-9 px-4 rounded-full bg-white text-primary text-xs font-black uppercase tracking-wider shadow-[0_3px_0_0_#d8bfb7] hover:bg-surface-container active:translate-y-[2px] active:shadow-[0_1px_0_0_#d8bfb7] transition-all cursor-pointer flex items-center justify-center"
+        >
+          <span>{authMode === "login" ? "Daftar" : "Masuk"}</span>
+        </button>
+      </header>
 
-              <p className="text-label-md text-secondary tracking-widest uppercase font-bold -mt-1">
-                Learn the Language. Wear the Culture.
-              </p>
-              <p className="text-body-md text-on-surface-variant max-w-sm mt-1">
-                Bergabung bersama ribuan pemuda pelestari bahasa dan busana
-                tradisi Nusantara.
-              </p>
+      {/* ── PANEL FORM TERPUSAT (Kompak, Tegas, Tanpa Scroll) ── */}
+      <div className="relative z-10 w-full flex-1 flex items-center justify-center px-4 py-2 sm:py-3">
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className="w-full max-w-[390px] rounded-3xl bg-white p-5 sm:p-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)] border-2 border-white/80 motion-reduce:animate-none motion-reduce:transition-none"
+        >
+          {/* Header Panel Form */}
+          <div className="flex flex-col items-center text-center">
+            <div className="relative mb-2 flex items-center justify-center">
+              <Image
+                alt="Logo LARAS"
+                src="/logo/logo_laras.png"
+                width={44}
+                height={44}
+                className="h-10 w-auto object-contain drop-shadow-xs select-none"
+                priority
+              />
             </div>
 
-            {/* Auth Mode Tabs */}
-            <div className="grid grid-cols-2 p-1 bg-surface-container rounded-full">
-              <button
-                type="button"
-                onClick={() => setAuthMode("login")}
-                className={`py-2.5 rounded-full text-label-lg font-bold text-center transition-all duration-200 cursor-pointer ${
-                  authMode === "login"
-                    ? "bg-surface-container-lowest text-primary shadow-xs"
-                    : "text-on-surface-variant hover:text-on-surface"
-                }`}
-              >
-                Masuk
-              </button>
-              <button
-                type="button"
-                onClick={() => setAuthMode("register")}
-                className={`py-2.5 rounded-full text-label-lg font-bold text-center transition-all duration-200 cursor-pointer ${
-                  authMode === "register"
-                    ? "bg-surface-container-lowest text-primary shadow-xs"
-                    : "text-on-surface-variant hover:text-on-surface"
-                }`}
-              >
-                Daftar Baru
-              </button>
-            </div>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-on-surface">
+              {authMode === "login" ? "Tabe, selamat datang" : "Tabe, mari mulai"}
+            </h1>
+            <p className="mt-0.5 text-xs text-on-surface-variant font-medium leading-normal">
+              {authMode === "login"
+                ? "Lanjutkan petualangan belajar dan rawat streak harianmu."
+                : "Buat akun gratis dan kumpulkan paspor budaya pertamamu."}
+            </p>
+          </div>
 
-            {errorMessage && (
-              <div role="alert" className="rounded-xl border border-error/30 bg-error-container/50 px-4 py-3 text-body-sm font-semibold text-on-error-container">
-                {errorMessage}
+          {/* Pesan Kesalahan Global */}
+          {errorMessage && (
+            <div
+              role="alert"
+              className="mt-3 rounded-xl border border-error/30 bg-error-container/70 px-3.5 py-2 text-xs font-bold text-on-error-container"
+            >
+              {errorMessage}
+            </div>
+          )}
+
+          {/* Formulir */}
+          <form onSubmit={handleSubmit} className="mt-3.5 flex flex-col gap-2.5">
+            {authMode === "register" && (
+              <div className="flex flex-col gap-0.5">
+                <label className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant" htmlFor="userName">
+                  Nama Lengkap
+                </label>
+                <div className="relative flex items-center">
+                  <User className="absolute left-3 text-outline w-4 h-4 pointer-events-none" />
+                  <input
+                    id="userName"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Nama lengkapmu"
+                    required
+                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline/60 text-xs sm:text-sm font-medium focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all border border-outline-variant/50"
+                  />
+                </div>
               </div>
             )}
 
-            {/* Google OAuth Button */}
-            <button
-              type="button"
-              onClick={() => setErrorMessage("Login Google belum tersedia. Gunakan email dan kata sandi untuk demo.")}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface font-label-lg transition-colors cursor-pointer border border-outline-variant/30"
-            >
-              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                <path
-                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"
-                  fill="#4285F4"
-                ></path>
-                <path
-                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"
-                  fill="#34A853"
-                ></path>
-                <path
-                  d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                  fill="#FBBC05"
-                ></path>
-                <path
-                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  fill="#EA4335"
-                ></path>
-              </svg>
-              <span>Lanjutkan dengan Google</span>
-            </button>
-
-            {/* Divider */}
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-surface-container-high"></div>
-              <span className="text-label-sm uppercase text-outline tracking-wider font-semibold">
-                atau dengan surel
-              </span>
-              <div className="h-px flex-1 bg-surface-container-high"></div>
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant" htmlFor="userEmail">
+                Email
+              </label>
+              <div className="relative flex items-center">
+                <Mail className="absolute left-3 text-outline w-4 h-4 pointer-events-none" />
+                <input
+                  id="userEmail"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nama@email.com"
+                  required
+                  className="w-full h-10 pl-9 pr-3 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline/60 text-xs sm:text-sm font-medium focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all border border-outline-variant/50"
+                />
+              </div>
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              {authMode === "register" && (
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    className="text-label-md text-on-surface font-semibold"
-                    htmlFor="userName"
-                  >
-                    Nama Lengkap
-                  </label>
-                  <div className="relative flex items-center">
-                    <User className="absolute left-3.5 text-outline w-5 h-5 pointer-events-none" />
-                    <input
-                      id="userName"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Rani Maharani"
-                      required
-                      className="w-full py-3 pl-11 pr-4 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline/60 text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/40 transition-all border border-outline-variant/30"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-1.5">
-                <label
-                  className="text-label-md text-on-surface font-semibold"
-                  htmlFor="userEmail"
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant" htmlFor="userPassword">
+                Kata Sandi
+              </label>
+              <div className="relative flex items-center">
+                <Lock className="absolute left-3 text-outline w-4 h-4 pointer-events-none" />
+                <input
+                  id="userPassword"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Minimal 6 karakter"
+                  required
+                  className="w-full h-10 pl-9 pr-9 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline/60 text-xs sm:text-sm font-medium focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all border border-outline-variant/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
+                  className="absolute right-2.5 text-outline hover:text-on-surface flex items-center justify-center p-1 cursor-pointer transition-colors"
                 >
-                  Email
-                </label>
-                <div className="relative flex items-center">
-                  <Mail className="absolute left-3.5 text-outline w-5 h-5 pointer-events-none" />
-                  <input
-                    id="userEmail"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="rani@mahasiswa.ac.id"
-                    required
-                    className="w-full py-3 pl-11 pr-4 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline/60 text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/40 transition-all border border-outline-variant/30"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <label
-                    className="text-label-md text-on-surface font-semibold"
-                    htmlFor="userPassword"
-                  >
-                    Kata Sandi
-                  </label>
-                  {authMode === "login" && (
-                    <button
-                      type="button"
-                      className="text-label-sm text-primary hover:underline font-semibold cursor-pointer"
-                    >
-                      Lupa kata sandi?
-                    </button>
-                  )}
-                </div>
-                <div className="relative flex items-center">
-                  <Lock className="absolute left-3.5 text-outline w-5 h-5 pointer-events-none" />
-                  <input
-                    id="userPassword"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Minimal 8 karakter"
-                    required
-                    className="w-full py-3 pl-11 pr-11 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline/60 text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/40 transition-all border border-outline-variant/30"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 text-outline hover:text-on-surface flex items-center justify-center p-1 cursor-pointer"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {authMode === "register" && (
-                <div className="flex flex-col gap-2">
-                  <span className="text-label-md text-on-surface font-semibold">
-                    Minat Budaya &amp; Dialek Pertama
-                  </span>
-                  <div className="p-3 rounded-xl bg-primary-fixed/40 flex items-start gap-3 border border-primary/20">
-                    <Compass className="text-primary w-5 h-5 mt-0.5 shrink-0" />
-                    <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                      <span className="text-label-md text-on-primary-fixed-variant font-bold truncate">
-                        Suku Kaili (Ledo &amp; Tara)
-                      </span>
-                      <span className="text-body-sm text-on-surface-variant">
-                        Lembah Palu &amp; Donggala, Sulawesi Tengah
-                      </span>
-                    </div>
-                    <span className="text-label-sm px-2 py-0.5 rounded-full bg-primary text-on-primary self-center whitespace-nowrap font-bold">
-                      Bawaan
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {authMode === "login" && (
-                <div className="flex items-center justify-between pt-1">
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                      defaultChecked
-                      type="checkbox"
-                      className="w-4 h-4 rounded text-primary focus:ring-primary/30 accent-primary"
-                    />
-                    <span className="text-body-sm text-on-surface-variant">
-                      Ingat saya di perangkat ini
-                    </span>
-                  </label>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="mt-2 w-full py-3.5 px-6 rounded-full bg-primary text-on-primary font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer font-bold"
-              >
-                <span>
-                  {isSubmitting
-                    ? "Memproses..."
-                    : authMode === "login"
-                    ? "Masuk ke Akun Belajar"
-                    : "Mulai Petualangan Budaya"}
-                </span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </form>
-
-            {/* Bottom prompt */}
-            <div className="flex flex-col items-center gap-3 pt-2 text-center">
-              <p className="text-body-md text-on-surface-variant">
-                {authMode === "login" ? (
-                  <>
-                    Belum punya akun?{" "}
-                    <button
-                      type="button"
-                      onClick={() => setAuthMode("register")}
-                      className="text-primary font-bold hover:underline ml-1 cursor-pointer"
-                    >
-                      Daftar gratis dalam 30 detik
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    Sudah punya akun?{" "}
-                    <button
-                      type="button"
-                      onClick={() => setAuthMode("login")}
-                      className="text-primary font-bold hover:underline ml-1 cursor-pointer"
-                    >
-                      Masuk sekarang
-                    </button>
-                  </>
-                )}
-              </p>
-
-              <div className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-surface-container-low text-on-surface-variant max-w-sm">
-                <BadgeCheck className="text-secondary w-5 h-5 shrink-0" />
-                <span className="text-body-sm text-left">
-                  Data kemajuan belajar dan Paspor Budaya Anda tersimpan aman dan
-                  terenkripsi.
-                </span>
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Footer links */}
-        <div className="mt-6 flex items-center gap-4 text-outline text-label-sm">
-          <Link href="/" className="hover:text-on-surface transition-colors">
-            Kembali ke Beranda
-          </Link>
-          <span>•</span>
-          <span className="text-on-surface-variant">v2.4 Kaili Edition</span>
-        </div>
+            {authMode === "register" && (
+              <div className="p-2 rounded-xl bg-primary-fixed/25 flex items-center gap-2 border border-primary/20">
+                <Compass className="text-primary w-3.5 h-3.5 shrink-0" />
+                <div className="flex flex-col flex-1 min-w-0">
+                  <span className="text-[10px] font-black text-on-primary-fixed-variant truncate">
+                    Suku Kaili (Ledo &amp; Tara)
+                  </span>
+                  <span className="text-[9px] text-on-surface-variant font-medium leading-none">
+                    Lembah Palu &amp; Donggala • Bawaan
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Tombol Submit Chunky Faux-3D Tegas */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="mt-1.5 w-full h-11 px-5 rounded-2xl bg-primary text-on-primary font-black text-xs uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:brightness-105 active:translate-y-[2px] active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed select-none"
+            >
+              <span>
+                {isSubmitting
+                  ? "MEMPROSES..."
+                  : authMode === "login"
+                  ? "MASUK"
+                  : "DAFTAR SEKARANG"}
+              </span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+
+          {/* Chip Demo Juri / Tamu (Kompak) */}
+          {authMode === "login" && (
+            <div className="mt-3 pt-2.5 border-t border-outline-variant/30 flex items-center justify-between gap-2">
+              <span className="text-[10px] font-bold text-on-surface-variant">
+                Untuk penilai &amp; tamu:
+              </span>
+              <button
+                type="button"
+                onClick={handleFillDemo}
+                className="h-7 px-2.5 rounded-lg bg-secondary-fixed text-on-secondary-fixed text-[11px] font-black shadow-[0_2px_0_0_#653e00] hover:brightness-95 active:translate-y-[1px] active:shadow-[0_1px_0_0_#653e00] transition-all cursor-pointer flex items-center gap-1 select-none"
+              >
+                <Zap className="w-3 h-3" />
+                <span>Isi akun demo</span>
+              </button>
+            </div>
+          )}
+
+          {/* Tautan Bawah Ganti Mode */}
+          <div className="mt-2.5 text-center text-xs text-on-surface-variant font-medium">
+            {authMode === "login" ? (
+              <>
+                Belum punya akun?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("register");
+                    setErrorMessage("");
+                  }}
+                  className="text-primary font-black hover:underline cursor-pointer"
+                >
+                  Daftar
+                </button>
+              </>
+            ) : (
+              <>
+                Sudah punya akun?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("login");
+                    setErrorMessage("");
+                  }}
+                  className="text-primary font-black hover:underline cursor-pointer"
+                >
+                  Masuk
+                </button>
+              </>
+            )}
+          </div>
+        </motion.div>
       </div>
+
+      {/* Footer Minimal Tenang */}
+      <footer className="relative z-10 w-full py-2 text-center text-[10px] text-white/70 font-medium shrink-0">
+        <div className="flex items-center justify-center gap-1.5">
+          <BadgeCheck className="w-3.5 h-3.5 text-secondary-fixed" />
+          <span>LARAS Nusantara • Munas IX Permikomnas 2026</span>
+        </div>
+      </footer>
     </main>
   );
 }
@@ -356,8 +327,8 @@ export default function AuthPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen w-full flex items-center justify-center p-4 bg-surface">
-          <div className="text-label-lg text-on-surface-variant">Memuat autentikasi…</div>
+        <main className="min-h-screen w-full flex items-center justify-center p-4 bg-primary">
+          <div className="text-sm font-bold text-white">Memuat...</div>
         </main>
       }
     >

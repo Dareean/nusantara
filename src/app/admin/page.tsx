@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   ShieldAlert,
   ArrowLeft,
-  Sparkles,
   Search,
   BookOpen,
   BadgeCheck,
