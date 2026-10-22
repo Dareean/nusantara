@@ -145,19 +145,33 @@ export async function GET(req: NextRequest) {
   try {
     const { data, error } = await createAdminClient()
       .from("user_progress")
-      .select("progress")
+      .select("progress, updated_at")
       .eq("email", email)
       .maybeSingle();
 
     if (!error && data?.progress) {
-      return NextResponse.json({ progress: data.progress });
+      return NextResponse.json({
+        ok: true,
+        synced: true,
+        source: "database",
+        updatedAt: data.updated_at,
+        progress: data.progress,
+      });
+    }
+    if (error) {
+      console.warn("Supabase user_progress query returned error:", error.message);
     }
   } catch (err) {
     console.warn("Supabase user_progress tidak terjangkau, menggunakan store lokal:", err);
   }
 
   const local = getLocalProgress(email);
-  return NextResponse.json({ progress: local });
+  return NextResponse.json({
+    ok: true,
+    synced: false,
+    source: "fallback_local",
+    progress: local,
+  });
 }
 
 export async function PUT(req: NextRequest) {
@@ -169,8 +183,9 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Invalid progress payload" }, { status: 400 });
   }
 
-  // Retrieve existing server progress for anti-regression merging
+  // Retrieve existing server progress for anti-regression merging (prioritize database)
   let serverProgress: StoredProgress | null = null;
+  let remoteFetchError: string | null = null;
   try {
     const { data, error } = await createAdminClient()
       .from("user_progress")
@@ -180,9 +195,13 @@ export async function PUT(req: NextRequest) {
 
     if (!error && data?.progress) {
       serverProgress = data.progress as StoredProgress;
+    } else if (error) {
+      remoteFetchError = error.message;
+      console.warn("Supabase check error during PUT:", error.message);
     }
   } catch (err) {
-    console.warn("Supabase check error during PUT:", err);
+    remoteFetchError = err instanceof Error ? err.message : String(err);
+    console.warn("Supabase fetch exception during PUT:", err);
   }
 
   if (!serverProgress) {
@@ -192,21 +211,49 @@ export async function PUT(req: NextRequest) {
   // Perform robust anti-regression union
   const mergedProgress = mergeProgressAntiRegression(serverProgress, body.progress);
 
-  // Always save locally for fallback
+  // Always save locally as disaster-recovery backup
   saveLocalProgress(email, mergedProgress);
 
+  // Upsert to Supabase user_progress table
   try {
-    const { error } = await createAdminClient().from("user_progress").upsert(
+    const { error: upsertError } = await createAdminClient().from("user_progress").upsert(
       { email, progress: mergedProgress, updated_at: new Date().toISOString() },
       { onConflict: "email" }
     );
 
-    if (error) {
-      console.warn("Supabase upsert progress error (tetap tersimpan di local store):", error.message);
+    if (upsertError) {
+      console.warn("Supabase upsert progress error:", upsertError.message);
+      return NextResponse.json(
+        {
+          ok: false,
+          synced: false,
+          source: "fallback_local",
+          error: `Gagal menyimpan ke database Supabase: ${upsertError.message}`,
+          progress: mergedProgress,
+        },
+        { status: 500 }
+      );
     }
-  } catch (err) {
-    console.warn("Supabase tidak terjangkau (tetap tersimpan di local store):", err);
-  }
 
-  return NextResponse.json({ ok: true, progress: mergedProgress });
+    // Success in Supabase database
+    return NextResponse.json({
+      ok: true,
+      synced: true,
+      source: "database",
+      progress: mergedProgress,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("Supabase tidak terjangkau:", msg);
+    return NextResponse.json(
+      {
+        ok: false,
+        synced: false,
+        source: "fallback_local",
+        error: `Supabase tidak terjangkau: ${msg}`,
+        progress: mergedProgress,
+      },
+      { status: 500 }
+    );
+  }
 }

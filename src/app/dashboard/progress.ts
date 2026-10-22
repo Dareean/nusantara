@@ -150,11 +150,18 @@ export function saveProgress(email: string, progress: UserProgress) {
       }
 
       if (resp.ok) {
-        window.localStorage.removeItem(unsyncedKey(email));
         const data = (await resp.json().catch(() => ({}))) as {
           ok?: boolean;
+          synced?: boolean;
+          source?: string;
           progress?: Partial<UserProgress>;
         };
+        if (data.synced === false) {
+          // If server fell back to local store without database sync, keep in unsynced queue
+          window.localStorage.setItem(unsyncedKey(email), JSON.stringify(progress));
+        } else {
+          window.localStorage.removeItem(unsyncedKey(email));
+        }
         if (data.progress) {
           const merged = mergeClientProgress(progress, data.progress);
           window.localStorage.setItem(progressKey(email), JSON.stringify(merged));
