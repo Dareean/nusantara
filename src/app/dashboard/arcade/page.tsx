@@ -206,7 +206,7 @@ export default function ArcadePage() {
   const currentQ = quizData[currentIdx] ?? quizData[quizData.length - 1] ?? null;
 
   return (
-    <main className="w-full min-w-0 max-w-4xl mx-auto space-y-6 pb-20 overflow-x-clip">
+    <main className="w-full min-w-0 max-w-4xl mx-auto space-y-6 pb-20 pt-4 sm:pt-6 px-4 overflow-x-clip">
       {/* Top Banner & Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
         <div className="flex items-center gap-3">

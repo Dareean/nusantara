@@ -209,7 +209,7 @@ export default function DashboardPage() {
           <div className="w-full flex flex-col items-center">
             <div className="w-full max-w-[560px]">
               {/* Sticky Unit Banner — Berfungsi sebagai Header Bab Utama yang Elegan */}
-              <div className="sticky top-0 z-30 pt-1 pb-4 bg-surface/90 backdrop-blur-md">
+              <div className="sticky top-20 z-20 pt-1 pb-4 bg-surface/90 backdrop-blur-md">
                 <div className="rounded-2xl bg-surface-container-lowest p-4 sm:p-5 border-2 border-outline-variant/30 shadow-[0_4px_0_0_#e8ded8] flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -535,7 +535,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Rail Kanan Sticky: tetap diam saat konten tengah discroll */}
-          <aside className="space-y-4 xl:sticky xl:top-4 self-start w-full">
+          <aside className="space-y-4 xl:sticky xl:top-24 self-start w-full">
             <section className="rounded-3xl bg-surface-container-lowest p-5 ring-1 ring-outline-variant/25">
               <div className="flex items-center justify-between">
                 <h2 className="font-black">Hari ini</h2>

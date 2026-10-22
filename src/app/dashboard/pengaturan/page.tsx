@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import TopBar from "../../components/TopBar";
 import { LogOut } from "lucide-react";
 import { getSession } from "../../auth/authClient";
 
@@ -27,10 +26,7 @@ export default function PengaturanPage() {
   };
 
   return (
-    <>
-      <TopBar title="Settings" subtitle="Atur pengalaman belajar kamu" />
-
-      <main className="relative min-h-screen w-full px-3 pb-20 pt-20 sm:px-4 lg:px-6">
+    <main className="relative min-h-screen w-full px-3 pb-20 pt-4 sm:pt-6 sm:px-4 lg:px-6">
         <div className="mx-auto max-w-4xl space-y-4">
           <section className="rounded-[24px] bg-surface-container-lowest p-4 shadow-xs ring-1 ring-outline-variant/25">
             <h1 className="text-2xl font-black text-on-surface">Pengaturan</h1>
@@ -108,7 +104,6 @@ export default function PengaturanPage() {
             </section>
           )}
         </div>
-      </main>
-    </>
+    </main>
   );
 }
