@@ -15,6 +15,20 @@ export async function POST(req: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       maxAge: 0,
     });
+    res.cookies.set('next-auth.session-token', '', {
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 0,
+    });
+    res.cookies.set('__Secure-next-auth.session-token', '', {
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 0,
+    });
     return res;
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });

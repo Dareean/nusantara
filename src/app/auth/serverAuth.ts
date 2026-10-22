@@ -101,6 +101,24 @@ export function addUser(name: string, email: string, password: string) {
   saveStore();
 }
 
+export function ensureOAuthUser(user: { name: string; email: string }) {
+  const normalized = user.email.toLowerCase().trim();
+  const existing = getUserByEmail(normalized);
+  if (!existing) {
+    const dummyHash = hashPassword(crypto.randomBytes(16).toString('hex'));
+    users.set(normalized, {
+      name: user.name || normalized.split('@')[0],
+      email: normalized,
+      passwordHash: dummyHash,
+      isAdmin: isAdminEmail(normalized),
+    });
+    saveStore();
+  } else if (!existing.name && user.name) {
+    existing.name = user.name;
+    saveStore();
+  }
+}
+
 export function getUserByEmail(email: string | null | undefined): User | undefined {
   if (!email) return undefined;
   const normalized = email.toLowerCase().trim();

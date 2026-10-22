@@ -15,24 +15,30 @@ import { getSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
 import { CANONICAL_BADGES } from "@/lib/badges";
 
-const learningTracks = [
-  { title: "Bahasa Ledo", progress: 82, tag: "Active" },
-  { title: "Adab & sapaan", progress: 100, tag: "Done" },
-  { title: "Busana adat", progress: 35, tag: "Next" },
-];
-
 export default function ProfilPage() {
   const [session, setSession] = useState<{ email: string; name: string } | null>(null);
   const [userName, setUserName] = useState("Pelajar LARAS");
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
 
   useEffect(() => {
+    let email = "";
     getSession().then(async (sess) => {
       if (!sess) return;
+      email = sess.email;
       setSession(sess);
       setUserName(sess.name);
-      setProgress(await loadProgress(sess.email));
+      // Baca progress lokal terlebih dahulu agar render instan
+      setProgress(readProgress(sess.email));
+      // Sinkronkan data riil dari Supabase
+      const remote = await loadProgress(sess.email);
+      setProgress(remote);
     });
+
+    const onUpdated = () => {
+      if (email) setProgress(readProgress(email));
+    };
+    window.addEventListener("laras-progress-updated", onUpdated);
+    return () => window.removeEventListener("laras-progress-updated", onUpdated);
   }, []);
 
   const handleLogout = async () => {
@@ -43,6 +49,32 @@ export default function ProfilPage() {
     }
     window.location.href = "/auth";
   };
+
+  const learningTracks = [
+    {
+      title: "Salam & Adab Tabe (Kaili Ledo)",
+      progress: progress.completedLessons.includes(1) ? 100 : 0,
+      tag: progress.completedLessons.includes(1) ? "Selesai" : "Aktif",
+    },
+    {
+      title: "Busana Adat Nggembe",
+      progress: progress.completedLessons.includes(2) ? 100 : 0,
+      tag: progress.completedLessons.includes(2)
+        ? "Selesai"
+        : progress.unlockedLessons.includes(2)
+        ? "Aktif"
+        : "Terkunci",
+    },
+    {
+      title: "Skenario Souraja (Rumah Adat)",
+      progress: progress.completedLessons.includes(3) ? 100 : 0,
+      tag: progress.completedLessons.includes(3)
+        ? "Selesai"
+        : progress.unlockedLessons.includes(3)
+        ? "Aktif"
+        : "Terkunci",
+    },
+  ];
 
   return (
     <>
@@ -116,9 +148,9 @@ export default function ProfilPage() {
                     </div>
                     <span
                       className={`rounded-full px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] ${
-                        track.tag === "Done"
+                        track.tag === "Selesai"
                           ? "bg-secondary-fixed text-on-secondary-fixed"
-                          : track.tag === "Active"
+                          : track.tag === "Aktif"
                             ? "bg-primary text-on-primary"
                             : "bg-surface-container-high text-on-surface-variant"
                       }`}
@@ -128,8 +160,8 @@ export default function ProfilPage() {
                   </div>
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-container-high">
                     <div
-                        className="h-full rounded-full bg-primary"
-                        style={{ width: `${track.title === "Adab & sapaan" && progress.completedLessons.includes(1) ? 100 : track.progress}%` }}
+                      className="h-full rounded-full bg-primary transition-all duration-500"
+                      style={{ width: `${track.progress}%` }}
                     />
                   </div>
                   <div className="mt-2 text-[11px] font-bold uppercase tracking-[0.12em] text-on-surface-variant">
