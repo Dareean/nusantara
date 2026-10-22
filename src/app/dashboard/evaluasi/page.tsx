@@ -18,26 +18,52 @@ import {
   ShieldAlert,
   ArrowRight,
 } from "lucide-react";
-import { getSession } from "../../auth/authClient";
-import { loadProgress, type LessonResult } from "../progress";
+import { getCachedSessionSync, getSession } from "../../auth/authClient";
+import { DEFAULT_PROGRESS, loadProgress, readProgress, type LessonResult, type UserProgress } from "../progress";
 
 export default function EvaluasiJawabanPage() {
   const router = useRouter();
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [timerCount, setTimerCount] = useState(4);
-  const [lessonResult, setLessonResult] = useState<LessonResult | null>(null);
+
+  const cached = getCachedSessionSync();
+  const [progress, setProgress] = useState<UserProgress>(() =>
+    cached ? readProgress(cached.email) : DEFAULT_PROGRESS
+  );
+  const [lessonResult, setLessonResult] = useState<LessonResult | null>(() =>
+    cached ? readProgress(cached.email).lastLesson : null
+  );
 
   useEffect(() => {
+    let email = cached?.email || "";
+    if (email) {
+      const local = readProgress(email);
+      setProgress(local);
+      if (local.lastLesson) setLessonResult(local.lastLesson);
+    }
+
     getSession().then(async (session) => {
       if (!session) return;
-      const result = (await loadProgress(session.email)).lastLesson;
-      if (!result) {
-        router.replace("/dashboard/latihan");
-        return;
-      }
-      setLessonResult(result);
+      email = session.email;
+      const local = readProgress(email);
+      setProgress(local);
+      if (local.lastLesson) setLessonResult(local.lastLesson);
+
+      const remote = await loadProgress(email);
+      setProgress(remote);
+      if (remote.lastLesson) setLessonResult(remote.lastLesson);
     });
-  }, [router]);
+
+    const onProgressUpdated = () => {
+      if (email) {
+        const updated = readProgress(email);
+        setProgress(updated);
+        if (updated.lastLesson) setLessonResult(updated.lastLesson);
+      }
+    };
+    window.addEventListener("laras-progress-updated", onProgressUpdated);
+    return () => window.removeEventListener("laras-progress-updated", onProgressUpdated);
+  }, []);
 
   const toggleAudio = () => {
     setIsPlayingAudio((prev) => {
@@ -69,7 +95,7 @@ export default function EvaluasiJawabanPage() {
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 bg-error-container text-on-error-container rounded-full text-label-md font-bold">
           <Heart className="w-4 h-4 text-error fill-current" />
-          <span>{lessonResult?.correct ? "3/3" : "2/3"}</span>
+          <span>{lessonResult?.heartsRemaining ?? progress.hearts}/3</span>
         </div>
       </header>
 
@@ -88,7 +114,7 @@ export default function EvaluasiJawabanPage() {
               <div className="w-1.5 h-1.5 rounded-full bg-surface-variant hidden sm:block"></div>
               <div className="flex items-center gap-1 text-secondary text-label-md font-bold">
                 <Flame className="w-4 h-4" />
-                <span>6 Hari Beruntun</span>
+                <span>{progress.streak} Hari Beruntun</span>
               </div>
             </div>
 
@@ -344,10 +370,18 @@ export default function EvaluasiJawabanPage() {
                     </div>
                     <div>
                         <h4 className={`text-title-md font-bold ${lessonResult?.correct ? "text-primary" : "text-error"}`}>
-                        {lessonResult?.correct ? `Sesi tuntas (+${lessonResult.xp + (lessonResult.bonusXp ?? 0)} XP)` : "Sesi perlu diulang"}
+                        {lessonResult?.correct
+                          ? (lessonResult.isRepeat
+                              ? "Latihan ulang selesai (tanpa XP baru)"
+                              : `Sesi tuntas (+${lessonResult.xp + (lessonResult.bonusXp ?? 0)} XP)`)
+                          : "Sesi perlu diulang"}
                       </h4>
                       <p className="text-body-sm text-on-surface-variant">
-                        {lessonResult?.correct ? "Semua exercise selesai. Reward dan unlock sudah dicatat." : "Tidak apa-apa. Ulangi sesi untuk memperkuat konteks budaya."}
+                        {lessonResult?.correct
+                          ? (lessonResult.isRepeat
+                              ? "Semua exercise selesai dengan tepat. Latihan ulang berhasil diselesaikan."
+                              : "Semua exercise selesai. Reward dan unlock sudah dicatat.")
+                          : "Tidak apa-apa. Ulangi sesi untuk memperkuat konteks budaya."}
                       </p>
                     </div>
                   </div>
@@ -372,7 +406,7 @@ export default function EvaluasiJawabanPage() {
 
                   <button
                     type="button"
-                    onClick={() => router.push("/dashboard/selesai")}
+                    onClick={() => router.push(lessonResult?.lessonId ? `/dashboard/selesai?lesson=${lessonResult.lessonId}` : "/dashboard/selesai")}
                     className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-primary text-on-primary font-label-lg font-bold shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
                   >
                     <span>Lanjut ke Perayaan Selesai</span>

@@ -261,7 +261,18 @@ export default function DashboardPage() {
               </div>
 
               {/* Misi Berikutnya Hero Banner */}
-              {isUnit1Complete ? (
+              {!isLoaded ? (
+                <section className="relative overflow-hidden rounded-2xl bg-surface-container-high px-5 py-5 mb-8 animate-pulse border-2 border-outline-variant/30">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-2">
+                      <div className="h-3 w-24 rounded bg-outline-variant/50" />
+                      <div className="h-5 w-44 rounded bg-outline-variant/60" />
+                      <div className="h-3 w-56 rounded bg-outline-variant/40" />
+                    </div>
+                    <div className="h-9 w-24 rounded-full bg-outline-variant/50" />
+                  </div>
+                </section>
+              ) : isUnit1Complete ? (
                 <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary-container px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
                   <div className="relative z-10 flex items-center justify-between gap-4">
                     <div className="min-w-0">
@@ -332,7 +343,7 @@ export default function DashboardPage() {
                     const cy1 = y1 + stepY * 0.5;
                     const cy2 = y2 - stepY * 0.5;
                     const d = `M ${x1} ${y1} C ${x1} ${cy1}, ${x2} ${cy2}, ${x2} ${y2}`;
-                    const isSegmentCompleted = nodes[i].status === "completed" && nodes[i + 1].status === "completed";
+                    const isSegmentCompleted = isLoaded && nodes[i].status === "completed" && nodes[i + 1].status === "completed";
 
                     return (
                       <path
@@ -349,34 +360,50 @@ export default function DashboardPage() {
                 </svg>
 
                 {/* Desktop Accent Card (sejajar dengan node active di sisi berlawanan) */}
-                <div
-                  style={{ top: `${Math.max(16, activeNodeY - 48)}px` }}
-                  className={`absolute z-10 hidden sm:flex flex-col w-[170px] rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-md ${
-                    activeOffset >= 0 ? "left-2" : "right-2"
-                  }`}
-                >
-                  <div className="relative h-20 w-full overflow-hidden bg-surface-container-high">
-                    <img
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
-                      alt="Souraja Rumah Adat Kaili"
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[8px] font-black text-white uppercase tracking-wider">
-                      Kultur Kaili
-                    </span>
+                {isLoaded && (
+                  <div
+                    style={{ top: `${Math.max(16, activeNodeY - 48)}px` }}
+                    className={`absolute z-10 hidden sm:flex flex-col w-[170px] rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-md ${
+                      activeOffset >= 0 ? "left-2" : "right-2"
+                    }`}
+                  >
+                    <div className="relative h-20 w-full overflow-hidden bg-surface-container-high">
+                      <img
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
+                        alt="Souraja Rumah Adat Kaili"
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[8px] font-black text-white uppercase tracking-wider">
+                        Kultur Kaili
+                      </span>
+                    </div>
+                    <div className="p-2">
+                      <p className="text-[11px] font-black text-on-surface leading-tight">
+                        Souraja — rumah adat Kaili
+                      </p>
+                      <p className="text-[9px] text-on-surface-variant font-medium mt-0.5 line-clamp-1">
+                        Pusat adab &amp; diplomasi Banua Oge
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-2">
-                    <p className="text-[11px] font-black text-on-surface leading-tight">
-                      Souraja — rumah adat Kaili
-                    </p>
-                    <p className="text-[9px] text-on-surface-variant font-medium mt-0.5 line-clamp-1">
-                      Pusat adab &amp; diplomasi Banua Oge
-                    </p>
-                  </div>
-                </div>
+                )}
 
                 {/* Node-Node Lingkaran Faux-3D */}
-                {nodes.map((node, i) => {
+                {!isLoaded
+                  ? nodes.map((node, i) => {
+                      const x = centerX + offsets[i % offsets.length];
+                      const y = startY + i * stepY;
+                      return (
+                        <div
+                          key={`skel-${node.id}`}
+                          style={{ left: `${x}px`, top: `${y}px` }}
+                          className="absolute -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
+                        >
+                          <div className="h-[68px] w-[68px] sm:h-[76px] sm:w-[76px] rounded-full bg-surface-container-high animate-pulse border-4 border-surface shadow-[0_5px_0_0_#d8c7be]" />
+                        </div>
+                      );
+                    })
+                  : nodes.map((node, i) => {
                   const isActive = node.status === "active";
                   const isPrimaryActive = node.id === activeNode.id;
                   const isLocked = node.status === "locked";
@@ -526,7 +553,10 @@ export default function DashboardPage() {
                 <span>{isLoaded ? `${dailyXp}/50` : "--/50"}</span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-high">
-                <div className="h-full rounded-full bg-secondary transition-all" style={{ width: `${dailyXp * 2}%` }} />
+                <div
+                  className={`h-full rounded-full bg-secondary transition-all ${!isLoaded ? "animate-pulse bg-outline-variant/50" : ""}`}
+                  style={{ width: isLoaded ? `${dailyXp * 2}%` : "30%" }}
+                />
               </div>
             </section>
 
@@ -578,14 +608,6 @@ export default function DashboardPage() {
               src="/logo-munas-ix.png"
               alt="Logo Munas IX PERMIKOMNAS"
               className="h-8 w-8 object-contain"
-            />
-            <img
-              src="/logo-permikomnas.png"
-              alt="Logo Permikomnas RI"
-              className="h-8 w-8 object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
             />
           </div>
           <span className="text-[11px] font-black uppercase tracking-wider text-on-surface-variant">

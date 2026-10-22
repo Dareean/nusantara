@@ -199,11 +199,116 @@ export default function LessonSessionPage() {
     </div>
   );
 
+  const renderHotspotExercise = (data: HotspotQuestionData) => {
+    const selectedSpot = data.hotspots.find((s) => s.id === selectedAnswer);
+
+    return (
+      <div className="mt-6 flex flex-col gap-4">
+        {/* Hotspot Image Container with Interactive Pins */}
+        <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden bg-surface-container-high/40 flex items-center justify-center border-2 border-outline-variant/30 shadow-inner group">
+          {data.imageUrl ? (
+            <img
+              src={data.imageUrl}
+              alt={data.imageCaption || currentQuestion?.prompt}
+              className="w-full h-full object-cover transition-transform duration-500"
+            />
+          ) : (
+            <div className="text-on-surface-variant font-bold text-sm">[Gambar Artefak Adat]</div>
+          )}
+
+          {/* Interactive Clickable Pins */}
+          {data.hotspots.map((spot, idx) => {
+            const isSelected = selectedAnswer === spot.id;
+            const isCorrectSpot = screen === "feedback" && spot.id === data.answer;
+            const isWrongSelected = screen === "feedback" && isSelected && !isCorrect;
+
+            return (
+              <button
+                key={spot.id}
+                type="button"
+                disabled={screen === "feedback"}
+                onClick={() => setSelectedAnswer(spot.id)}
+                style={{ top: spot.top || "50%", left: spot.left || "50%" }}
+                aria-label={`Titik ${idx + 1}: ${spot.label}`}
+                className={`absolute -translate-x-1/2 -translate-y-1/2 transition-all cursor-pointer flex items-center justify-center rounded-full font-black text-xs shadow-lg ${
+                  isCorrectSpot
+                    ? "w-9 h-9 bg-secondary text-on-secondary ring-4 ring-secondary-fixed scale-125 z-30"
+                    : isWrongSelected
+                    ? "w-9 h-9 bg-error text-on-error ring-4 ring-error-container scale-110 z-30"
+                    : isSelected
+                    ? "w-9 h-9 bg-primary text-on-primary ring-4 ring-primary-fixed scale-125 z-20 shadow-primary/40 shadow-xl"
+                    : "w-8 h-8 bg-surface-container-lowest/90 text-primary backdrop-blur-xs ring-2 ring-primary/40 hover:scale-110 hover:bg-white z-10"
+                }`}
+              >
+                {screen === "feedback" && isCorrectSpot ? (
+                  <CheckCircle2 className="w-5 h-5" />
+                ) : screen === "feedback" && isWrongSelected ? (
+                  <XCircle className="w-5 h-5" />
+                ) : (
+                  <span>{idx + 1}</span>
+                )}
+              </button>
+            );
+          })}
+
+          {/* Image Caption Pill */}
+          {data.imageCaption && (
+            <div className="absolute bottom-2 left-2 right-2 bg-black/60 backdrop-blur-md rounded-xl px-3 py-1 text-[11px] text-white/90 font-medium text-center pointer-events-none">
+              {data.imageCaption}
+            </div>
+          )}
+        </div>
+
+        {/* Selected Hotspot Description Banner */}
+        {selectedSpot ? (
+          <div className="p-3.5 rounded-xl bg-primary-fixed/20 border border-primary/30 flex items-start gap-2.5">
+            <Compass className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+            <div className="text-xs">
+              <span className="font-extrabold text-primary">{selectedSpot.label}</span>
+              <p className="text-on-surface-variant font-medium mt-0.5">{selectedSpot.description}</p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-on-surface-variant text-center font-medium italic">
+            Ketuk salah satu titik pada gambar atau pilih opsi di bawah untuk menentukan jawaban.
+          </p>
+        )}
+
+        {/* Option Buttons (Synchronized with pins) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          {data.hotspots.map((spot, idx) => {
+            const isSelected = selectedAnswer === spot.id;
+            return (
+              <button
+                key={spot.id}
+                type="button"
+                disabled={screen === "feedback"}
+                onClick={() => setSelectedAnswer(spot.id)}
+                className={`flex items-center gap-2 rounded-xl border p-3 text-left transition cursor-pointer ${
+                  isSelected
+                    ? "border-primary bg-primary-fixed/30 ring-2 ring-primary text-primary"
+                    : "border-outline-variant/30 bg-surface-container-low hover:bg-surface-container text-on-surface"
+                }`}
+              >
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+                  isSelected ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface-variant"
+                }`}>
+                  {idx + 1}
+                </span>
+                <span className="font-bold text-xs truncate">{spot.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderExercise = () => {
     if (!currentQuestion) return null;
     if (currentQuestion.type === "choice") return renderChoices((currentQuestion.data as ChoiceQuestionData).options);
     if (currentQuestion.type === "truefalse") return renderChoices([{ id: "true", label: "Fakta" }, { id: "false", label: "Mitos" }]);
-    if (currentQuestion.type === "hotspot") return renderChoices((currentQuestion.data as HotspotQuestionData).hotspots.map((spot) => ({ id: spot.id, label: spot.label })));
+    if (currentQuestion.type === "hotspot") return renderHotspotExercise(currentQuestion.data as HotspotQuestionData);
     if (currentQuestion.type === "match") {
       const data = currentQuestion.data as MatchQuestionData;
       return renderChoices([{ id: data.pairs.map((pair) => `${pair.left}:${pair.right}`).join("|"), label: data.pairs.map((pair) => `${pair.left} -> ${pair.right}`).join(" • ") }]);

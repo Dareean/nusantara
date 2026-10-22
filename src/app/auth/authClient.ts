@@ -23,10 +23,24 @@ async function apiRequest(path: string, method = 'GET', body?: Record<string, st
   }
 }
 
+const SESSION_STORAGE_KEY = 'laras.active_session';
+
+function persistSession(sess: ClientSession | null) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (sess) {
+      window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sess));
+    } else {
+      window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    }
+  } catch {}
+}
+
 export async function register(name: string, email: string, password: string) {
   const data = await apiRequest('/api/auth/register', 'POST', { name, email, password });
   const sess: ClientSession = { email: data.email, name: data.name, isAdmin: false };
   cachedSession = sess;
+  persistSession(sess);
   return sess;
 }
 
@@ -34,12 +48,14 @@ export async function login(email: string, password: string) {
   const data = await apiRequest('/api/auth/login', 'POST', { email, password });
   const sess: ClientSession = { email: data.email, name: data.name, isAdmin: Boolean(data.isAdmin) };
   cachedSession = sess;
+  persistSession(sess);
   return sess;
 }
 
 export async function logout() {
   cachedSession = null;
   sessionPromise = null;
+  persistSession(null);
   try {
     await apiRequest('/api/auth/logout', 'POST');
   } catch {}
@@ -58,9 +74,11 @@ export async function getSession(forceRefresh = false): Promise<ClientSession | 
           name: data.session.name,
           isAdmin: Boolean(data.session.isAdmin),
         };
+        persistSession(cachedSession);
         return cachedSession;
       }
       cachedSession = null;
+      persistSession(null);
       return null;
     } catch {
       return cachedSession;
@@ -73,7 +91,17 @@ export async function getSession(forceRefresh = false): Promise<ClientSession | 
 }
 
 export function getCachedSessionSync(): ClientSession | null {
-  return cachedSession;
+  if (cachedSession) return cachedSession;
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
+      if (raw) {
+        cachedSession = JSON.parse(raw);
+        return cachedSession;
+      }
+    } catch {}
+  }
+  return null;
 }
 
 const authClient = { register, login, logout, getSession, getCachedSessionSync };
