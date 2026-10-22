@@ -21,16 +21,20 @@ const learningTracks = [
 ];
 
 export default function ProfilPage() {
-  const cached = getCachedSessionSync();
-  const [session, setSession] = useState(cached);
-  const [userName, setUserName] = useState(cached?.name || "");
-  const [progress, setProgress] = useState<UserProgress>(() =>
-    cached ? readProgress(cached.email) : DEFAULT_PROGRESS
-  );
-  const [isLoaded, setIsLoaded] = useState(() => Boolean(cached));
+  const [session, setSession] = useState<{ email: string; name: string } | null>(null);
+  const [userName, setUserName] = useState("");
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    const cached = getCachedSessionSync();
     let email = cached?.email || "";
+    if (cached) {
+      setSession(cached);
+      setUserName(cached.name);
+      setProgress(readProgress(cached.email));
+      setIsLoaded(true);
+    }
     getSession().then(async (sess) => {
       if (!sess) {
         setIsLoaded(true);

@@ -38,17 +38,16 @@ function SelesaiContent() {
     }, 2500);
   };
 
-  const cached = getCachedSessionSync();
-  const [userName, setUserName] = useState(() => cached?.name || "Pelajar LARAS");
-  const [progress, setProgress] = useState<UserProgress>(() =>
-    cached ? readProgress(cached.email) : DEFAULT_PROGRESS
-  );
-  const [isLoaded, setIsLoaded] = useState(() => Boolean(cached));
+  const [userName, setUserName] = useState("Pelajar LARAS");
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    const cached = getCachedSessionSync();
     let email = cached?.email || "";
-    if (email) {
-      setProgress(readProgress(email));
+    if (cached) {
+      setUserName(cached.name || "Pelajar LARAS");
+      setProgress(readProgress(cached.email));
       setIsLoaded(true);
     }
 

@@ -97,12 +97,9 @@ const AMPLITUDE_DESKTOP = [0, 56, 88, 56, 0, -56, -88, -56];
 const AMPLITUDE_MOBILE = [0, 22, 35, 22, 0, -22, -35, -22];
 
 export default function DashboardPage() {
-  const cached = getCachedSessionSync();
-  const [progress, setProgress] = useState<UserProgress>(() =>
-    cached ? readProgress(cached.email) : DEFAULT_PROGRESS
-  );
-  const [email, setEmail] = useState(() => cached?.email || "");
-  const [isLoaded, setIsLoaded] = useState(() => Boolean(cached));
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [email, setEmail] = useState("");
+  const [isLoaded, setIsLoaded] = useState(false);
   const [curatorNodes, setCuratorNodes] = useState<PathNode[]>([]);
   const [hoveredNodeId, setHoveredNodeId] = useState<number | string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -117,7 +114,14 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    const cached = getCachedSessionSync();
     let activeEmail = cached?.email || "";
+    if (cached) {
+      setEmail(cached.email);
+      setProgress(readProgress(cached.email));
+      setIsLoaded(true);
+    }
+
     getSession().then(async (session) => {
       if (!session) {
         setIsLoaded(true);

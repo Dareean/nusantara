@@ -24,15 +24,19 @@ export default function TopBar({
 }: TopBarProps) {
   const pathname = usePathname();
   const isHome = pathname === "/dashboard" || pathname === "/dashboard/";
-  const cached = getCachedSessionSync();
-  const [progress, setProgress] = useState<UserProgress>(() =>
-    cached ? readProgress(cached.email) : DEFAULT_PROGRESS
-  );
-  const [userName, setUserName] = useState(cached?.name || "");
-  const [isLoaded, setIsLoaded] = useState(() => Boolean(cached));
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [userName, setUserName] = useState("");
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    const cached = getCachedSessionSync();
     let email = cached?.email || "";
+    if (cached) {
+      setUserName(cached.name);
+      setProgress(readProgress(cached.email));
+      setIsLoaded(true);
+    }
+
     getSession().then(async (session) => {
       if (!session) {
         setIsLoaded(true);
@@ -117,7 +121,7 @@ export default function TopBar({
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-1 bg-secondary-fixed px-2.5 py-1.5 rounded-full text-on-secondary-fixed font-bold text-label-md shadow-xs min-h-[32px]">
+          <div suppressHydrationWarning className="flex items-center gap-1 bg-secondary-fixed px-2.5 py-1.5 rounded-full text-on-secondary-fixed font-bold text-label-md shadow-xs min-h-[32px]">
             <Zap className="text-secondary w-4 h-4 fill-current" />
             {isLoaded ? (
               <>
@@ -130,6 +134,7 @@ export default function TopBar({
           </div>
 
           <Link
+            suppressHydrationWarning
             href="/dashboard/profil"
             className="flex items-center gap-2 pl-1 hover:opacity-85 transition-opacity"
           >

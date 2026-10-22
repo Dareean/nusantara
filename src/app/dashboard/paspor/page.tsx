@@ -14,15 +14,18 @@ const BADGE_ICONS: Record<number, typeof Award> = {
 };
 
 export default function AchievementPage() {
-  const cached = getCachedSessionSync();
-  const [progress, setProgress] = useState<UserProgress>(() =>
-    cached ? readProgress(cached.email) : DEFAULT_PROGRESS
-  );
-  const [userEmail, setUserEmail] = useState(() => cached?.email || "");
-  const [isLoaded, setIsLoaded] = useState(() => Boolean(cached));
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [userEmail, setUserEmail] = useState("");
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    const cached = getCachedSessionSync();
     let email = cached?.email || "";
+    if (cached) {
+      setUserEmail(cached.email);
+      setProgress(readProgress(cached.email));
+      setIsLoaded(true);
+    }
     getSession().then(async (session) => {
       if (!session) {
         setIsLoaded(true);
