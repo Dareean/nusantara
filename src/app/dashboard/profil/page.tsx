@@ -9,16 +9,21 @@ import {
   Compass,
   GraduationCap,
   LogOut,
+  Edit3,
+  Camera,
 } from "lucide-react";
-import { getCachedSessionSync, getSession } from "../../auth/authClient";
+import { getCachedSessionSync, getSession, type ClientSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
 import { CANONICAL_BADGES } from "@/lib/badges";
+import EditProfileModal from "../../components/EditProfileModal";
 
 export default function ProfilPage() {
-  const [session, setSession] = useState<{ email: string; name: string } | null>(null);
+  const [session, setSession] = useState<{ email: string; name: string; avatarUrl?: string } | null>(null);
   const [userName, setUserName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     const cached = getCachedSessionSync();
@@ -26,6 +31,7 @@ export default function ProfilPage() {
     if (cached) {
       setSession(cached);
       setUserName(cached.name);
+      setAvatarUrl(cached.avatarUrl || "");
       setProgress(readProgress(cached.email));
       setIsLoaded(true);
     }
@@ -36,6 +42,7 @@ export default function ProfilPage() {
       }
       setSession(sess);
       setUserName(sess.name);
+      setAvatarUrl(sess.avatarUrl || "");
       email = sess.email;
       const local = readProgress(email);
       setProgress(local);
@@ -48,8 +55,28 @@ export default function ProfilPage() {
       if (email) setProgress(readProgress(email));
     };
     window.addEventListener("laras-progress-updated", refresh);
-    return () => window.removeEventListener("laras-progress-updated", refresh);
+
+    const onProfileChanged = (e: Event) => {
+      const detail = (e as CustomEvent<ClientSession>).detail;
+      if (detail) {
+        setUserName(detail.name);
+        setAvatarUrl(detail.avatarUrl || "");
+        setSession(detail);
+      }
+    };
+    window.addEventListener("laras-profile-updated", onProfileChanged);
+
+    return () => {
+      window.removeEventListener("laras-progress-updated", refresh);
+      window.removeEventListener("laras-profile-updated", onProfileChanged);
+    };
   }, []);
+
+  const handleProfileUpdated = (updatedSession: ClientSession) => {
+    setUserName(updatedSession.name);
+    setAvatarUrl(updatedSession.avatarUrl || "");
+    setSession(updatedSession);
+  };
 
   const handleLogout = async () => {
     try {
@@ -87,16 +114,39 @@ export default function ProfilPage() {
   ];
 
   return (
-    <main className="relative min-h-screen w-full px-3 pb-20 pt-4 sm:pt-6 sm:px-4 lg:px-6">
+    <>
+      <main className="relative min-h-screen w-full px-3 pb-20 pt-4 sm:pt-6 sm:px-4 lg:px-6">
         <div className="mx-auto max-w-5xl space-y-4">
           <section className="rounded-[24px] bg-surface-container-lowest p-4 shadow-xs ring-1 ring-outline-variant/25 sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 {isLoaded && userName ? (
-                  <div
-                    className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-black text-on-primary ring-2 ring-primary/20"
-                  >
-                    {userName.slice(0, 1).toUpperCase()}
+                  <div className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditModalOpen(true)}
+                      title="Klik untuk ubah foto profil"
+                      className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-black text-on-primary ring-2 ring-primary/20 overflow-hidden shadow-xs hover:ring-4 hover:ring-primary/40 transition-all cursor-pointer"
+                    >
+                      {avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={avatarUrl}
+                          alt={userName}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span>{userName.slice(0, 1).toUpperCase()}</span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditModalOpen(true)}
+                      aria-label="Ubah foto profil"
+                      className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-secondary-fixed text-on-secondary-fixed shadow flex items-center justify-center hover:scale-110 transition cursor-pointer"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 ) : (
                   <div className="h-16 w-16 rounded-full bg-surface-container-high ring-2 ring-outline-variant/30 animate-pulse" />
@@ -105,7 +155,7 @@ export default function ProfilPage() {
                   {isLoaded && userName ? (
                     <>
                       <h1 className="text-2xl font-black text-on-surface">{userName}</h1>
-                      <p className="text-sm text-on-surface-variant">{userName.toLowerCase().replaceAll(" ", "_")} • Sulawesi Tengah</p>
+                      <p className="text-sm text-on-surface-variant">{session?.email || `${userName.toLowerCase().replaceAll(" ", "_")}@laras.id`}</p>
                     </>
                   ) : (
                     <>
@@ -116,7 +166,15 @@ export default function ProfilPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-primary text-on-primary px-4 py-2.5 text-sm font-black shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-[1px] active:shadow-none transition cursor-pointer"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Edit Profil
+                </button>
                 <Link
                   href="/dashboard/pengaturan"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-surface-container px-4 py-2.5 text-sm font-bold text-on-surface ring-1 ring-outline-variant/25 transition hover:bg-surface-container-high"
@@ -246,6 +304,16 @@ export default function ProfilPage() {
             </div>
           </section>
         </div>
-    </main>
+      </main>
+
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        currentName={userName}
+        currentEmail={session?.email || ""}
+        currentAvatar={avatarUrl}
+        onProfileUpdated={handleProfileUpdated}
+      />
+    </>
   );
 }
