@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { getSession } from "../../auth/authClient";
-import { recordLessonResult } from "../progress";
+import { readProgress, recordLessonResult } from "../progress";
 
 const decisions = [
   {
@@ -60,6 +60,7 @@ export default function CultureConnectionPage() {
   const router = useRouter();
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
+  const [isAlreadyClaimed, setIsAlreadyClaimed] = useState(false);
   const [decisionStep, setDecisionStep] = useState(0);
   const [selectedDecision, setSelectedDecision] = useState("");
   const [harmony, setHarmony] = useState(0);
@@ -68,8 +69,13 @@ export default function CultureConnectionPage() {
 
   useEffect(() => {
     getSession().then((session) => {
-      setSessionEmail(session?.email ?? "");
+      const email = session?.email ?? "";
+      setSessionEmail(email);
       setSessionReady(true);
+      if (email) {
+        const prog = readProgress(email);
+        setIsAlreadyClaimed(Boolean(prog.cultureConnectionClaimed || prog.completedLessons.includes(4)));
+      }
     });
   }, []);
 
@@ -84,9 +90,10 @@ export default function CultureConnectionPage() {
       answered: "culture-connection",
       correct: true,
       score: Math.max(60, harmony * 20),
-      xp: 30,
+      xp: isAlreadyClaimed ? 0 : 30,
       completedAt: new Date().toISOString(),
     });
+    setIsAlreadyClaimed(true);
     setIsClaiming(true);
     setTimeout(() => {
       setIsClaiming(false);
@@ -109,7 +116,7 @@ export default function CultureConnectionPage() {
         title="Culture Connection Studio"
         subtitle="Simulasi Peristiwa Kontekstual Adat"
       />
-      <main className="relative pt-20 px-4 lg:px-8 w-full min-h-screen overflow-x-clip font-sans">
+      <main className="relative pt-28 px-4 lg:px-8 w-full min-h-screen overflow-x-clip font-sans">
         <div className="w-full max-w-6xl mx-auto pb-16 flex flex-col gap-6">
           {/* Top Banner / Scenario Sub-header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-6 rounded-2xl shadow-xs border border-outline-variant/30">
@@ -286,7 +293,7 @@ export default function CultureConnectionPage() {
             </section>
 
             {/* RIGHT COLUMN: 3-Step Interactive Decision Panel */}
-            <div className="lg:col-span-7 flex flex-col gap-4">
+            <div id="interactive-decision-panel" className="lg:col-span-7 flex flex-col gap-4 scroll-mt-28">
               {currentDecision ? (
                 <div className="bg-primary-fixed/30 p-6 rounded-2xl shadow-xs flex flex-col gap-4 border border-primary/20">
                   <div className="flex items-center justify-between gap-3">
@@ -524,8 +531,13 @@ export default function CultureConnectionPage() {
                     <div className="flex items-center gap-3 mt-0.5 text-body-sm flex-wrap">
                       <span className="inline-flex items-center gap-1 text-label-md text-secondary font-bold">
                         <Zap className="w-4 h-4" />
-                        +30 XP Kemahiran
+                        {isAlreadyClaimed ? "+0 XP (Sudah diklaim)" : "+30 XP Kemahiran"}
                       </span>
+                      {isAlreadyClaimed && (
+                        <span className="text-body-xs text-on-surface-variant font-medium">
+                          • Replay skenario (tanpa XP baru)
+                        </span>
+                      )}
                       <span>•</span>
                       <span className="inline-flex items-center gap-1 text-label-md text-tertiary font-bold">
                         <BadgeCheck className="w-4 h-4" />
@@ -548,7 +560,13 @@ export default function CultureConnectionPage() {
                     </>
                   ) : (
                     <>
-                      <span>{decisionStep < decisions.length ? "Selesaikan Keputusan" : "Klaim Hadiah &amp; Simpan ke Paspor"}</span>
+                      <span>
+                        {decisionStep < decisions.length
+                          ? "Selesaikan Keputusan"
+                          : isAlreadyClaimed
+                          ? "Sudah Diklaim • Buka Paspor"
+                          : "Klaim Hadiah & Simpan ke Paspor"}
+                      </span>
                       <ArrowRight className="w-5 h-5" />
                     </>
                   )}

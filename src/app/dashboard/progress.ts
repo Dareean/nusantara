@@ -9,6 +9,7 @@ export type LessonResult = {
   completedAt: string;
   totalExercises?: number;
   correctExercises?: number;
+  firstAttemptCorrect?: number;
   bonusXp?: number;
   heartsRemaining?: number;
   completed?: boolean;
@@ -24,6 +25,7 @@ export type LessonSessionResult = {
   bonusXp: number;
   totalExercises: number;
   correctExercises: number;
+  firstAttemptCorrect?: number;
   heartsRemaining: number;
   completedAt: string;
 };
@@ -37,6 +39,7 @@ export type UserProgress = {
   badges: string[];
   lastLesson: LessonResult | null;
   lastStudyDate: string | null;
+  cultureConnectionClaimed?: boolean;
 };
 
 const PROGRESS_PREFIX = "laras.progress.";
@@ -51,6 +54,7 @@ export const DEFAULT_PROGRESS: UserProgress = {
   badges: [],
   lastLesson: null,
   lastStudyDate: null,
+  cultureConnectionClaimed: false,
 };
 
 function progressKey(email: string) {
@@ -68,14 +72,22 @@ export function readProgress(email: string): UserProgress {
     const raw = window.localStorage.getItem(progressKey(email));
     if (!raw) return DEFAULT_PROGRESS;
     const parsed = JSON.parse(raw) as Partial<UserProgress>;
+    const today = new Date().toISOString().slice(0, 10);
+    const isNewDay = Boolean(parsed.lastStudyDate && parsed.lastStudyDate < today);
+    const hearts = isNewDay
+      ? 3
+      : (typeof parsed.hearts === "number" ? parsed.hearts : 3);
+
     return {
       ...DEFAULT_PROGRESS,
       ...parsed,
+      hearts,
       completedLessons: parsed.completedLessons ?? [],
       unlockedLessons: parsed.unlockedLessons ?? [1],
       badges: parsed.badges ?? [],
       lastLesson: parsed.lastLesson ?? null,
       lastStudyDate: parsed.lastStudyDate ?? null,
+      cultureConnectionClaimed: Boolean(parsed.cultureConnectionClaimed),
     };
   } catch {
     return DEFAULT_PROGRESS;
@@ -119,6 +131,7 @@ export function mergeClientProgress(
   }
 
   const lastStudyDate = remote.lastStudyDate || local.lastStudyDate || null;
+  const cultureConnectionClaimed = Boolean(local.cultureConnectionClaimed || remote.cultureConnectionClaimed);
 
   return {
     xp,
@@ -129,6 +142,7 @@ export function mergeClientProgress(
     badges,
     lastLesson,
     lastStudyDate,
+    cultureConnectionClaimed,
   };
 }
 
@@ -312,10 +326,11 @@ export function recordLessonResult(email: string, result: LessonResult) {
     badges = [...badges, badgeTitle];
   }
 
-  // Culture Connection bonus XP is always awarded upon claiming
+  // Culture Connection claim can only be awarded once
   const isCultureConnection = result.answered === "culture-connection";
+  const ccAlreadyClaimed = Boolean(current.cultureConnectionClaimed || alreadyCompleted);
   const xpToAdd = isCultureConnection
-    ? (result.correct ? result.xp : 0)
+    ? (result.correct && !ccAlreadyClaimed ? result.xp : 0)
     : (result.correct && !alreadyCompleted ? result.xp : 0);
 
   const next: UserProgress = {
@@ -332,6 +347,7 @@ export function recordLessonResult(email: string, result: LessonResult) {
     badges,
     lastLesson: result,
     lastStudyDate: today,
+    cultureConnectionClaimed: Boolean(current.cultureConnectionClaimed || isCultureConnection),
   };
   saveProgress(email, next);
   return next;
@@ -352,17 +368,22 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
         ? current.streak + 1
         : Math.max(1, current.streak);
 
+  const isTuntas = result.correctExercises === result.totalExercises;
+  // Single source of truth: hearts remaining from the session is persisted directly
+  const finalHearts = Math.max(0, result.heartsRemaining);
+
   const lessonResult: LessonResult = {
     lessonId: result.lessonId,
     answered: result.answered,
-    correct: result.correctExercises === result.totalExercises,
+    correct: isTuntas,
     score: result.score,
     xp: alreadyCompleted ? 0 : result.xpEarned,
     bonusXp: alreadyCompleted ? 0 : result.bonusXp,
     baseRewardXp: result.xpEarned,
     totalExercises: result.totalExercises,
     correctExercises: result.correctExercises,
-    heartsRemaining: result.heartsRemaining,
+    firstAttemptCorrect: result.firstAttemptCorrect !== undefined ? result.firstAttemptCorrect : result.correctExercises,
+    heartsRemaining: finalHearts,
     completed: true,
     completedAt: result.completedAt,
     isRepeat: alreadyCompleted,
@@ -381,7 +402,7 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
     ...current,
     xp: alreadyCompleted ? current.xp : current.xp + result.xpEarned + result.bonusXp,
     streak,
-    hearts: result.heartsRemaining,
+    hearts: finalHearts,
     completedLessons: alreadyCompleted
       ? current.completedLessons
       : [...current.completedLessons, result.lessonId],

@@ -26,6 +26,8 @@ export default function EvaluasiJawabanPage() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [timerCount, setTimerCount] = useState(4);
   const [isExpandedCulture, setIsExpandedCulture] = useState(false);
+  const [isExpandedAudio, setIsExpandedAudio] = useState(false);
+  const [isExpandedNotes, setIsExpandedNotes] = useState(false);
 
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   const [lessonResult, setLessonResult] = useState<LessonResult | null>(null);
@@ -172,65 +174,76 @@ export default function EvaluasiJawabanPage() {
                 </div>
               </div>
 
-              {/* Native Audio Station */}
-              <div className="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl shadow-xs flex flex-col gap-3.5 border border-outline-variant/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-primary text-label-md uppercase tracking-wider font-bold">
+              {/* Native Audio Station - Folded Accordion */}
+              <div className="bg-surface-container-lowest p-4 rounded-2xl shadow-xs flex flex-col gap-3 border border-outline-variant/30">
+                <button
+                  type="button"
+                  onClick={() => setIsExpandedAudio(!isExpandedAudio)}
+                  className="flex items-center justify-between w-full text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 text-primary text-label-md uppercase tracking-wider font-bold">
                     <Volume2 className="w-4 h-4" />
                     <span>Audio Penutur Asli</span>
+                    <span className="text-on-surface-variant text-label-xs font-normal normal-case hidden sm:inline ml-1">
+                      (Dialek Ledo)
+                    </span>
                   </div>
-                  <span className="text-on-surface-variant text-label-sm font-medium">
-                    Dialek Ledo Murni
+                  <span className="text-primary text-xs font-bold hover:underline">
+                    {isExpandedAudio ? "Tutup audio" : "Dengarkan audio"}
                   </span>
-                </div>
+                </button>
 
-                <div className="bg-surface-container-low p-3.5 rounded-xl flex items-center gap-3.5 border border-outline-variant/20">
-                  <button
-                    type="button"
-                    onClick={toggleAudio}
-                    className={`w-11 h-11 rounded-full text-on-primary flex items-center justify-center shadow-md transition-all active:scale-95 shrink-0 cursor-pointer ${
-                      isPlayingAudio ? "bg-tertiary" : "bg-primary"
-                    }`}
-                  >
-                    {isPlayingAudio ? (
-                      <Pause className="w-5 h-5" />
-                    ) : (
-                      <Play className="w-5 h-5 fill-current ml-0.5" />
-                    )}
-                  </button>
-                  <div className="flex-1 flex flex-col gap-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-title-sm sm:text-title-md text-primary font-bold truncate">
-                        &ldquo;Tabe pue, nalompa mai kami...&rdquo;
-                      </span>
-                      <span className="text-label-sm text-on-surface-variant font-bold shrink-0">
-                        00:0{timerCount}
-                      </span>
+                {isExpandedAudio && (
+                  <div className="flex flex-col gap-3 pt-2 border-t border-outline-variant/20">
+                    <div className="bg-surface-container-low p-3.5 rounded-xl flex items-center gap-3.5 border border-outline-variant/20">
+                      <button
+                        type="button"
+                        onClick={toggleAudio}
+                        className={`w-11 h-11 rounded-full text-on-primary flex items-center justify-center shadow-md transition-all active:scale-95 shrink-0 cursor-pointer ${
+                          isPlayingAudio ? "bg-tertiary" : "bg-primary"
+                        }`}
+                      >
+                        {isPlayingAudio ? (
+                          <Pause className="w-5 h-5" />
+                        ) : (
+                          <Play className="w-5 h-5 fill-current ml-0.5" />
+                        )}
+                      </button>
+                      <div className="flex-1 flex flex-col gap-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-title-sm sm:text-title-md text-primary font-bold truncate">
+                            &ldquo;Tabe pue, nalompa mai kami...&rdquo;
+                          </span>
+                          <span className="text-label-sm text-on-surface-variant font-bold shrink-0">
+                            00:0{timerCount}
+                          </span>
+                        </div>
+
+                        <div className="h-4 flex items-center gap-1.5 w-full">
+                          <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-4 float-lift" : "h-2.5"}`}></span>
+                          <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-3" : "h-4"}`}></span>
+                          <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-4" : "h-2"}`}></span>
+                          <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-3.5 float-lift" : "h-4"}`}></span>
+                          <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-2.5" : "h-3"}`}></span>
+                          <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-4" : "h-3.5"}`}></span>
+                          <span className="w-1 h-2 rounded-full bg-outline-variant"></span>
+                          <span className="w-1 h-3 rounded-full bg-outline-variant"></span>
+                          <span className="w-1 h-1.5 rounded-full bg-outline-variant"></span>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="h-4 flex items-center gap-1.5 w-full">
-                      <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-4 float-lift" : "h-2.5"}`}></span>
-                      <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-3" : "h-4"}`}></span>
-                      <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-4" : "h-2"}`}></span>
-                      <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-3.5 float-lift" : "h-4"}`}></span>
-                      <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-2.5" : "h-3"}`}></span>
-                      <span className={`w-1 bg-primary rounded-full transition-all ${isPlayingAudio ? "h-4" : "h-3.5"}`}></span>
-                      <span className="w-1 h-2 rounded-full bg-outline-variant"></span>
-                      <span className="w-1 h-3 rounded-full bg-outline-variant"></span>
-                      <span className="w-1 h-1.5 rounded-full bg-outline-variant"></span>
+                    <div className="flex items-center justify-between pt-0.5 text-on-surface-variant text-label-sm">
+                      <span className="flex items-center gap-1 text-xs sm:text-label-sm">
+                        <BadgeCheck className="w-4 h-4 text-primary shrink-0" />
+                        Kak Rusdi (38 thn, Palu Barat)
+                      </span>
+                      <span className="text-secondary font-semibold text-xs sm:text-label-sm">
+                        Tervalidasi BPK Wil. XVIII
+                      </span>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-0.5 text-on-surface-variant text-label-sm">
-                  <span className="flex items-center gap-1 text-xs sm:text-label-sm">
-                    <BadgeCheck className="w-4 h-4 text-primary shrink-0" />
-                    Kak Rusdi (38 thn, Palu Barat)
-                  </span>
-                  <span className="text-secondary font-semibold text-xs sm:text-label-sm">
-                    Tervalidasi BPK Wil. XVIII
-                  </span>
-                </div>
+                )}
               </div>
 
               {/* Etiquette Micro Card */}
@@ -257,7 +270,7 @@ export default function EvaluasiJawabanPage() {
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-end">
                     <span className="px-2.5 py-1 bg-surface-container-high rounded-full text-on-surface text-label-sm font-bold shadow-2xs">
-                      {lessonResult?.correctExercises ?? 0}/{lessonResult?.totalExercises ?? 0} exercise tepat
+                      {lessonResult?.firstAttemptCorrect ?? lessonResult?.correctExercises ?? 0}/{lessonResult?.totalExercises ?? 0} exercise tepat (percobaan pertama)
                     </span>
                   </div>
                   <h2 className="text-headline-md text-on-surface font-extrabold leading-tight mt-1 line-clamp-2">
@@ -325,23 +338,36 @@ export default function EvaluasiJawabanPage() {
                 </div>
               </div>
 
-              {/* Cultural Nuance Callout Box */}
+              {/* Cultural Nuance Callout Box - Folded Accordion */}
               <div className="bg-secondary-fixed/30 p-4 rounded-xl flex flex-col gap-2 border border-secondary/20">
-                <div className="flex items-center gap-2 text-on-secondary-fixed-variant">
-                  <ShieldAlert className="w-4 h-4 text-secondary shrink-0" />
-                  <h3 className="text-title-sm font-bold">
-                    Catatan Budaya • Variasi Tradisi &amp; Ragam Dialek
-                  </h3>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-on-secondary-fixed-variant">
+                    <ShieldAlert className="w-4 h-4 text-secondary shrink-0" />
+                    <h3 className="text-title-sm font-bold">
+                      Catatan Budaya • Variasi Tradisi &amp; Ragam Dialek
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsExpandedNotes(!isExpandedNotes)}
+                    className="text-primary font-bold text-xs hover:underline shrink-0 cursor-pointer"
+                  >
+                    {isExpandedNotes ? "Sembunyikan" : "Baca selengkapnya"}
+                  </button>
                 </div>
-                <p className="text-body-sm text-on-surface leading-relaxed">
-                  Di antara rumpun Kaili (Ledo, Tara, Rai, dan Da&apos;a), kata pembuka sapaan dapat bervariasi antara{" "}
-                  <strong className="text-primary font-bold">&ldquo;Tabe pue&rdquo;</strong> dan{" "}
-                  <strong className="text-primary font-bold">&ldquo;Ntabe opu&rdquo;</strong>. Dalam kurikulum LARAS, kedua variasi ini diakui secara sejajar dan tidak dinilai salah dalam ujian esai terbuka demi melindungi dialek minoritas pesisir Donggala.
-                </p>
-                <div className="flex items-center justify-between pt-0.5 text-on-secondary-fixed-variant text-label-sm opacity-90">
-                  <span>Rujukan: Risalah Lembaga Adat Kaili &amp; BPK</span>
-                  <span className="underline cursor-pointer hover:text-primary font-bold">Lihat Arsip Adat →</span>
-                </div>
+                {isExpandedNotes && (
+                  <div className="flex flex-col gap-2 pt-1 border-t border-secondary/20">
+                    <p className="text-body-sm text-on-surface leading-relaxed">
+                      Di antara rumpun Kaili (Ledo, Tara, Rai, dan Da&apos;a), kata pembuka sapaan dapat bervariasi antara{" "}
+                      <strong className="text-primary font-bold">&ldquo;Tabe pue&rdquo;</strong> dan{" "}
+                      <strong className="text-primary font-bold">&ldquo;Ntabe opu&rdquo;</strong>. Dalam kurikulum LARAS, kedua variasi ini diakui secara sejajar dan tidak dinilai salah dalam ujian esai terbuka demi melindungi dialek minoritas pesisir Donggala.
+                    </p>
+                    <div className="flex items-center justify-between pt-0.5 text-on-secondary-fixed-variant text-label-sm opacity-90">
+                      <span>Rujukan: Risalah Lembaga Adat Kaili &amp; BPK</span>
+                      <span className="underline cursor-pointer hover:text-primary font-bold">Lihat Arsip Adat →</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Feedback Sheet & Action Buttons */}

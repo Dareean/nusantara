@@ -36,10 +36,13 @@ function persistSession(sess: ClientSession | null) {
   } catch {}
 }
 
+let serverVerified = false;
+
 export async function register(name: string, email: string, password: string) {
   const data = await apiRequest('/api/auth/register', 'POST', { name, email, password });
   const sess: ClientSession = { email: data.email, name: data.name, isAdmin: false };
   cachedSession = sess;
+  serverVerified = true;
   persistSession(sess);
   return sess;
 }
@@ -48,12 +51,14 @@ export async function login(email: string, password: string) {
   const data = await apiRequest('/api/auth/login', 'POST', { email, password });
   const sess: ClientSession = { email: data.email, name: data.name, isAdmin: Boolean(data.isAdmin) };
   cachedSession = sess;
+  serverVerified = true;
   persistSession(sess);
   return sess;
 }
 
 export async function logout() {
   cachedSession = null;
+  serverVerified = false;
   sessionPromise = null;
   persistSession(null);
   try {
@@ -62,25 +67,42 @@ export async function logout() {
 }
 
 export async function getSession(forceRefresh = false): Promise<ClientSession | null> {
-  if (cachedSession && !forceRefresh) return cachedSession;
+  // If the server has already verified the session during this page lifecycle, and not forceRefresh, return cache
+  if (serverVerified && cachedSession && !forceRefresh) return cachedSession;
   if (sessionPromise && !forceRefresh) return sessionPromise;
 
   sessionPromise = (async () => {
     try {
       const data = await apiRequest('/api/auth/session', 'GET');
       if (data?.ok && data.session) {
-        cachedSession = {
+        const verified: ClientSession = {
           email: data.session.email,
           name: data.session.name,
           isAdmin: Boolean(data.session.isAdmin),
         };
-        persistSession(cachedSession);
-        return cachedSession;
+        const prevEmail = cachedSession?.email;
+        cachedSession = verified;
+        serverVerified = true;
+        persistSession(verified);
+
+        // If server identity differs from initial optimistic cache, notify app
+        if (typeof window !== 'undefined' && prevEmail && prevEmail.toLowerCase() !== verified.email.toLowerCase()) {
+          window.dispatchEvent(new CustomEvent('laras-identity-changed', { detail: verified }));
+          window.dispatchEvent(new Event('laras-progress-updated'));
+        }
+        return verified;
       }
+
+      // Server answered no session: wipe local cache
       cachedSession = null;
+      serverVerified = true;
       persistSession(null);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('laras-progress-updated'));
+      }
       return null;
     } catch {
+      // Offline fallback: keep cached session if available
       return cachedSession;
     } finally {
       sessionPromise = null;

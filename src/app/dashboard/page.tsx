@@ -570,14 +570,17 @@ export default function DashboardPage() {
                 <Zap className="h-5 w-5 text-secondary" />
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-surface-container-low p-3">
-                  <Heart className="h-4 w-4 text-error" />
-                  {isLoaded ? (
-                    <p className="mt-2 text-lg font-black">{progress.hearts}</p>
-                  ) : (
-                    <div className="mt-2 h-6 w-8 rounded bg-surface-container-high animate-pulse" />
-                  )}
-                  <p className="text-xs font-bold text-on-surface-variant">hearts</p>
+                <div className="rounded-2xl bg-surface-container-low p-3 flex flex-col justify-between">
+                  <div>
+                    <Heart className="h-4 w-4 text-error" />
+                    {isLoaded ? (
+                      <p className="mt-2 text-lg font-black">{progress.hearts}/3</p>
+                    ) : (
+                      <div className="mt-2 h-6 w-8 rounded bg-surface-container-high animate-pulse" />
+                    )}
+                    <p className="text-xs font-bold text-on-surface-variant">hearts</p>
+                  </div>
+                  <p className="mt-1 text-[10px] text-on-surface-variant leading-tight">Terisi penuh kembali setiap hari baru</p>
                 </div>
                 <div className="rounded-2xl bg-surface-container-low p-3">
                   <Trophy className="h-4 w-4 text-secondary" />
