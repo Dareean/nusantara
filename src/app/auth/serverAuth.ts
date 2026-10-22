@@ -6,15 +6,23 @@ import {
   verifySessionTokenSync,
   DEFAULT_SESSION_TTL,
 } from '@/lib/auth/sessionToken';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export { DEFAULT_SESSION_TTL };
 
-type User = { name: string; email: string; passwordHash: string; isAdmin?: boolean };
+type User = {
+  name: string;
+  email: string;
+  passwordHash: string;
+  isAdmin?: boolean;
+  avatarUrl?: string;
+};
 
 export type SessionEntry = {
   email: string;
   name: string;
   isAdmin: boolean;
+  avatarUrl?: string;
   createdAt: number;
   expiresAt: number;
 };
@@ -64,6 +72,7 @@ function loadStore() {
           name: u.name,
           email: email.toLowerCase(),
           passwordHash: u.passwordHash,
+          avatarUrl: u.avatarUrl || '',
           isAdmin: isAdminEmail(email),
         });
       });
@@ -79,7 +88,7 @@ function saveStore() {
       users: Object.fromEntries(
         Array.from(users.entries()).map(([email, u]) => [
           email,
-          { name: u.name, passwordHash: u.passwordHash },
+          { name: u.name, passwordHash: u.passwordHash, avatarUrl: u.avatarUrl || '' },
         ])
       ),
     };
@@ -130,19 +139,23 @@ export function getUserByEmail(email: string | null | undefined): User | undefin
 
 /**
  * Creates a stateless signed session token (HMAC-SHA256).
- * Contains { email, name, isAdmin, exp, iat }.
+ * Contains { email, name, isAdmin, avatarUrl, exp, iat }.
  */
 export function createSessionForUser(
-  user: { name: string; email: string },
+  user: { name: string; email: string; avatarUrl?: string },
   ttlMs: number = DEFAULT_SESSION_TTL
 ): string {
   const normalizedEmail = user.email.toLowerCase().trim();
   const isUserAdmin = isAdminEmail(normalizedEmail);
+  const existing = getUserByEmail(normalizedEmail);
+  const avatarUrl = user.avatarUrl !== undefined ? user.avatarUrl : (existing?.avatarUrl || '');
+
   return createSessionTokenSync(
     {
       email: normalizedEmail,
       name: user.name,
       isAdmin: isUserAdmin,
+      avatarUrl,
     },
     ttlMs
   );
@@ -157,10 +170,14 @@ export function getSession(sessionId: string | null | undefined): SessionEntry |
   const payload = verifySessionTokenSync(sessionId);
   if (!payload) return null;
 
+  const existing = getUserByEmail(payload.email);
+  const avatarUrl = payload.avatarUrl || existing?.avatarUrl || '';
+
   return {
     email: payload.email,
-    name: payload.name,
+    name: existing?.name || payload.name,
     isAdmin: Boolean(payload.isAdmin || isAdminEmail(payload.email)),
+    avatarUrl,
     createdAt: payload.iat,
     expiresAt: payload.exp,
   };
@@ -171,4 +188,107 @@ export function getSession(sessionId: string | null | undefined): SessionEntry |
  */
 export function destroySession(sessionId: string | null | undefined): boolean {
   return Boolean(sessionId);
+}
+
+/**
+ * Memperbarui data profil pengguna (nama, avatar, password)
+ * dan mensinkronisasikan ke Supabase table `public.user_profiles`
+ */
+export async function updateUserProfile(
+  email: string,
+  updates: { name?: string; newPassword?: string; currentPassword?: string; avatarUrl?: string }
+): Promise<{ success: boolean; error?: string; user?: { name: string; email: string; avatarUrl?: string } }> {
+  const normalized = email.toLowerCase().trim();
+  const existing = getUserByEmail(normalized);
+
+  // Jika ada permintaan ubah kata sandi
+  if (updates.newPassword) {
+    if (updates.newPassword.length < 6) {
+      return { success: false, error: 'Kata sandi baru minimal 6 karakter.' };
+    }
+    // Jika akun sudah memiliki kata sandi aktif dan memasukkan currentPassword, verifikasi
+    if (existing && existing.passwordHash && updates.currentPassword) {
+      const hashedCurrent = hashPassword(updates.currentPassword);
+      if (hashedCurrent !== existing.passwordHash) {
+        return { success: false, error: 'Kata sandi saat ini keliru.' };
+      }
+    }
+  }
+
+  const updatedName = updates.name?.trim() || existing?.name || normalized.split('@')[0];
+  const updatedAvatar = updates.avatarUrl !== undefined ? updates.avatarUrl : (existing?.avatarUrl || '');
+  const updatedPasswordHash = updates.newPassword ? hashPassword(updates.newPassword) : existing?.passwordHash || '';
+
+  // 1. Perbarui penyimpanan lokal (in-memory & json file)
+  users.set(normalized, {
+    name: updatedName,
+    email: normalized,
+    passwordHash: updatedPasswordHash,
+    isAdmin: isAdminEmail(normalized),
+    avatarUrl: updatedAvatar,
+  });
+  saveStore();
+
+  // 2. Sinkronkan ke database Supabase (tabel public.user_profiles)
+  try {
+    const admin = createAdminClient();
+    const { error: sbErr } = await admin.from('user_profiles').upsert(
+      {
+        email: normalized,
+        name: updatedName,
+        password_hash: updatedPasswordHash,
+        avatar_url: updatedAvatar,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'email' }
+    );
+    if (sbErr) {
+      console.warn('Catatan: tabel user_profiles di Supabase belum dibuat atau gagal upsert:', sbErr.message);
+    }
+  } catch (err) {
+    console.warn('Koneksi database user_profiles Supabase:', err);
+  }
+
+  return {
+    success: true,
+    user: {
+      name: updatedName,
+      email: normalized,
+      avatarUrl: updatedAvatar,
+    },
+  };
+}
+
+export async function getUserProfile(email: string) {
+  const normalized = email.toLowerCase().trim();
+  let name = normalized.split('@')[0];
+  let avatarUrl = '';
+  let hasPassword = false;
+
+  // 1. Coba baca dari Supabase user_profiles
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin.from('user_profiles').select('*').eq('email', normalized).maybeSingle();
+    if (data) {
+      if (data.name) name = data.name;
+      if (data.avatar_url) avatarUrl = data.avatar_url;
+      hasPassword = Boolean(data.password_hash);
+    }
+  } catch {}
+
+  // 2. Baca dari store lokal
+  const local = getUserByEmail(normalized);
+  if (local) {
+    name = local.name || name;
+    avatarUrl = local.avatarUrl || avatarUrl;
+    hasPassword = Boolean(local.passwordHash) || hasPassword;
+  }
+
+  return {
+    email: normalized,
+    name,
+    avatarUrl,
+    hasPassword,
+    isAdmin: isAdminEmail(normalized),
+  };
 }

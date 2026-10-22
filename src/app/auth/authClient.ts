@@ -2,6 +2,7 @@ export type ClientSession = {
   email: string;
   name: string;
   isAdmin: boolean;
+  avatarUrl?: string;
 };
 
 let cachedSession: ClientSession | null = null;
@@ -126,6 +127,24 @@ export function getCachedSessionSync(): ClientSession | null {
   return null;
 }
 
-const authClient = { register, login, logout, getSession, getCachedSessionSync };
+export async function updateProfile(payload: {
+  name?: string;
+  avatarUrl?: string;
+  currentPassword?: string;
+  newPassword?: string;
+}): Promise<ClientSession> {
+  const data = await apiRequest('/api/user/profile', 'PUT', payload as Record<string, string>);
+  if (data?.session) {
+    cachedSession = data.session;
+    persistSession(data.session);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('laras-profile-updated', { detail: data.session }));
+    }
+    return data.session;
+  }
+  throw new Error(data?.error || 'Gagal memperbarui profil');
+}
+
+const authClient = { register, login, logout, getSession, getCachedSessionSync, updateProfile };
 
 export default authClient;

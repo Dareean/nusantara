@@ -26,6 +26,7 @@ export default function TopBar({
   const isHome = pathname === "/dashboard" || pathname === "/dashboard/";
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   const [userName, setUserName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export default function TopBar({
     let email = cached?.email || "";
     if (cached) {
       setUserName(cached.name);
+      setAvatarUrl(cached.avatarUrl || "");
       setProgress(readProgress(cached.email));
       setIsLoaded(true);
     }
@@ -44,6 +46,7 @@ export default function TopBar({
       }
       email = session.email;
       setUserName(session.name);
+      setAvatarUrl(session.avatarUrl || "");
       const local = readProgress(email);
       setProgress(local);
       setIsLoaded(true);
@@ -55,7 +58,20 @@ export default function TopBar({
       if (email) setProgress(readProgress(email));
     };
     window.addEventListener("laras-progress-updated", refresh);
-    return () => window.removeEventListener("laras-progress-updated", refresh);
+
+    const onProfileChanged = (e: Event) => {
+      const detail = (e as CustomEvent<{ name: string; avatarUrl?: string }>).detail;
+      if (detail) {
+        if (detail.name) setUserName(detail.name);
+        if (detail.avatarUrl !== undefined) setAvatarUrl(detail.avatarUrl);
+      }
+    };
+    window.addEventListener("laras-profile-updated", onProfileChanged);
+
+    return () => {
+      window.removeEventListener("laras-progress-updated", refresh);
+      window.removeEventListener("laras-profile-updated", onProfileChanged);
+    };
   }, []);
 
   const headerClasses = hasSidebar
@@ -139,8 +155,17 @@ export default function TopBar({
             className="flex items-center gap-2 pl-1 hover:opacity-85 transition-opacity"
           >
             {isLoaded && userName ? (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-black text-on-primary ring-2 ring-primary/20 sm:h-9 sm:w-9">
-                {userName.slice(0, 1).toUpperCase()}
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-black text-on-primary ring-2 ring-primary/20 overflow-hidden sm:h-9 sm:w-9">
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarUrl}
+                    alt={userName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span>{userName.slice(0, 1).toUpperCase()}</span>
+                )}
               </div>
             ) : (
               <div className="h-8 w-8 rounded-full bg-surface-container-high ring-2 ring-outline-variant/30 animate-pulse sm:h-9 sm:w-9" />
