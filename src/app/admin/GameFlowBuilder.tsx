@@ -83,7 +83,7 @@ export default function GameFlowBuilder() {
       setActiveSession(list[0]);
     }
 
-    // Ambil seluruh sesi termasuk draft dari server untuk kurator admin
+    // Ambil seluruh sesi termasuk draft dari server untuk pengelola konten
     fetch("/api/content/sessions?all=1", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))
       .then((serverData) => {
@@ -198,10 +198,10 @@ export default function GameFlowBuilder() {
           : "Apa makna ungkapan atau tata krama adat berikut ini?",
       subPrompt: "Pilihlah satu opsi yang paling mencerminkan adab luhur masyarakat Kaili.",
       badge: type === "hotspot" ? "Hotspot Visual" : "Tata Krama & Bahasa",
-      category: "Kurasi Adat",
+      category: "Materi Budaya",
       term: type === "hotspot" ? "Artefak Adat" : "Istilah Kaili",
       imageUrl: type === "hotspot" ? IMAGE_PRESETS[0].url : IMAGE_PRESETS[2].url,
-      imageCaption: "Arsip dokumentasi resmi kurator adat.",
+      imageCaption: "Arsip dokumentasi materi pembelajaran.",
       hotspots:
         type === "hotspot"
           ? [
@@ -242,7 +242,7 @@ export default function GameFlowBuilder() {
           isCorrect: false,
         },
       ],
-      curatorNote: "Catatan edukatif kurator adat: Konteks pemakaian ini disahkan oleh Dewan Adat.",
+      curatorNote: "Catatan edukatif: Konteks materi ini bersumber dari dokumentasi budaya Kaili.",
     };
 
     const updatedSession = {
@@ -433,7 +433,7 @@ export default function GameFlowBuilder() {
                         : "text-on-surface-variant hover:text-on-surface"
                     }`}
                   >
-                    Draf (Kurator)
+                    Draf (Admin)
                   </button>
                 </div>
               </div>
@@ -842,7 +842,7 @@ export default function GameFlowBuilder() {
                           id: nextId,
                           name: `Bagian ${nextId}`,
                           title: `Titik Ornamen ${nextId}`,
-                          description: "Keterangan kurator adat untuk titik ini.",
+                          description: "Keterangan materi untuk titik ini.",
                           tag: "Akustik / Struktur",
                           top: `${20 + nextId * 15}%`,
                           left: `${30 + nextId * 10}%`,
@@ -1103,7 +1103,7 @@ export default function GameFlowBuilder() {
             {/* Curator Note (Lore on check) */}
             <div>
               <label className="text-label-sm font-bold text-on-surface">
-                Catatan Edukatif / Lore Kurator Adat (Muncul di Drawer saat Murid Menjawab)
+                Catatan Edukatif / Penjelasan Materi (Muncul di Drawer saat Murid Menjawab)
               </label>
               <textarea
                 rows={2}
@@ -1114,7 +1114,7 @@ export default function GameFlowBuilder() {
                   setActiveSession({ ...activeSession, questions: updated });
                 }}
                 className="w-full mt-1 p-2.5 rounded-xl bg-surface-container-low text-body-sm text-on-surface border border-outline-variant/20 focus:ring-1 focus:ring-primary focus:outline-none"
-                placeholder="Penjelasan keabsahan adat Kaili untuk jawaban ini..."
+                placeholder="Penjelasan konteks materi adat Kaili untuk jawaban ini..."
               />
             </div>
           </div>
