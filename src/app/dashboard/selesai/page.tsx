@@ -254,10 +254,10 @@ function SelesaiContent() {
                 <div className="w-full bg-surface-container-lowest/80 rounded-xl p-2.5 flex flex-col gap-1">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-label-sm text-on-surface-variant truncate">
-                      Gelar Penjelajah Budaya Kaili
+                      Progres Gelar Budaya Kaili
                     </span>
                     <span className="text-label-sm text-primary font-extrabold">
-                      +{progress.completedLessons.length > 0 ? 5 : 0}% ({Math.min(progress.completedLessons.length * 20, 100)}%)
+                      {Math.min(progress.completedLessons.length * 25, 100)}% tercapai
                     </span>
                   </div>
                   <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">

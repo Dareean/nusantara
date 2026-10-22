@@ -58,7 +58,7 @@ export default function AchievementPage() {
           <section className="rounded-[24px] bg-gradient-to-br from-[#fff3e8] via-[#f9dfc9] to-[#f0ae7d] p-4 shadow-[0_12px_22px_-16px_rgba(168,50,17,0.28)] ring-1 ring-[#f0c9a7] sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-primary">Achievement</p>
+                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-primary">Paspor</p>
                 <h1 className="mt-2 text-2xl font-black tracking-tight text-[#351d13] sm:text-3xl">
                   Kamu sedang naik level
                 </h1>

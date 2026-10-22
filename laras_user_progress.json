@@ -49,5 +49,33 @@
     "badges": [],
     "lastLesson": null,
     "lastStudyDate": null
+  },
+  "tester_ronde4@laras.id": {
+    "xp": 50,
+    "streak": 1,
+    "hearts": 1,
+    "completedLessons": [
+      1,
+      4
+    ],
+    "unlockedLessons": [
+      1,
+      2,
+      5
+    ],
+    "badges": [
+      "Pionir Salam",
+      "Tamu Sopan"
+    ],
+    "lastLesson": {
+      "lessonId": 4,
+      "answered": "culture-connection",
+      "correct": true,
+      "score": 120,
+      "xp": 0,
+      "completedAt": "2026-10-22T15:43:19.535Z"
+    },
+    "lastStudyDate": "2026-10-22",
+    "cultureConnectionClaimed": true
   }
 }

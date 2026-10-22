@@ -15,6 +15,7 @@ export type StoredProgress = {
   badges: string[];
   lastLesson: unknown;
   lastStudyDate: string | null;
+  cultureConnectionClaimed?: boolean;
 };
 
 export const INITIAL_EMPTY_PROGRESS: StoredProgress = {
@@ -26,6 +27,7 @@ export const INITIAL_EMPTY_PROGRESS: StoredProgress = {
   badges: [],
   lastLesson: null,
   lastStudyDate: null,
+  cultureConnectionClaimed: false,
 };
 
 type ProgressPayload = {
@@ -139,6 +141,8 @@ export function mergeProgressAntiRegression(
     ? incoming.lastStudyDate
     : (serverData?.lastStudyDate ?? null);
 
+  const cultureConnectionClaimed = Boolean(serverData?.cultureConnectionClaimed || incoming.cultureConnectionClaimed);
+
   return {
     xp,
     streak,
@@ -148,6 +152,7 @@ export function mergeProgressAntiRegression(
     badges,
     lastLesson,
     lastStudyDate,
+    cultureConnectionClaimed,
   };
 }
 
