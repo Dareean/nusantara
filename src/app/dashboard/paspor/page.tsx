@@ -45,7 +45,7 @@ export default function AchievementPage() {
 
   return (
     <>
-      <TopBar title="Achievement" subtitle="Prestasi belajar dan progress budaya" />
+      
 
       <main className="relative min-h-screen w-full px-3 pb-20 pt-20 sm:px-4 lg:px-6">
         <div className="mx-auto max-w-5xl space-y-4">
