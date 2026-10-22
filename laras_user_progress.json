@@ -22,12 +22,16 @@
       "Pionir Salam"
     ],
     "lastLesson": {
-      "lessonId": 4,
-      "answered": "culture-connection",
-      "correct": true,
-      "score": 120,
-      "xp": 30,
-      "completedAt": "2026-10-22T07:39:06.832Z"
+      "lessonId": 1,
+      "answered": "lesson-session",
+      "score": 100,
+      "xpEarned": 20,
+      "bonusXp": 0,
+      "totalExercises": 5,
+      "correctExercises": 5,
+      "heartsRemaining": 3,
+      "completed": true,
+      "completedAt": "2026-10-22T08:09:51.573Z"
     },
     "lastStudyDate": "2026-10-22"
   }
