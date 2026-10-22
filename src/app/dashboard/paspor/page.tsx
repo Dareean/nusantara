@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import TopBar from "../../components/TopBar";
 import { Award, BadgeCheck, Compass, Play } from "lucide-react";
 import { getCachedSessionSync, getSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
@@ -51,10 +50,7 @@ export default function AchievementPage() {
   }, []);
 
   return (
-    <>
-      <TopBar title="Achievement" subtitle="Prestasi belajar dan progress budaya" />
-
-      <main className="relative min-h-screen w-full px-3 pb-20 pt-20 sm:px-4 lg:px-6">
+    <main className="relative min-h-screen w-full px-3 pb-20 pt-4 sm:pt-6 sm:px-4 lg:px-6">
         <div className="mx-auto max-w-5xl space-y-4">
           <section className="rounded-[24px] bg-gradient-to-br from-[#fff3e8] via-[#f9dfc9] to-[#f0ae7d] p-4 shadow-[0_12px_22px_-16px_rgba(168,50,17,0.28)] ring-1 ring-[#f0c9a7] sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -172,7 +168,6 @@ export default function AchievementPage() {
             </Link>
           </div>
         </div>
-      </main>
-    </>
+    </main>
   );
 }

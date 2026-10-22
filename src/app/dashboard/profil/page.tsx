@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import TopBar from "../../components/TopBar";
 import {
   Settings,
   Award,
@@ -64,10 +63,7 @@ export default function ProfilPage() {
   };
 
   return (
-    <>
-      <TopBar title="Profile" subtitle="Jalur belajar dan achievement" />
-
-      <main className="relative min-h-screen w-full px-3 pb-20 pt-20 sm:px-4 lg:px-6">
+    <main className="relative min-h-screen w-full px-3 pb-20 pt-4 sm:pt-6 sm:px-4 lg:px-6">
         <div className="mx-auto max-w-5xl space-y-4">
           <section className="rounded-[24px] bg-surface-container-lowest p-4 shadow-xs ring-1 ring-outline-variant/25 sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -226,7 +222,6 @@ export default function ProfilPage() {
             </div>
           </section>
         </div>
-      </main>
-    </>
+    </main>
   );
 }
