@@ -23,8 +23,16 @@ export const metadata: Metadata = {
     "pelestarian budaya",
   ],
   icons: {
-    icon: "/logo/logo_laras.png",
-    apple: "/logo/logo_laras.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "32x32" },
+      { url: "/logo/logo_laras.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/logo/logo_laras.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
   },
 };
 
