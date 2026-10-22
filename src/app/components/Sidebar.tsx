@@ -6,7 +6,7 @@ import {
   Home,
   Compass,
   Gamepad2,
-  Sparkles,
+  Layers,
   BookOpen,
   User,
   Flame,
@@ -21,7 +21,7 @@ const navItems = [
   { path: "/dashboard/arcade", Icon: Gamepad2, label: "Arcade Budaya" },
   {
     path: "/dashboard/culture-connection",
-    Icon: Sparkles,
+    Icon: Layers,
     label: "Scenario Studio",
   },
   { path: "/dashboard/paspor", Icon: BookOpen, label: "Paspor Budaya" },

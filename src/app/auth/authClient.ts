@@ -16,12 +16,12 @@ async function apiRequest(path: string, method = 'GET', body?: Record<string, st
 
 export async function register(name: string, email: string, password: string) {
   const data = await apiRequest('/api/auth/register', 'POST', { name, email, password });
-  return { email: data.email, name: data.name };
+  return { email: data.email, name: data.name, isAdmin: false };
 }
 
 export async function login(email: string, password: string) {
   const data = await apiRequest('/api/auth/login', 'POST', { email, password });
-  return { email: data.email, name: data.name };
+  return { email: data.email, name: data.name, isAdmin: Boolean(data.isAdmin) };
 }
 
 export async function logout() {

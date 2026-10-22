@@ -47,7 +47,7 @@ export default function DuolingoSidebar() {
         <Link href="/" className="flex items-center gap-3 px-3 py-2 group">
           <img
             alt="LARAS"
-            className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
+            className="h-12 w-auto object-contain transition-transform group-hover:scale-105"
             src="/logo/logo_laras.png"
           />
           <div className="flex flex-col">
@@ -103,6 +103,33 @@ export default function DuolingoSidebar() {
           <ShieldAlert className="w-4 h-4 text-primary" />
           <span>Panel Kurator</span>
         </Link>
+
+        {/* Logo Resmi Munas IX & Permikomnas */}
+        <div className="mt-1 p-2 rounded-xl bg-surface-container-low border border-outline-variant/30 flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 p-1 rounded-lg bg-white shrink-0 shadow-xs">
+            <img
+              src="/logo-munas-ix.png"
+              alt="Logo Munas IX PERMIKOMNAS"
+              className="h-7 w-7 object-contain"
+            />
+            <img
+              src="/logo-permikomnas.png"
+              alt="Logo Permikomnas RI"
+              className="h-7 w-7 object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-black leading-tight text-on-surface truncate">
+              Munas IX
+            </span>
+            <span className="text-[9px] font-extrabold text-on-surface-variant truncate">
+              PERMIKOMNAS RI
+            </span>
+          </div>
+        </div>
 
         {session && (
           <div className="mt-2 pt-2 border-t border-outline-variant/30 flex flex-col gap-1.5">

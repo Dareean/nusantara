@@ -32,7 +32,6 @@ import {
   Shirt,
   BadgeCheck,
   Star,
-  Sparkles,
   MapPin,
   Play,
   RotateCcw,
@@ -61,7 +60,7 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
   // Gamification & Badges
   local_fire_department: Flame,
   bolt: Zap,
-  stars: Sparkles,
+  stars: Star,
   star: Star,
   military_tech: Award,
   workspace_premium: Trophy,
@@ -81,7 +80,7 @@ const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
   dry_cleaning: Shirt,
   styler: Shirt,
   checkroom: Shirt,
-  hub: Sparkles,
+  hub: Compass,
   explore: Compass,
   conversion_path: Compass,
 
@@ -146,6 +145,6 @@ interface DynamicIconProps extends LucideProps {
 }
 
 export function DynamicIcon({ name, ...props }: DynamicIconProps) {
-  const IconComponent = ICON_MAP[name] || Sparkles;
+  const IconComponent = ICON_MAP[name] || Compass;
   return <IconComponent {...props} />;
 }

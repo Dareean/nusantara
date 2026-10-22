@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Zap,
-  Sparkles,
+  Award,
   Volume2,
   Shirt,
   Flame,
@@ -94,7 +94,7 @@ export default function OnboardingPage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/80 via-inverse-surface/20 to-transparent flex flex-col justify-end p-4">
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-label-sm font-bold self-start mb-1 shadow-xs">
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Award className="w-3.5 h-3.5" />
                     Kultur Interaktif Generasi Baru
                   </span>
                   <p className="text-headline-md text-on-primary font-bold">
@@ -266,7 +266,7 @@ export default function OnboardingPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-on-primary shrink-0">
-                      <Sparkles className="w-6 h-6" />
+                      <Compass className="w-6 h-6" />
                     </div>
                     <div className="text-left">
                       <div className="flex items-center gap-2 flex-wrap">

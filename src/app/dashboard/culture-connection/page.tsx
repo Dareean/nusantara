@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import TopBar from "../../components/TopBar";
 import {
-  Sparkles,
   Navigation,
   BookOpen,
   BadgeCheck,
@@ -117,7 +116,7 @@ export default function CultureConnectionPage() {
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-label-sm uppercase tracking-wider font-bold">
-                  <Sparkles className="w-4 h-4" />
+                  <Award className="w-4 h-4" />
                   SIGNATURE CHALLENGE • SKENARIO TERPADU
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold">
@@ -385,7 +384,7 @@ export default function CultureConnectionPage() {
                     </span>
                   </div>
                   <div className="bg-surface-container-lowest p-3 rounded-lg flex items-center gap-2 text-on-surface mt-1 border border-outline-variant/20">
-                    <Sparkles className="w-5 h-5 text-secondary shrink-0" />
+                    <BookOpen className="w-5 h-5 text-secondary shrink-0" />
                     <span className="text-body-sm">
                       <strong>Konteks Ledo:</strong> Kata{" "}
                       <em>&ldquo;Tabe&rdquo;</em> adalah gestur kerendahan hati

@@ -6,7 +6,7 @@ import TopBar from "../../components/TopBar";
 import {
   BadgeCheck,
   Award,
-  Sparkles,
+  Zap,
   Flame,
   Landmark,
   Plus,
@@ -71,7 +71,7 @@ export default function SelesaiLatihanPage() {
                   <Award className="text-surface-container-lowest w-12 h-12 sm:w-14 sm:h-14" />
                 </div>
                 <div className="absolute -top-2 -right-3 bg-surface-container-lowest rounded-full p-1 sm:p-2 shadow-md float-lift">
-                  <Sparkles className="text-secondary-container w-4 h-4" />
+                  <Zap className="text-secondary-container w-4 h-4" />
                 </div>
                 <div className="absolute -bottom-1 -left-3 bg-surface-container-lowest rounded-full p-2 shadow-md">
                   <Flame className="text-primary w-4 h-4" />
@@ -113,7 +113,7 @@ export default function SelesaiLatihanPage() {
                   <span className="text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">
                     Kemahiran Bahasa
                   </span>
-                  <Sparkles className="text-secondary-container w-5 h-5" />
+                  <Zap className="text-secondary-container w-5 h-5" />
                 </div>
                 <div className="my-4 flex flex-col items-center">
                   <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-secondary-fixed text-on-secondary-fixed rounded-full shadow-xs">

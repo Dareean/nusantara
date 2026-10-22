@@ -7,7 +7,7 @@ import {
   Settings,
   Award,
   BadgeCheck,
-  Sparkles,
+  Compass,
   GraduationCap,
   LogOut,
 } from "lucide-react";
@@ -23,7 +23,7 @@ const learningTracks = [
 const achievements = [
   { title: "Pionir Salam", detail: "3 sesi sapaan selesai", Icon: Award },
   { title: "Penjaga Adab", detail: "12 ekspresi hormat dikuasai", Icon: BadgeCheck },
-  { title: "Petualang Budaya", detail: "5 quest diselesaikan", Icon: Sparkles },
+  { title: "Petualang Budaya", detail: "5 quest diselesaikan", Icon: Compass },
   { title: "Riset Ledo", detail: "1 mini challenge selesai", Icon: GraduationCap },
 ];
 
