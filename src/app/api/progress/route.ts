@@ -100,9 +100,18 @@ export function mergeProgressAntiRegression(
     ? incoming.hearts
     : (typeof serverData?.hearts === "number" ? serverData.hearts : 3);
 
-  const lastLesson = (!incomingIsDefaultOrEmpty && incoming.lastLesson)
-    ? incoming.lastLesson
-    : (serverData?.lastLesson ?? null);
+  let lastLesson = serverData?.lastLesson ?? null;
+  if (incoming.lastLesson) {
+    if (!serverData?.lastLesson) {
+      lastLesson = incoming.lastLesson;
+    } else {
+      const incomingTime = new Date((incoming.lastLesson as { completedAt?: string })?.completedAt || 0).getTime();
+      const serverTime = new Date((serverData.lastLesson as { completedAt?: string })?.completedAt || 0).getTime();
+      if (incomingTime >= serverTime) {
+        lastLesson = incoming.lastLesson;
+      }
+    }
+  }
 
   const lastStudyDate = (!incomingIsDefaultOrEmpty && incoming.lastStudyDate)
     ? incoming.lastStudyDate

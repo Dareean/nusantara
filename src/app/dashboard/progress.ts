@@ -12,6 +12,8 @@ export type LessonResult = {
   bonusXp?: number;
   heartsRemaining?: number;
   completed?: boolean;
+  isRepeat?: boolean;
+  baseRewardXp?: number;
 };
 
 export type LessonSessionResult = {
@@ -103,7 +105,19 @@ export function mergeClientProgress(
   const xp = Math.max(Number(local.xp || 0), Number(remote.xp || 0));
   const streak = Math.max(Number(local.streak || 0), Number(remote.streak || 0));
   const hearts = typeof remote.hearts === "number" ? remote.hearts : local.hearts;
-  const lastLesson = remote.lastLesson || local.lastLesson || null;
+
+  let lastLesson = local.lastLesson || remote.lastLesson || null;
+  if (local.lastLesson && remote.lastLesson) {
+    const localTime = new Date(local.lastLesson.completedAt || 0).getTime();
+    const remoteTime = new Date((remote.lastLesson as LessonResult).completedAt || 0).getTime();
+    const remoteHasMetrics = (remote.lastLesson as LessonResult).totalExercises !== undefined;
+    if (remoteTime > localTime && remoteHasMetrics) {
+      lastLesson = remote.lastLesson as LessonResult;
+    } else {
+      lastLesson = local.lastLesson;
+    }
+  }
+
   const lastStudyDate = remote.lastStudyDate || local.lastStudyDate || null;
 
   return {
@@ -336,20 +350,22 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
       ? current.streak
       : previousDate === yesterdayKey
         ? current.streak + 1
-        : 1;
+        : Math.max(1, current.streak);
 
   const lessonResult: LessonResult = {
     lessonId: result.lessonId,
     answered: result.answered,
     correct: result.correctExercises === result.totalExercises,
     score: result.score,
-    xp: result.xpEarned,
-    bonusXp: result.bonusXp,
+    xp: alreadyCompleted ? 0 : result.xpEarned,
+    bonusXp: alreadyCompleted ? 0 : result.bonusXp,
+    baseRewardXp: result.xpEarned,
     totalExercises: result.totalExercises,
     correctExercises: result.correctExercises,
     heartsRemaining: result.heartsRemaining,
     completed: true,
     completedAt: result.completedAt,
+    isRepeat: alreadyCompleted,
   };
 
   // Canonical badge for completed lesson

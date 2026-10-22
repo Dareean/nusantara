@@ -125,8 +125,8 @@ export function questionToGameQuestion(
         name: h.label,
         title: h.label,
         description: h.description,
-        top: idx % 2 === 0 ? "25%" : "55%",
-        left: `${15 + idx * 20}%`,
+        top: h.top || (idx % 2 === 0 ? "25%" : "55%"),
+        left: h.left || `${15 + idx * 20}%`,
       }));
       const options: QuestionOption[] = (data.hotspots || []).map((h) => ({
         id: h.id,
@@ -137,6 +137,8 @@ export function questionToGameQuestion(
         id: question.id,
         type: "hotspot",
         prompt: question.prompt,
+        imageUrl: data.imageUrl,
+        imageCaption: data.imageCaption,
         hotspots,
         options,
         curatorNote,
