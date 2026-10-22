@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import TopBar from "../../components/TopBar";
 import {
   BookOpen,
   Headphones,
@@ -80,10 +79,7 @@ export default function JalurBelajarPage() {
   }, []);
 
   return (
-    <>
-      <TopBar title="Jalur Belajar" subtitle="Misi budaya yang siap kamu jalani" />
-
-      <main className="relative min-h-screen bg-[#f5efe9] px-3 pb-24 pt-24 text-[#2d1c15]">
+    <main className="relative min-h-screen bg-[#f5efe9] px-3 pb-24 pt-4 sm:pt-6 text-[#2d1c15]">
         <div className="mx-auto max-w-[560px]">
           <div className="relative mx-auto h-[620px] w-full max-w-[440px]">
             <svg
@@ -236,7 +232,6 @@ export default function JalurBelajarPage() {
             </section>
           )}
         </div>
-      </main>
-    </>
+    </main>
   );
 }

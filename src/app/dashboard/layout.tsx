@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import BottomNav from "../components/BottomNav";
 import DuolingoSidebar from "../components/DuolingoSidebar";
 import PageTransition from "../components/PageTransition";
+import TopBar from "../components/TopBar";
 
 const immersiveRoutes = [
   "/dashboard/latihan",
@@ -11,6 +12,28 @@ const immersiveRoutes = [
   "/dashboard/evaluasi",
   "/dashboard/selesai",
 ];
+
+function getRouteHeader(pathname: string): { title: string; subtitle: string } {
+  if (pathname === "/dashboard" || pathname === "/dashboard/") {
+    return { title: "Beranda", subtitle: "Jalur belajarmu hari ini" };
+  }
+  if (pathname.startsWith("/dashboard/belajar")) {
+    return { title: "Jalur Belajar", subtitle: "Misi budaya yang siap kamu jalani" };
+  }
+  if (pathname.startsWith("/dashboard/arcade")) {
+    return { title: "Arcade", subtitle: "Tantangan Kilat Pusaka Kaili" };
+  }
+  if (pathname.startsWith("/dashboard/paspor")) {
+    return { title: "Achievement", subtitle: "Prestasi belajar dan progress budaya" };
+  }
+  if (pathname.startsWith("/dashboard/profil")) {
+    return { title: "Profile", subtitle: "Jalur belajar dan achievement" };
+  }
+  if (pathname.startsWith("/dashboard/pengaturan")) {
+    return { title: "Pengaturan", subtitle: "Atur pengalaman belajar kamu" };
+  }
+  return { title: "Beranda", subtitle: "Jalur belajarmu hari ini" };
+}
 
 export default function DashboardLayout({
   children,
@@ -29,13 +52,22 @@ export default function DashboardLayout({
     );
   }
 
+  const headerInfo = getRouteHeader(pathname);
+
   return (
     <div className="min-h-screen bg-surface text-on-surface antialiased">
       {/* Desktop Fixed Left Sidebar */}
       <DuolingoSidebar />
 
-      {/* Main Content Area indented for desktop sidebar */}
-      <div className="md:pl-64 min-h-screen pb-20 md:pb-8">
+      {/* Unified TopBar for non-immersive dashboard routes */}
+      <TopBar
+        title={headerInfo.title}
+        subtitle={headerInfo.subtitle}
+        hasSidebar={true}
+      />
+
+      {/* Main Content Area indented for desktop sidebar & topbar */}
+      <div className="md:pl-64 min-h-screen pt-20 pb-20 md:pb-8">
         <PageTransition>{children}</PageTransition>
       </div>
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import TopBar from "../../components/TopBar";
 import {
   Settings,
   Award,
@@ -11,34 +10,45 @@ import {
   GraduationCap,
   LogOut,
 } from "lucide-react";
-import { getSession } from "../../auth/authClient";
+import { getCachedSessionSync, getSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
 import { CANONICAL_BADGES } from "@/lib/badges";
 
 export default function ProfilPage() {
   const [session, setSession] = useState<{ email: string; name: string } | null>(null);
-  const [userName, setUserName] = useState("Pelajar LARAS");
+  const [userName, setUserName] = useState("");
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    let email = "";
+    const cached = getCachedSessionSync();
+    let email = cached?.email || "";
+    if (cached) {
+      setSession(cached);
+      setUserName(cached.name);
+      setProgress(readProgress(cached.email));
+      setIsLoaded(true);
+    }
     getSession().then(async (sess) => {
-      if (!sess) return;
-      email = sess.email;
+      if (!sess) {
+        setIsLoaded(true);
+        return;
+      }
       setSession(sess);
       setUserName(sess.name);
-      // Baca progress lokal terlebih dahulu agar render instan
-      setProgress(readProgress(sess.email));
-      // Sinkronkan data riil dari Supabase
-      const remote = await loadProgress(sess.email);
+      email = sess.email;
+      const local = readProgress(email);
+      setProgress(local);
+      setIsLoaded(true);
+      const remote = await loadProgress(email);
       setProgress(remote);
     });
 
-    const onUpdated = () => {
+    const refresh = () => {
       if (email) setProgress(readProgress(email));
     };
-    window.addEventListener("laras-progress-updated", onUpdated);
-    return () => window.removeEventListener("laras-progress-updated", onUpdated);
+    window.addEventListener("laras-progress-updated", refresh);
+    return () => window.removeEventListener("laras-progress-updated", refresh);
   }, []);
 
   const handleLogout = async () => {
@@ -77,22 +87,32 @@ export default function ProfilPage() {
   ];
 
   return (
-    <>
-      <TopBar title="Profile" subtitle="Jalur belajar dan achievement" />
-
-      <main className="relative min-h-screen w-full px-3 pb-20 pt-20 sm:px-4 lg:px-6">
+    <main className="relative min-h-screen w-full px-3 pb-20 pt-4 sm:pt-6 sm:px-4 lg:px-6">
         <div className="mx-auto max-w-5xl space-y-4">
           <section className="rounded-[24px] bg-surface-container-lowest p-4 shadow-xs ring-1 ring-outline-variant/25 sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
-                <div
-                  className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-black text-on-primary ring-2 ring-primary/20"
-                >
-                  {userName.slice(0, 1).toUpperCase()}
-                </div>
+                {isLoaded && userName ? (
+                  <div
+                    className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-black text-on-primary ring-2 ring-primary/20"
+                  >
+                    {userName.slice(0, 1).toUpperCase()}
+                  </div>
+                ) : (
+                  <div className="h-16 w-16 rounded-full bg-surface-container-high ring-2 ring-outline-variant/30 animate-pulse" />
+                )}
                 <div>
-                  <h1 className="text-2xl font-black text-on-surface">{userName}</h1>
-                  <p className="text-sm text-on-surface-variant">{userName.toLowerCase().replaceAll(" ", "_")} • Sulawesi Tengah</p>
+                  {isLoaded && userName ? (
+                    <>
+                      <h1 className="text-2xl font-black text-on-surface">{userName}</h1>
+                      <p className="text-sm text-on-surface-variant">{userName.toLowerCase().replaceAll(" ", "_")} • Sulawesi Tengah</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-7 w-36 rounded bg-surface-container-high animate-pulse mb-1.5" />
+                      <div className="h-4 w-48 rounded bg-surface-container-high animate-pulse" />
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -121,15 +141,27 @@ export default function ProfilPage() {
           <section className="grid gap-3 md:grid-cols-3">
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <div className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">XP</div>
-              <div className="mt-2 text-2xl font-black text-on-surface">{progress.xp}</div>
+              {isLoaded ? (
+                <div className="mt-2 text-2xl font-black text-on-surface">{progress.xp}</div>
+              ) : (
+                <div className="mt-2 h-8 w-16 rounded bg-surface-container-high animate-pulse" />
+              )}
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <div className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Level</div>
-              <div className="mt-2 text-2xl font-black text-on-surface">{Math.floor(progress.xp / 100) + 1}</div>
+              {isLoaded ? (
+                <div className="mt-2 text-2xl font-black text-on-surface">{Math.floor(progress.xp / 100) + 1}</div>
+              ) : (
+                <div className="mt-2 h-8 w-10 rounded bg-surface-container-high animate-pulse" />
+              )}
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <div className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Streak</div>
-              <div className="mt-2 text-2xl font-black text-on-surface">{progress.streak} hari</div>
+              {isLoaded ? (
+                <div className="mt-2 text-2xl font-black text-on-surface">{progress.streak} hari</div>
+              ) : (
+                <div className="mt-2 h-8 w-20 rounded bg-surface-container-high animate-pulse" />
+              )}
             </div>
           </section>
 
@@ -214,7 +246,6 @@ export default function ProfilPage() {
             </div>
           </section>
         </div>
-      </main>
-    </>
+    </main>
   );
 }

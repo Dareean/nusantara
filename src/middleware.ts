@@ -18,8 +18,19 @@ export async function middleware(req: NextRequest) {
 
   const redirectToLogin = () => {
     const loginUrl = new URL('/auth', req.url);
-    loginUrl.searchParams.set('redirect', req.nextUrl.pathname + req.nextUrl.search);
-    return NextResponse.redirect(loginUrl);
+    // Bersihkan parameter internal Next.js seperti _rsc sebelum dijadikan target redirect
+    const cleanSearch = new URLSearchParams(req.nextUrl.search);
+    cleanSearch.delete('_rsc');
+    const searchStr = cleanSearch.toString();
+    const destination = req.nextUrl.pathname + (searchStr ? `?${searchStr}` : '');
+    loginUrl.searchParams.set('redirect', destination);
+
+    const response = NextResponse.redirect(loginUrl);
+    // Cegah client-side router (prefetch) meng-cache respons redirect ke /auth
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   };
 
   // Cek cookie sesi
@@ -40,6 +51,8 @@ export async function middleware(req: NextRequest) {
     }
     return NextResponse.next();
   }
+
+  const cookie = rawCookie.includes('%') ? decodeURIComponent(rawCookie) : rawCookie;
 
   // Validasi sesi secara lokal dan stateless (HMAC-SHA256) — tanpa fetch internal ke /api/auth/session!
   const session = await verifySessionToken(cookie);
@@ -67,10 +80,12 @@ export async function middleware(req: NextRequest) {
     if (isAdminRedirect && !userIsAdmin) {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
-    // Bila tidak ada redirect khusus atau redirect aman, arahkan ke tujuan bawaan role
-    if (!redirectParam) {
-      return NextResponse.redirect(new URL(userIsAdmin ? '/admin' : '/dashboard', req.url));
+    // Jika ada redirect aman dan valid, langsung antarkan pengguna ke rute tersebut
+    if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
+      return NextResponse.redirect(new URL(redirectParam, req.url));
     }
+    // Bila tidak ada redirect khusus, arahkan ke tujuan bawaan role
+    return NextResponse.redirect(new URL(userIsAdmin ? '/admin' : '/dashboard', req.url));
   }
 
   return NextResponse.next();

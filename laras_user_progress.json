@@ -1,8 +1,8 @@
 {
   "demo@gmail.com": {
-    "xp": 210,
+    "xp": 270,
     "streak": 5,
-    "hearts": 3,
+    "hearts": 2,
     "completedLessons": [
       1,
       2,
@@ -24,14 +24,17 @@
     "lastLesson": {
       "lessonId": 1,
       "answered": "lesson-session",
+      "correct": true,
       "score": 100,
-      "xpEarned": 20,
+      "xp": 0,
       "bonusXp": 0,
+      "baseRewardXp": 20,
       "totalExercises": 5,
       "correctExercises": 5,
-      "heartsRemaining": 3,
+      "heartsRemaining": 2,
       "completed": true,
-      "completedAt": "2026-10-22T08:09:51.573Z"
+      "completedAt": "2026-10-22T14:09:02.567Z",
+      "isRepeat": true
     },
     "lastStudyDate": "2026-10-22"
   },

@@ -82,8 +82,8 @@ export default function CultureConnectionPage() {
     recordLessonResult(sessionEmail, {
       lessonId: 4,
       answered: "culture-connection",
-      correct: harmony >= 5,
-      score: harmony * 20,
+      correct: true,
+      score: Math.max(60, harmony * 20),
       xp: 30,
       completedAt: new Date().toISOString(),
     });
@@ -91,7 +91,7 @@ export default function CultureConnectionPage() {
     setTimeout(() => {
       setIsClaiming(false);
       router.push("/dashboard/paspor");
-    }, 1200);
+    }, 1000);
   };
 
   const currentDecision = decisions[decisionStep];

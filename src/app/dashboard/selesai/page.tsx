@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import TopBar from "../../components/TopBar";
 import {
   BadgeCheck,
@@ -20,34 +21,67 @@ import {
   BookOpen,
   Trophy,
 } from "lucide-react";
-import { getSession } from "../../auth/authClient";
-import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
+import { getCachedSessionSync, getSession } from "../../auth/authClient";
+import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
 import { CANONICAL_BADGES } from "@/lib/badges";
 
-export default function SelesaiLatihanPage() {
+function SelesaiContent() {
+  const searchParams = useSearchParams();
+  const lessonParam = searchParams ? searchParams.get("lesson") : null;
+
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [userName, setUserName] = useState("Pelajar LARAS");
-  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
-
-  useEffect(() => {
-    getSession().then(async (session) => {
-      if (!session) return;
-      setUserName(session.name);
-      setProgress(await loadProgress(session.email));
-    });
-  }, []);
-
-  const lastLessonId = progress.lastLesson?.lessonId ?? 3;
-  const canonicalBadge = CANONICAL_BADGES.find((b) => b.lessonId === lastLessonId) ?? CANONICAL_BADGES[2];
-  const badgeTitle = canonicalBadge.title;
-  const sessionXp = progress.lastLesson?.xp ?? canonicalBadge.rewardXp;
 
   const handleAudio = () => {
     setIsPlayingAudio(true);
     setTimeout(() => {
       setIsPlayingAudio(false);
-    }, 2000);
+    }, 2500);
   };
+
+  const [userName, setUserName] = useState("Pelajar LARAS");
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const cached = getCachedSessionSync();
+    let email = cached?.email || "";
+    if (cached) {
+      setUserName(cached.name || "Pelajar LARAS");
+      setProgress(readProgress(cached.email));
+      setIsLoaded(true);
+    }
+
+    getSession().then(async (session) => {
+      if (!session) return;
+      email = session.email;
+      setUserName(session.name);
+      setProgress(readProgress(email));
+      setIsLoaded(true);
+      const remote = await loadProgress(email);
+      setProgress(remote);
+    });
+
+    const onProgressUpdated = () => {
+      if (email) {
+        setProgress(readProgress(email));
+      }
+    };
+    window.addEventListener("laras-progress-updated", onProgressUpdated);
+    return () => window.removeEventListener("laras-progress-updated", onProgressUpdated);
+  }, []);
+
+  const targetLessonId = Number(lessonParam) || progress.lastLesson?.lessonId || 1;
+  const canonicalBadge = CANONICAL_BADGES.find((b) => b.lessonId === targetLessonId) ?? CANONICAL_BADGES[0];
+  const badgeTitle = canonicalBadge.title;
+
+  const isRepeat = Boolean(
+    progress.lastLesson?.isRepeat ||
+    (progress.lastLesson?.lessonId === targetLessonId && progress.lastLesson?.xp === 0)
+  );
+
+  const sessionXp = isRepeat
+    ? 0
+    : (progress.lastLesson?.xp ?? canonicalBadge.rewardXp);
 
   return (
     <>
@@ -67,7 +101,7 @@ export default function SelesaiLatihanPage() {
               <div className="inline-flex max-w-full items-center justify-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-surface-container-lowest shadow-xs mb-4">
                 <BadgeCheck className="text-secondary w-4 h-4" />
                 <span className="text-label-sm sm:text-label-md text-secondary uppercase tracking-widest font-bold text-center">
-                  Sesi Tuntas • {progress.lastLesson?.correctExercises ?? 0}/{progress.lastLesson?.totalExercises ?? 0} Exercise
+                  Sesi Tuntas • {progress.lastLesson?.correctExercises ?? (progress.completedLessons.length > 0 ? 3 : 0)}/{progress.lastLesson?.totalExercises ?? 3} Exercise
                 </span>
               </div>
 
@@ -122,10 +156,17 @@ export default function SelesaiLatihanPage() {
                   <Zap className="text-secondary-container w-5 h-5" />
                 </div>
                 <div className="my-4 flex flex-col items-center">
-                  <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-secondary-fixed text-on-secondary-fixed rounded-full shadow-xs">
-                    <Plus className="text-secondary-container w-5 h-5" />
-                    <span className="text-headline-md sm:text-headline-lg font-extrabold">+{sessionXp} XP</span>
-                  </div>
+                  {isRepeat ? (
+                    <div className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-surface-container-high text-on-surface-variant rounded-full shadow-xs">
+                      <CheckCircle2 className="text-secondary w-4 h-4 shrink-0" />
+                      <span className="text-xs font-black uppercase tracking-wider">Latihan ulang — tanpa XP baru</span>
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-secondary-fixed text-on-secondary-fixed rounded-full shadow-xs">
+                      <Plus className="text-secondary-container w-5 h-5" />
+                      <span className="text-headline-md sm:text-headline-lg font-extrabold">+{sessionXp} XP</span>
+                    </div>
+                  )}
                   <span className="text-headline-sm text-on-surface font-bold mt-2">
                     Skor Kemahiran Bahasa
                   </span>
@@ -309,5 +350,19 @@ export default function SelesaiLatihanPage() {
         </div>
       </main>
     </>
+  );
+}
+
+export default function SelesaiLatihanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-surface flex items-center justify-center text-on-surface-variant font-bold">
+          Memuat ringkasan...
+        </div>
+      }
+    >
+      <SelesaiContent />
+    </Suspense>
   );
 }

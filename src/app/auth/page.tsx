@@ -62,10 +62,8 @@ function AuthPageContent() {
         if (!isMounted || !session) return;
         const userIsAdmin = Boolean(session.isAdmin || session.email === "admin@laras.id");
         const safeDestination = resolvePostAuthRedirect(rawRedirect, userIsAdmin);
-        // Jika redirect yang diminta dilarang untuk rolenya atau pengguna sudah login tanpa redirect
-        if (rawRedirect !== safeDestination || !rawRedirect) {
-          router.replace(safeDestination);
-        }
+        // Jika pengguna yang sudah login membuka /auth, langsung antarkan ke tujuan yang aman
+        router.replace(safeDestination);
       });
     });
     return () => {

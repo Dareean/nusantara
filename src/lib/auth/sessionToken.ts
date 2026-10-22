@@ -43,9 +43,25 @@ function base64UrlDecode(str: string): string {
 }
 
 function getNodeCrypto() {
+  if (typeof process !== "undefined" && process.env?.NEXT_RUNTIME === "edge") {
+    return null;
+  }
+  // @ts-expect-error EdgeRuntime global check
+  if (typeof EdgeRuntime === "string") {
+    return null;
+  }
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require("crypto");
+    const c = require("crypto");
+    if (c && typeof c.createHmac === "function") {
+      try {
+        c.createHmac("sha256", "test").update("test").digest("hex");
+        return c;
+      } catch {
+        return null;
+      }
+    }
+    return null;
   } catch {
     return null;
   }
@@ -86,7 +102,9 @@ export function verifySessionTokenSync(token: string | null | undefined): Sessio
     const nodeCrypto = getNodeCrypto();
     if (nodeCrypto) {
       const expectedSig = nodeCrypto.createHmac("sha256", secret).update(encodedPayload).digest("base64url");
-      if (sig !== expectedSig) return null;
+      if (sig !== expectedSig) {
+        return null;
+      }
 
       const json = base64UrlDecode(encodedPayload);
       const payload = JSON.parse(json) as SessionPayload;
@@ -140,7 +158,9 @@ export async function verifySessionToken(
   token: string | null | undefined
 ): Promise<SessionPayload | null> {
   if (!token || typeof token !== "string") return null;
-  const parts = token.split(".");
+  const normalized = token.includes("%") ? decodeURIComponent(token) : token;
+
+  const parts = normalized.split(".");
   if (parts.length !== 2) return null;
   const [encodedPayload, encodedSig] = parts;
   if (!encodedPayload || !encodedSig) return null;

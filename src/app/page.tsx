@@ -483,6 +483,7 @@ export default function LandingPage() {
                 <div className="mt-5">
                   <Link
                     href="/dashboard/paspor"
+                    prefetch={false}
                     className="block w-full text-center py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/40 text-xs font-black uppercase tracking-wider text-on-surface transition-all"
                   >
                     Buka Paspor Digital →
@@ -572,14 +573,6 @@ export default function LandingPage() {
                 alt="Logo Munas IX PERMIKOMNAS"
                 className="h-10 sm:h-12 w-auto object-contain"
               />
-              <img
-                src="/logo-permikomnas.png"
-                alt="Logo Permikomnas RI"
-                className="h-10 sm:h-12 w-auto object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
             </div>
           </div>
 
@@ -627,7 +620,7 @@ export default function LandingPage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/dashboard/paspor" className="hover:text-white transition-colors">
+                  <Link href="/dashboard/paspor" prefetch={false} className="hover:text-white transition-colors">
                     Paspor Budaya
                   </Link>
                 </li>

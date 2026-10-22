@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import TopBar from "../../components/TopBar";
 import { Award, BadgeCheck, Compass, Play } from "lucide-react";
-import { getSession } from "../../auth/authClient";
+import { getCachedSessionSync, getSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
 import { CANONICAL_BADGES, type CanonicalBadge } from "@/lib/badges";
 
@@ -17,15 +16,27 @@ const BADGE_ICONS: Record<number, typeof Award> = {
 export default function AchievementPage() {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   const [userEmail, setUserEmail] = useState("");
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    let email = "";
+    const cached = getCachedSessionSync();
+    let email = cached?.email || "";
+    if (cached) {
+      setUserEmail(cached.email);
+      setProgress(readProgress(cached.email));
+      setIsLoaded(true);
+    }
     getSession().then(async (session) => {
-      if (!session) return;
+      if (!session) {
+        setIsLoaded(true);
+        return;
+      }
       email = session.email;
       setUserEmail(email);
       // Read local first for immediate render
-      setProgress(readProgress(email));
+      const local = readProgress(email);
+      setProgress(local);
+      setIsLoaded(true);
       // Load remote and update state
       const remote = await loadProgress(email);
       setProgress(remote);
@@ -42,10 +53,7 @@ export default function AchievementPage() {
   }, []);
 
   return (
-    <>
-      <TopBar title="Achievement" subtitle="Prestasi belajar dan progress budaya" />
-
-      <main className="relative min-h-screen w-full px-3 pb-20 pt-20 sm:px-4 lg:px-6">
+    <main className="relative min-h-screen w-full px-3 pb-20 pt-4 sm:pt-6 sm:px-4 lg:px-6">
         <div className="mx-auto max-w-5xl space-y-4">
           <section className="rounded-[24px] bg-gradient-to-br from-[#fff3e8] via-[#f9dfc9] to-[#f0ae7d] p-4 shadow-[0_12px_22px_-16px_rgba(168,50,17,0.28)] ring-1 ring-[#f0c9a7] sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -56,21 +64,25 @@ export default function AchievementPage() {
                 </h1>
               </div>
 
-              <div className="rounded-full bg-white/80 px-3 py-2 shadow-sm ring-1 ring-white/60">
+              <div className="rounded-full bg-white/80 px-3 py-2 shadow-sm ring-1 ring-white/60 min-w-[70px]">
                 <div className="text-[9px] uppercase tracking-[0.12em] text-[#6f422e]">Total XP</div>
-                <div className="text-lg font-black text-[#3e2115]">{progress.xp}</div>
+                {isLoaded ? (
+                  <div className="text-lg font-black text-[#3e2115]">{progress.xp}</div>
+                ) : (
+                  <div className="h-6 w-12 rounded bg-[#3e2115]/15 animate-pulse mt-0.5" />
+                )}
               </div>
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">
-                Level {Math.floor(progress.xp / 100) + 1}
+                {isLoaded ? `Level ${Math.floor(progress.xp / 100) + 1}` : "Level --"}
               </span>
               <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">
-                {progress.streak} hari streak
+                {isLoaded ? `${progress.streak} hari streak` : "-- hari streak"}
               </span>
               <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">
-                {progress.badges.length} badge
+                {isLoaded ? `${progress.badges.length} badge` : "-- badge"}
               </span>
             </div>
           </section>
@@ -78,13 +90,21 @@ export default function AchievementPage() {
           <section className="grid gap-3 md:grid-cols-3">
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Quest selesai</p>
-              <h2 className="mt-2 text-2xl font-black text-on-surface">{progress.completedLessons.length}</h2>
+              {isLoaded ? (
+                <h2 className="mt-2 text-2xl font-black text-on-surface">{progress.completedLessons.length}</h2>
+              ) : (
+                <div className="mt-2 h-8 w-12 rounded bg-surface-container-high animate-pulse" />
+              )}
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Badge aktif</p>
-              <h2 className="mt-2 text-2xl font-black text-on-surface">
-                {progress.badges.length}/{CANONICAL_BADGES.length}
-              </h2>
+              {isLoaded ? (
+                <h2 className="mt-2 text-2xl font-black text-on-surface">
+                  {progress.badges.length}/{CANONICAL_BADGES.length}
+                </h2>
+              ) : (
+                <div className="mt-2 h-8 w-16 rounded bg-surface-container-high animate-pulse" />
+              )}
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Misi hari ini</p>
@@ -151,7 +171,6 @@ export default function AchievementPage() {
             </Link>
           </div>
         </div>
-      </main>
-    </>
+    </main>
   );
 }

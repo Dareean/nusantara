@@ -112,14 +112,6 @@ export default function DuolingoSidebar() {
               alt="Logo Munas IX PERMIKOMNAS"
               className="h-7 w-7 object-contain"
             />
-            <img
-              src="/logo-permikomnas.png"
-              alt="Logo Permikomnas RI"
-              className="h-7 w-7 object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-[10px] font-black leading-tight text-on-surface truncate">

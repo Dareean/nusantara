@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   Gamepad2,
@@ -25,6 +25,21 @@ interface Question {
   options: string[];
   correctIndex: number;
   lore: string;
+}
+
+interface ShuffledArcadeOption {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+function shuffleArray<T>(items: readonly T[]): T[] {
+  const array = [...items];
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
 const quizData: Question[] = [
@@ -96,9 +111,10 @@ export default function ArcadePage() {
   const [combo, setCombo] = useState(1);
   const [lives, setLives] = useState(3);
   const [timeLeft, setTimeLeft] = useState(15);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [answerStatus, setAnswerStatus] = useState<"correct" | "incorrect" | null>(null);
   const [highScore, setHighScore] = useState(1250);
+  const [gameAttempt, setGameAttempt] = useState(0);
 
   // Timer loop when playing
   useEffect(() => {
@@ -131,18 +147,19 @@ export default function ArcadePage() {
   };
 
   const startGame = () => {
+    setGameAttempt((prev) => prev + 1);
     setGameState("playing");
     setCurrentIdx(0);
     setScore(0);
     setCombo(1);
     setLives(3);
     setTimeLeft(15);
-    setSelectedOption(null);
+    setSelectedOptionId(null);
     setAnswerStatus(null);
   };
 
   const advanceQuestion = () => {
-    setSelectedOption(null);
+    setSelectedOptionId(null);
     setAnswerStatus(null);
     setTimeLeft(15);
 
@@ -156,8 +173,8 @@ export default function ArcadePage() {
     });
   };
 
-  const handleSelectOption = (idx: number) => {
-    if (selectedOption !== null || gameState !== "playing") return;
+  const handleSelectOption = (opt: ShuffledArcadeOption) => {
+    if (selectedOptionId !== null || gameState !== "playing") return;
 
     const currentQ = quizData[currentIdx];
     if (!currentQ) {
@@ -165,8 +182,8 @@ export default function ArcadePage() {
       return;
     }
 
-    setSelectedOption(idx);
-    const isCorrect = idx === currentQ.correctIndex;
+    setSelectedOptionId(opt.id);
+    const isCorrect = opt.isCorrect;
 
     if (isCorrect) {
       setAnswerStatus("correct");
@@ -205,8 +222,18 @@ export default function ArcadePage() {
 
   const currentQ = quizData[currentIdx] ?? quizData[quizData.length - 1] ?? null;
 
+  const shuffledArcadeOptions = useMemo(() => {
+    if (!currentQ) return [];
+    const raw: ShuffledArcadeOption[] = currentQ.options.map((text, origIdx) => ({
+      id: `${currentQ.id}-${origIdx}`,
+      text,
+      isCorrect: origIdx === currentQ.correctIndex,
+    }));
+    return shuffleArray(raw);
+  }, [currentQ?.id, currentIdx, gameAttempt]);
+
   return (
-    <main className="w-full min-w-0 max-w-4xl mx-auto space-y-6 pb-20 overflow-x-clip">
+    <main className="w-full min-w-0 max-w-4xl mx-auto space-y-6 pb-20 pt-4 sm:pt-6 px-4 overflow-x-clip">
       {/* Top Banner & Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
         <div className="flex items-center gap-3">
@@ -403,14 +430,14 @@ export default function ArcadePage() {
 
           {/* Options Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            {currentQ.options.map((opt, idx) => {
+            {shuffledArcadeOptions.map((opt) => {
               let btnStyle =
                 "bg-surface-container-low border-outline-variant/30 text-on-surface hover:bg-surface-container hover:border-primary";
 
-              if (selectedOption !== null) {
-                if (idx === currentQ.correctIndex) {
+              if (selectedOptionId !== null) {
+                if (opt.isCorrect) {
                   btnStyle = "bg-secondary-fixed text-on-secondary-fixed border-secondary font-bold shadow-[0_2px_0_0_#b45309]";
-                } else if (idx === selectedOption) {
+                } else if (opt.id === selectedOptionId) {
                   btnStyle = "bg-error-container text-on-error-container border-error font-bold";
                 } else {
                   btnStyle = "opacity-40 bg-surface-container-low";
@@ -419,18 +446,18 @@ export default function ArcadePage() {
 
               return (
                 <button
-                  key={idx}
-                  onClick={() => handleSelectOption(idx)}
-                  disabled={selectedOption !== null}
+                  key={opt.id}
+                  onClick={() => handleSelectOption(opt)}
+                  disabled={selectedOptionId !== null}
                   className={`p-4 rounded-xl border text-left text-body-md transition-all active:scale-[0.99] flex items-center justify-between cursor-pointer ${btnStyle}`}
                 >
-                  <span className="font-semibold">{opt}</span>
-                  {selectedOption !== null && idx === currentQ.correctIndex && (
+                  <span className="font-semibold">{opt.text}</span>
+                  {selectedOptionId !== null && opt.isCorrect && (
                     <CheckCircle2 className="text-secondary w-5 h-5 shrink-0" />
                   )}
-                  {selectedOption !== null &&
-                    idx === selectedOption &&
-                    idx !== currentQ.correctIndex && (
+                  {selectedOptionId !== null &&
+                    opt.id === selectedOptionId &&
+                    !opt.isCorrect && (
                       <XCircle className="text-error w-5 h-5 shrink-0" />
                     )}
                 </button>

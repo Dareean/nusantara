@@ -82,71 +82,62 @@ export function mergeProgressAntiRegression(
   serverData: Partial<StoredProgress> | null | undefined,
   incoming: Partial<StoredProgress>
 ): StoredProgress {
-  if (!serverData) {
-    return {
-      xp: Number(incoming.xp || 0),
-      streak: Number(incoming.streak || 0),
-      hearts: typeof incoming.hearts === "number" ? incoming.hearts : 3,
-      completedLessons: Array.isArray(incoming.completedLessons) ? incoming.completedLessons : [],
-      unlockedLessons: Array.isArray(incoming.unlockedLessons) ? incoming.unlockedLessons : [1],
-      badges: Array.isArray(incoming.badges) ? incoming.badges : [],
-      lastLesson: incoming.lastLesson ?? null,
-      lastStudyDate: incoming.lastStudyDate ?? null,
-    };
-  }
+  const serverXp = Number(serverData?.xp || 0);
+  const incomingXp = Number(incoming?.xp || 0);
+
+  const serverCompleted = Array.isArray(serverData?.completedLessons) ? serverData.completedLessons : [];
+  const incomingCompleted = Array.isArray(incoming?.completedLessons) ? incoming.completedLessons : [];
+
+  const serverUnlocked = Array.isArray(serverData?.unlockedLessons) ? serverData.unlockedLessons : [1];
+  const incomingUnlocked = Array.isArray(incoming?.unlockedLessons) ? incoming.unlockedLessons : [1];
+
+  const serverBadges = Array.isArray(serverData?.badges) ? serverData.badges : [];
+  const incomingBadges = Array.isArray(incoming?.badges) ? incoming.badges : [];
+
+  const serverStreak = Number(serverData?.streak || 0);
+  const incomingStreak = Number(incoming?.streak || 0);
 
   // 1. completedLessons: Union of server ∪ client
-  const completedSet = new Set<number>([
-    ...(Array.isArray(serverData.completedLessons) ? serverData.completedLessons : []),
-    ...(Array.isArray(incoming.completedLessons) ? incoming.completedLessons : []),
-  ]);
+  const completedSet = new Set<number>([...serverCompleted, ...incomingCompleted]);
   const completedLessons = Array.from(completedSet).sort((a, b) => a - b);
 
   // 2. unlockedLessons: Union of server ∪ client (at least [1])
-  const unlockedSet = new Set<number>([
-    ...(Array.isArray(serverData.unlockedLessons) ? serverData.unlockedLessons : [1]),
-    ...(Array.isArray(incoming.unlockedLessons) ? incoming.unlockedLessons : [1]),
-    1,
-  ]);
+  const unlockedSet = new Set<number>([...serverUnlocked, ...incomingUnlocked, 1]);
   const unlockedLessons = Array.from(unlockedSet).sort((a, b) => a - b);
 
   // 3. badges: Union of server ∪ client
-  const badgesSet = new Set<string>([
-    ...(Array.isArray(serverData.badges) ? serverData.badges : []),
-    ...(Array.isArray(incoming.badges) ? incoming.badges : []),
-  ]);
+  const badgesSet = new Set<string>([...serverBadges, ...incomingBadges]);
   const badges = Array.from(badgesSet);
 
   // 4. xp: Highest value (never regresses)
-  const xp = Math.max(Number(serverData.xp || 0), Number(incoming.xp || 0));
+  const xp = Math.max(serverXp, incomingXp);
 
-  // 5. Fields: streak, hearts, lastLesson, lastStudyDate
+  // 5. streak: Highest value (never regresses)
+  const streak = Math.max(serverStreak, incomingStreak);
+
   // Stale/empty payload check (e.g. fresh browser sending default 0s)
-  const incomingIsDefaultOrEmpty = (
-    (!incoming.completedLessons || incoming.completedLessons.length === 0) &&
-    (incoming.xp === 0 || !incoming.xp) &&
-    !incoming.lastLesson
-  );
+  const incomingIsDefaultOrEmpty = incomingXp === 0 && incomingCompleted.length === 0 && !incoming.lastLesson;
 
-  let streak = serverData.streak || 0;
-  let hearts = typeof serverData.hearts === "number" ? serverData.hearts : 3;
-  let lastLesson = serverData.lastLesson ?? null;
-  let lastStudyDate = serverData.lastStudyDate ?? null;
+  const hearts = !incomingIsDefaultOrEmpty && typeof incoming.hearts === "number"
+    ? incoming.hearts
+    : (typeof serverData?.hearts === "number" ? serverData.hearts : 3);
 
-  if (!incomingIsDefaultOrEmpty) {
-    if (typeof incoming.streak === "number" && incoming.streak > 0) {
-      streak = Math.max(streak, incoming.streak);
-    }
-    if (typeof incoming.hearts === "number") {
-      hearts = incoming.hearts;
-    }
-    if (incoming.lastLesson) {
+  let lastLesson = serverData?.lastLesson ?? null;
+  if (incoming.lastLesson) {
+    if (!serverData?.lastLesson) {
       lastLesson = incoming.lastLesson;
-    }
-    if (incoming.lastStudyDate) {
-      lastStudyDate = incoming.lastStudyDate;
+    } else {
+      const incomingTime = new Date((incoming.lastLesson as { completedAt?: string })?.completedAt || 0).getTime();
+      const serverTime = new Date((serverData.lastLesson as { completedAt?: string })?.completedAt || 0).getTime();
+      if (incomingTime >= serverTime) {
+        lastLesson = incoming.lastLesson;
+      }
     }
   }
+
+  const lastStudyDate = (!incomingIsDefaultOrEmpty && incoming.lastStudyDate)
+    ? incoming.lastStudyDate
+    : (serverData?.lastStudyDate ?? null);
 
   return {
     xp,
@@ -234,7 +225,7 @@ export async function PUT(req: NextRequest) {
   try {
     const { data, error } = await createAdminClient()
       .from("user_progress")
-      .select("progress")
+      .select("progress, updated_at")
       .eq("email", email)
       .maybeSingle();
 
@@ -249,8 +240,37 @@ export async function PUT(req: NextRequest) {
     console.warn("Supabase fetch exception during PUT:", err);
   }
 
+  // CRITICAL PROTECTION:
+  // If database query failed with error, do NOT proceed with blind upsert to avoid wiping data
+  if (remoteFetchError) {
+    return NextResponse.json(
+      {
+        ok: false,
+        synced: false,
+        source: "database_error",
+        error: `Gagal membaca data dari database Supabase: ${remoteFetchError}`,
+      },
+      { status: 500 }
+    );
+  }
+
   if (!serverProgress) {
     serverProgress = getLocalProgress(email);
+  }
+
+  // Guard against empty incoming payload wiping non-empty database data
+  const incomingXp = Number(body.progress?.xp || 0);
+  const incomingCompleted = Array.isArray(body.progress?.completedLessons) ? body.progress.completedLessons : [];
+  if (serverProgress && (serverProgress.xp > 0 || serverProgress.completedLessons.length > 0)) {
+    if (incomingXp === 0 && incomingCompleted.length === 0) {
+      console.warn(`[PUT /api/progress] Menolak overwrite kosong untuk ${email}, mempertahankan progres server`);
+      return NextResponse.json({
+        ok: true,
+        synced: true,
+        source: "database_protected",
+        progress: serverProgress,
+      });
+    }
   }
 
   // Perform robust anti-regression union

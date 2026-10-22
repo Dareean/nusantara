@@ -26,7 +26,15 @@ export type OrderQuestionData = {
 };
 
 export type HotspotQuestionData = {
-  hotspots: { id: string; label: string; description: string }[];
+  imageUrl?: string;
+  imageCaption?: string;
+  hotspots: {
+    id: string;
+    label: string;
+    description: string;
+    top?: string;
+    left?: string;
+  }[];
   answer: string;
 };
 
@@ -225,10 +233,12 @@ export const lessons: Lesson[] = [
         type: "hotspot",
         prompt: "Temukan bagian busana yang berkaitan dengan kain tenun utama.",
         data: {
+          imageUrl: "/media/presets/baju_nggembe.webp",
+          imageCaption: "Busana Adat Kaili: Baju Nggembe & Buya Sabe",
           hotspots: [
-            { id: "neck", label: "Kerah persegi", description: "Bagian leher yang memberi ruang pada aksesori." },
-            { id: "sleeve", label: "Lengan menggantung", description: "Bagian lengan dengan gerak yang lebih terbuka." },
-            { id: "weave", label: "Buya Sabe", description: "Kain tenun utama yang melengkapi tampilan." },
+            { id: "neck", label: "Kerah persegi", description: "Bagian leher yang memberi ruang pada aksesori.", top: "28%", left: "50%" },
+            { id: "sleeve", label: "Lengan menggantung", description: "Bagian lengan dengan gerak yang lebih terbuka.", top: "35%", left: "20%" },
+            { id: "weave", label: "Buya Sabe", description: "Kain tenun utama yang melengkapi tampilan.", top: "72%", left: "50%" },
           ],
           answer: "weave",
         },
@@ -307,10 +317,12 @@ export const lessons: Lesson[] = [
         type: "hotspot",
         prompt: "Temukan titik yang menjadi ruang kedatangan tamu.",
         data: {
+          imageUrl: "/media/presets/souraja.webp",
+          imageCaption: "Pelataran & Struktur Arsitektur Adat Souraja (Banua Oge), Kaili",
           hotspots: [
-            { id: "stairs", label: "Anak tangga", description: "Ruang transisi sebelum masuk." },
-            { id: "porch", label: "Serambi", description: "Ruang menyapa dan menerima tamu." },
-            { id: "inner", label: "Ruang dalam", description: "Area yang dimasuki setelah dipersilakan." },
+            { id: "stairs", label: "Anak tangga", description: "Ruang transisi sebelum masuk.", top: "76%", left: "64%" },
+            { id: "porch", label: "Serambi", description: "Ruang menyapa dan menerima tamu.", top: "56%", left: "50%" },
+            { id: "inner", label: "Ruang dalam", description: "Area yang dimasuki setelah dipersilakan.", top: "52%", left: "32%" },
           ],
           answer: "porch",
         },

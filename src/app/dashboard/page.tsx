@@ -20,7 +20,7 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
-import { getSession } from "../auth/authClient";
+import { getCachedSessionSync, getSession } from "../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "./progress";
 import { getStoredSessions, syncSessionsFromServer } from "../components/game-engine/sessionStore";
 
@@ -53,8 +53,12 @@ function getNodeStatus(node: PathNode, progress: UserProgress): NodeStatus {
   if (node.id === 2) return progress.completedLessons.includes(2) ? "completed" : progress.unlockedLessons.includes(2) ? "active" : "locked";
   if (node.id === 3) return progress.completedLessons.includes(2) ? "completed" : progress.completedLessons.includes(1) ? "active" : "locked";
   if (node.id === 4) return progress.completedLessons.includes(3) ? "completed" : progress.unlockedLessons.includes(3) ? "active" : "locked";
-  if (node.id === 5) return progress.unlockedLessons.includes(4) ? "active" : "locked";
-  return progress.unlockedLessons.includes(5) ? "active" : "locked";
+  if (node.id === 5) return progress.completedLessons.includes(4) ? "completed" : progress.unlockedLessons.includes(4) ? "active" : "locked";
+  return progress.badges.includes("Tamu Sopan") || progress.completedLessons.includes(4)
+    ? "completed"
+    : progress.unlockedLessons.includes(5)
+      ? "active"
+      : "locked";
 }
 
 function NodeIcon({ node, status }: { node: PathNode; status: NodeStatus }) {
@@ -95,6 +99,7 @@ const AMPLITUDE_MOBILE = [0, 22, 35, 22, 0, -22, -35, -22];
 export default function DashboardPage() {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   const [email, setEmail] = useState("");
+  const [isLoaded, setIsLoaded] = useState(false);
   const [curatorNodes, setCuratorNodes] = useState<PathNode[]>([]);
   const [hoveredNodeId, setHoveredNodeId] = useState<number | string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -109,14 +114,25 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    let activeEmail = "";
+    const cached = getCachedSessionSync();
+    let activeEmail = cached?.email || "";
+    if (cached) {
+      setEmail(cached.email);
+      setProgress(readProgress(cached.email));
+      setIsLoaded(true);
+    }
+
     getSession().then(async (session) => {
-      if (!session) return;
+      if (!session) {
+        setIsLoaded(true);
+        return;
+      }
       activeEmail = session.email;
       setEmail(session.email);
       // Immediate local render
       const local = readProgress(session.email);
       setProgress(local);
+      setIsLoaded(true);
       // Remote sync and anti-regression update
       const remote = await loadProgress(session.email);
       setProgress(remote);
@@ -184,7 +200,9 @@ export default function DashboardPage() {
   const effectiveActiveIdx = activeIndex !== -1 ? activeIndex : 0;
   const activeNodeY = startY + effectiveActiveIdx * stepY;
   const activeOffset = offsets[effectiveActiveIdx % offsets.length];
-  const progressRatio = Math.min(1, Math.max(0, progress.completedLessons.length / 3));
+  const completedBaseCount = progress.completedLessons.filter((id) => [1, 2, 3].includes(id)).length;
+  const isUnit1Complete = completedBaseCount >= 3 && progress.completedLessons.includes(4);
+  const progressRatio = Math.min(1, Math.max(0, completedBaseCount / 3));
 
   return (
     <main className="min-h-screen bg-surface px-4 py-4 text-on-surface sm:px-6 lg:px-8">
@@ -195,7 +213,7 @@ export default function DashboardPage() {
           <div className="w-full flex flex-col items-center">
             <div className="w-full max-w-[560px]">
               {/* Sticky Unit Banner — Berfungsi sebagai Header Bab Utama yang Elegan */}
-              <div className="sticky top-0 z-30 pt-1 pb-4 bg-surface/90 backdrop-blur-md">
+              <div className="sticky top-20 z-20 pt-1 pb-4 bg-surface/90 backdrop-blur-md">
                 <div className="rounded-2xl bg-surface-container-lowest p-4 sm:p-5 border-2 border-outline-variant/30 shadow-[0_4px_0_0_#e8ded8] flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -215,8 +233,12 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div className="shrink-0 flex items-center">
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black shadow-xs">
-                      {progress.completedLessons.length}/3 selesai
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black shadow-xs min-h-[28px]">
+                      {isLoaded ? (
+                        `${completedBaseCount}/3 selesai`
+                      ) : (
+                        <span className="inline-block w-10 h-3 rounded bg-primary/20 animate-pulse" />
+                      )}
                     </span>
                   </div>
                 </div>
@@ -243,30 +265,68 @@ export default function DashboardPage() {
               </div>
 
               {/* Misi Berikutnya Hero Banner */}
-              <section className="relative overflow-hidden rounded-2xl bg-primary px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
-                <div className="relative z-10 flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary-fixed">
-                      Misi berikutnya
-                    </p>
-                    <h2 className="text-lg font-black tracking-tight truncate mt-0.5">
-                      {activeNode.title}
-                    </h2>
-                    <p className="text-xs font-semibold text-primary-fixed/90 truncate">
-                      {activeNode.subtitle} • +{activeNode.xp} XP
-                    </p>
+              {!isLoaded ? (
+                <section className="relative overflow-hidden rounded-2xl bg-surface-container-high px-5 py-5 mb-8 animate-pulse border-2 border-outline-variant/30">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-2">
+                      <div className="h-3 w-24 rounded bg-outline-variant/50" />
+                      <div className="h-5 w-44 rounded bg-outline-variant/60" />
+                      <div className="h-3 w-56 rounded bg-outline-variant/40" />
+                    </div>
+                    <div className="h-9 w-24 rounded-full bg-outline-variant/50" />
                   </div>
-                  <Link
-                    href={activeNode.href}
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
-                  >
-                    <Play className="h-3.5 w-3.5 fill-current" />
-                    <span>Mulai</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-                <div className="absolute -right-8 -top-12 h-32 w-32 rounded-full bg-primary-container/40 pointer-events-none" />
-              </section>
+                </section>
+              ) : isUnit1Complete ? (
+                <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary-container px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
+                  <div className="relative z-10 flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary-fixed">
+                        Unit 1 Tuntas • Sempurna
+                      </p>
+                      <h2 className="text-lg font-black tracking-tight truncate mt-0.5">
+                        Selamat! Semua Misi Selesai
+                      </h2>
+                      <p className="text-xs font-semibold text-primary-fixed/90 truncate">
+                        Pernikahan adat selesai &amp; Cap Paspor diterima • +30 XP
+                      </p>
+                    </div>
+                    <Link
+                      href="/dashboard/paspor"
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
+                    >
+                      <Award className="h-3.5 w-3.5" />
+                      <span>Lihat Paspor</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                  <div className="absolute -right-8 -top-12 h-32 w-32 rounded-full bg-primary-container/40 pointer-events-none" />
+                </section>
+              ) : (
+                <section className="relative overflow-hidden rounded-2xl bg-primary px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
+                  <div className="relative z-10 flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary-fixed">
+                        Misi berikutnya
+                      </p>
+                      <h2 className="text-lg font-black tracking-tight truncate mt-0.5">
+                        {activeNode.title}
+                      </h2>
+                      <p className="text-xs font-semibold text-primary-fixed/90 truncate">
+                        {activeNode.subtitle} • +{activeNode.xp} XP
+                      </p>
+                    </div>
+                    <Link
+                      href={activeNode.href}
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
+                    >
+                      <Play className="h-3.5 w-3.5 fill-current" />
+                      <span>Mulai</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                  <div className="absolute -right-8 -top-12 h-32 w-32 rounded-full bg-primary-container/40 pointer-events-none" />
+                </section>
+              )}
 
               {/* Roadmap Canvas: Jalur Sinusoidal + Node Lingkaran Faux-3D */}
               <div
@@ -287,7 +347,7 @@ export default function DashboardPage() {
                     const cy1 = y1 + stepY * 0.5;
                     const cy2 = y2 - stepY * 0.5;
                     const d = `M ${x1} ${y1} C ${x1} ${cy1}, ${x2} ${cy2}, ${x2} ${y2}`;
-                    const isSegmentCompleted = nodes[i].status === "completed" && nodes[i + 1].status === "completed";
+                    const isSegmentCompleted = isLoaded && nodes[i].status === "completed" && nodes[i + 1].status === "completed";
 
                     return (
                       <path
@@ -304,34 +364,50 @@ export default function DashboardPage() {
                 </svg>
 
                 {/* Desktop Accent Card (sejajar dengan node active di sisi berlawanan) */}
-                <div
-                  style={{ top: `${Math.max(16, activeNodeY - 48)}px` }}
-                  className={`absolute z-10 hidden sm:flex flex-col w-[170px] rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-md ${
-                    activeOffset >= 0 ? "left-2" : "right-2"
-                  }`}
-                >
-                  <div className="relative h-20 w-full overflow-hidden bg-surface-container-high">
-                    <img
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
-                      alt="Souraja Rumah Adat Kaili"
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[8px] font-black text-white uppercase tracking-wider">
-                      Kultur Kaili
-                    </span>
+                {isLoaded && (
+                  <div
+                    style={{ top: `${Math.max(16, activeNodeY - 48)}px` }}
+                    className={`absolute z-10 hidden sm:flex flex-col w-[170px] rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-md ${
+                      activeOffset >= 0 ? "left-2" : "right-2"
+                    }`}
+                  >
+                    <div className="relative h-20 w-full overflow-hidden bg-surface-container-high">
+                      <img
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
+                        alt="Souraja Rumah Adat Kaili"
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[8px] font-black text-white uppercase tracking-wider">
+                        Kultur Kaili
+                      </span>
+                    </div>
+                    <div className="p-2">
+                      <p className="text-[11px] font-black text-on-surface leading-tight">
+                        Souraja — rumah adat Kaili
+                      </p>
+                      <p className="text-[9px] text-on-surface-variant font-medium mt-0.5 line-clamp-1">
+                        Pusat adab &amp; diplomasi Banua Oge
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-2">
-                    <p className="text-[11px] font-black text-on-surface leading-tight">
-                      Souraja — rumah adat Kaili
-                    </p>
-                    <p className="text-[9px] text-on-surface-variant font-medium mt-0.5 line-clamp-1">
-                      Pusat adab &amp; diplomasi Banua Oge
-                    </p>
-                  </div>
-                </div>
+                )}
 
                 {/* Node-Node Lingkaran Faux-3D */}
-                {nodes.map((node, i) => {
+                {!isLoaded
+                  ? nodes.map((node, i) => {
+                      const x = centerX + offsets[i % offsets.length];
+                      const y = startY + i * stepY;
+                      return (
+                        <div
+                          key={`skel-${node.id}`}
+                          style={{ left: `${x}px`, top: `${y}px` }}
+                          className="absolute -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
+                        >
+                          <div className="h-[68px] w-[68px] sm:h-[76px] sm:w-[76px] rounded-full bg-surface-container-high animate-pulse border-4 border-surface shadow-[0_5px_0_0_#d8c7be]" />
+                        </div>
+                      );
+                    })
+                  : nodes.map((node, i) => {
                   const isActive = node.status === "active";
                   const isPrimaryActive = node.id === activeNode.id;
                   const isLocked = node.status === "locked";
@@ -463,21 +539,28 @@ export default function DashboardPage() {
           </div>
 
           {/* Rail Kanan Sticky: tetap diam saat konten tengah discroll */}
-          <aside className="space-y-4 xl:sticky xl:top-4 self-start w-full">
+          <aside className="space-y-4 xl:sticky xl:top-24 self-start w-full">
             <section className="rounded-3xl bg-surface-container-lowest p-5 ring-1 ring-outline-variant/25">
               <div className="flex items-center justify-between">
                 <h2 className="font-black">Hari ini</h2>
                 <Flame className="h-5 w-5 text-primary" />
               </div>
-              <p className="mt-5 text-3xl font-black">
-                {progress.streak} <span className="text-sm text-on-surface-variant">hari streak</span>
-              </p>
+              {isLoaded ? (
+                <p className="mt-5 text-3xl font-black">
+                  {progress.streak} <span className="text-sm text-on-surface-variant">hari streak</span>
+                </p>
+              ) : (
+                <div className="mt-5 h-9 w-28 rounded bg-surface-container-high animate-pulse" />
+              )}
               <div className="mt-5 flex items-center justify-between text-xs font-bold text-on-surface-variant">
                 <span>Target XP</span>
-                <span>{dailyXp}/50</span>
+                <span>{isLoaded ? `${dailyXp}/50` : "--/50"}</span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-high">
-                <div className="h-full rounded-full bg-secondary" style={{ width: `${dailyXp * 2}%` }} />
+                <div
+                  className={`h-full rounded-full bg-secondary transition-all ${!isLoaded ? "animate-pulse bg-outline-variant/50" : ""}`}
+                  style={{ width: isLoaded ? `${dailyXp * 2}%` : "30%" }}
+                />
               </div>
             </section>
 
@@ -489,12 +572,20 @@ export default function DashboardPage() {
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-surface-container-low p-3">
                   <Heart className="h-4 w-4 text-error" />
-                  <p className="mt-2 text-lg font-black">{progress.hearts}</p>
+                  {isLoaded ? (
+                    <p className="mt-2 text-lg font-black">{progress.hearts}</p>
+                  ) : (
+                    <div className="mt-2 h-6 w-8 rounded bg-surface-container-high animate-pulse" />
+                  )}
                   <p className="text-xs font-bold text-on-surface-variant">hearts</p>
                 </div>
                 <div className="rounded-2xl bg-surface-container-low p-3">
                   <Trophy className="h-4 w-4 text-secondary" />
-                  <p className="mt-2 text-lg font-black">{progress.xp}</p>
+                  {isLoaded ? (
+                    <p className="mt-2 text-lg font-black">{progress.xp}</p>
+                  ) : (
+                    <div className="mt-2 h-6 w-12 rounded bg-surface-container-high animate-pulse" />
+                  )}
                   <p className="text-xs font-bold text-on-surface-variant">total XP</p>
                 </div>
               </div>
@@ -521,14 +612,6 @@ export default function DashboardPage() {
               src="/logo-munas-ix.png"
               alt="Logo Munas IX PERMIKOMNAS"
               className="h-8 w-8 object-contain"
-            />
-            <img
-              src="/logo-permikomnas.png"
-              alt="Logo Permikomnas RI"
-              className="h-8 w-8 object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
             />
           </div>
           <span className="text-[11px] font-black uppercase tracking-wider text-on-surface-variant">
