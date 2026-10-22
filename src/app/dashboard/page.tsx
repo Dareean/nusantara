@@ -20,9 +20,9 @@ type NodeStatus = "completed" | "active" | "locked";
 
 const pathNodes: PathNode[] = [
   { id: 1, title: "Salam & Adab Tabe", subtitle: "Pelajaran 1 • Kaili Ledo", type: "lesson", href: "/dashboard/latihan/1", xp: 20, offset: "center" },
-  { id: 2, title: "Sapaan Orang Tua & Kerabat", subtitle: "Pelajaran 2 • Kosakata sopan", type: "lesson", href: "/dashboard/latihan/2", xp: 25, offset: "left" },
+  { id: 2, title: "Kenali Baju Nggembe", subtitle: "Pelajaran 2 • Busana adat", type: "lesson", href: "/dashboard/latihan/2", xp: 25, offset: "left" },
   { id: 3, title: "Peti Budaya", subtitle: "Reward Bab 1", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "center" },
-  { id: 4, title: "Kenali Baju Nggembe", subtitle: "Pelajaran 3 • Busana adat", type: "lesson", href: "/dashboard/latihan/3", xp: 30, offset: "right" },
+  { id: 4, title: "Skenario Souraja", subtitle: "Pelajaran 3 • Rumah adat", type: "lesson", href: "/dashboard/latihan/3", xp: 30, offset: "right" },
   { id: 5, title: "Skenario Souraja", subtitle: "Culture Connection", type: "review", href: "/dashboard/culture-connection", xp: 30, offset: "center" },
   { id: 6, title: "Lencana Tamu Sopan", subtitle: "Penutup Bab 1", type: "review", href: "/dashboard/paspor", xp: 50, offset: "left" },
 ];
