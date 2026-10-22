@@ -1,27 +1,33 @@
 {
   "demo@gmail.com": {
-    "xp": 150,
-    "streak": 4,
+    "xp": 210,
+    "streak": 5,
     "hearts": 3,
     "completedLessons": [
       1,
-      2
+      2,
+      3,
+      4
     ],
     "unlockedLessons": [
       1,
       2,
-      3
+      3,
+      4,
+      5
     ],
     "badges": [
-      "pembelajar_kaili"
+      "pembelajar_kaili",
+      "Tamu Sopan",
+      "Pionir Salam"
     ],
     "lastLesson": {
-      "lessonId": 999,
-      "answered": "engine-session-SES-TEST-SULTENG-U1",
+      "lessonId": 4,
+      "answered": "culture-connection",
       "correct": true,
-      "score": 100,
-      "xp": 50,
-      "completedAt": "2026-10-22T06:29:04.167Z"
+      "score": 120,
+      "xp": 30,
+      "completedAt": "2026-10-22T07:39:06.832Z"
     },
     "lastStudyDate": "2026-10-22"
   }

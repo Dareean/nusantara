@@ -3,44 +3,42 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import TopBar from "../../components/TopBar";
-import { Award, BadgeCheck, Compass, GraduationCap, Play } from "lucide-react";
+import { Award, BadgeCheck, Compass, Play } from "lucide-react";
 import { getSession } from "../../auth/authClient";
-import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
+import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
+import { CANONICAL_BADGES, type CanonicalBadge } from "@/lib/badges";
 
-const achievements = [
-  {
-    title: "Pionir Salam",
-    detail: "Menyelesaikan 3 sesi sapaan dengan benar.",
-    Icon: Award,
-    tone: "primary",
-  },
-  {
-    title: "Penjaga Adab",
-    detail: "Menguasai ungkapan hormat dan etik percakapan.",
-    Icon: BadgeCheck,
-    tone: "secondary",
-  },
-  {
-    title: "Petualang Budaya",
-    detail: "Menyelesaikan 5 quest dalam 7 hari berturut-turut.",
-    Icon: Compass,
-    tone: "tertiary",
-  },
-  {
-    title: "Pejuang Ledo",
-    detail: "Konsisten belajar bahasa dan kosakata dasar Kaili.",
-    Icon: GraduationCap,
-    tone: "primary",
-  },
-];
+const BADGE_ICONS: Record<number, typeof Award> = {
+  1: Award,
+  2: BadgeCheck,
+  3: Compass,
+};
 
 export default function AchievementPage() {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
+    let email = "";
     getSession().then(async (session) => {
-      if (session) setProgress(await loadProgress(session.email));
+      if (!session) return;
+      email = session.email;
+      setUserEmail(email);
+      // Read local first for immediate render
+      setProgress(readProgress(email));
+      // Load remote and update state
+      const remote = await loadProgress(email);
+      setProgress(remote);
     });
+
+    const onProgressUpdated = () => {
+      if (email) {
+        setProgress(readProgress(email));
+      }
+    };
+
+    window.addEventListener("laras-progress-updated", onProgressUpdated);
+    return () => window.removeEventListener("laras-progress-updated", onProgressUpdated);
   }, []);
 
   return (
@@ -65,9 +63,15 @@ export default function AchievementPage() {
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">Level {Math.floor(progress.xp / 100) + 1}</span>
-              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">{progress.streak} hari streak</span>
-              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">{progress.badges.length} badge</span>
+              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">
+                Level {Math.floor(progress.xp / 100) + 1}
+              </span>
+              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">
+                {progress.streak} hari streak
+              </span>
+              <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">
+                {progress.badges.length} badge
+              </span>
             </div>
           </section>
 
@@ -78,7 +82,9 @@ export default function AchievementPage() {
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Badge aktif</p>
-              <h2 className="mt-2 text-2xl font-black text-on-surface">{progress.badges.length}/8</h2>
+              <h2 className="mt-2 text-2xl font-black text-on-surface">
+                {progress.badges.length}/{CANONICAL_BADGES.length}
+              </h2>
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
               <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Misi hari ini</p>
@@ -87,8 +93,12 @@ export default function AchievementPage() {
           </section>
 
           <section className="space-y-3">
-            {achievements.map((item) => {
-              const { Icon } = item;
+            {CANONICAL_BADGES.map((item: CanonicalBadge) => {
+              const Icon = BADGE_ICONS[item.lessonId] ?? Award;
+              const isUnlocked =
+                progress.badges.includes(item.title) ||
+                progress.completedLessons.includes(item.lessonId);
+
               return (
                 <div
                   key={item.title}
@@ -103,18 +113,27 @@ export default function AchievementPage() {
                             : item.tone === "secondary"
                               ? "bg-secondary-fixed text-secondary"
                               : "bg-tertiary-fixed text-tertiary"
-                        }`}
+                        } ${!isUnlocked ? "opacity-60 grayscale" : ""}`}
                       >
                         <Icon className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-base font-extrabold text-on-surface">{item.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-extrabold text-on-surface">{item.title}</h3>
+                          <span className="text-[11px] font-bold text-primary">+{item.rewardXp} XP</span>
+                        </div>
                         <p className="text-xs text-on-surface-variant">{item.detail}</p>
                       </div>
                     </div>
 
-                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${progress.badges.includes(item.title) ? "bg-secondary-fixed text-on-secondary-fixed" : "bg-surface-container text-on-surface-variant"}`}>
-                      {progress.badges.includes(item.title) ? "Terbuka" : "Terkunci"}
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${
+                        isUnlocked
+                          ? "bg-secondary-fixed text-on-secondary-fixed"
+                          : "bg-surface-container text-on-surface-variant"
+                      }`}
+                    >
+                      {isUnlocked ? "Terbuka" : "Terkunci"}
                     </span>
                   </div>
                 </div>
@@ -124,11 +143,11 @@ export default function AchievementPage() {
 
           <div className="flex justify-center pt-1">
             <Link
-              href="/dashboard/belajar"
+              href="/dashboard"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1d120d] px-4 py-2.5 text-sm font-extrabold text-[#fff7f1] shadow-[0_4px_0_0_#4a2214] transition-all hover:translate-y-[-1px]"
             >
               <Play className="w-4 h-4 fill-current" />
-              Kembali ke quest
+              Kembali ke Roadmap
             </Link>
           </div>
         </div>

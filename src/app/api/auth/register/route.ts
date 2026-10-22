@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByEmail, addUser, createSessionForUser } from '../../../auth/serverAuth';
+import { getUserByEmail, addUser, createSessionForUser, isAdminEmail } from '../../../auth/serverAuth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,9 +15,16 @@ export async function POST(req: NextRequest) {
 
     addUser(name, email, password);
     const sessionId = createSessionForUser({ name, email });
+    const isUserAdmin = isAdminEmail(email);
 
-    const res = NextResponse.json({ ok: true, email, name });
-    res.cookies.set('laras_session', sessionId, { httpOnly: true, path: '/', sameSite: 'lax' });
+    const res = NextResponse.json({ ok: true, email, name, isAdmin: isUserAdmin });
+    res.cookies.set('laras_session', sessionId, {
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60,
+    });
     return res;
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });

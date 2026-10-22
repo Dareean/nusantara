@@ -109,11 +109,25 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    let activeEmail = "";
     getSession().then(async (session) => {
       if (!session) return;
+      activeEmail = session.email;
       setEmail(session.email);
-      setProgress(await loadProgress(session.email));
+      // Immediate local render
+      const local = readProgress(session.email);
+      setProgress(local);
+      // Remote sync and anti-regression update
+      const remote = await loadProgress(session.email);
+      setProgress(remote);
     });
+
+    const onProgressUpdated = () => {
+      if (activeEmail) {
+        setProgress(readProgress(activeEmail));
+      }
+    };
+    window.addEventListener("laras-progress-updated", onProgressUpdated);
 
     const updateNodes = () => {
       try {
@@ -124,8 +138,8 @@ export default function DashboardPage() {
           id: `curator-${s.id}`,
           title: s.title || "Sesi Kurator",
           subtitle: "Sesi Kurator • Game Engine",
-          type: "lesson",
           href: `/dashboard/belajar/${s.id}`,
+          type: "lesson",
           xp: s.xpReward || 30,
           offset: offsets[idx % offsets.length],
           status: "active",
@@ -139,7 +153,10 @@ export default function DashboardPage() {
     updateNodes();
     window.addEventListener("laras-sessions-updated", updateNodes);
     syncSessionsFromServer().catch(() => {});
-    return () => window.removeEventListener("laras-sessions-updated", updateNodes);
+    return () => {
+      window.removeEventListener("laras-progress-updated", onProgressUpdated);
+      window.removeEventListener("laras-sessions-updated", updateNodes);
+    };
   }, []);
 
   useEffect(() => {

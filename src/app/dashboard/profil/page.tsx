@@ -12,19 +12,13 @@ import {
   LogOut,
 } from "lucide-react";
 import { getSession } from "../../auth/authClient";
-import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
+import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
+import { CANONICAL_BADGES } from "@/lib/badges";
 
 const learningTracks = [
   { title: "Bahasa Ledo", progress: 82, tag: "Active" },
   { title: "Adab & sapaan", progress: 100, tag: "Done" },
   { title: "Busana adat", progress: 35, tag: "Next" },
-];
-
-const achievements = [
-  { title: "Pionir Salam", detail: "3 sesi sapaan selesai", Icon: Award },
-  { title: "Penjaga Adab", detail: "12 ekspresi hormat dikuasai", Icon: BadgeCheck },
-  { title: "Petualang Budaya", detail: "5 quest diselesaikan", Icon: Compass },
-  { title: "Riset Ledo", detail: "1 mini challenge selesai", Icon: GraduationCap },
 ];
 
 export default function ProfilPage() {
@@ -153,18 +147,34 @@ export default function ProfilPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {achievements.map((item) => {
-                const { Icon } = item;
+              {CANONICAL_BADGES.map((item) => {
+                const isUnlocked =
+                  progress.badges.includes(item.title) ||
+                  progress.completedLessons.includes(item.lessonId);
+                const Icon = item.lessonId === 1 ? Award : item.lessonId === 2 ? BadgeCheck : Compass;
                 return (
                   <div key={item.title} className="rounded-[18px] bg-surface-container p-3 ring-1 ring-outline-variant/20">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-fixed text-primary">
-                        <Icon className="w-5 h-5" />
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
+                            item.tone === "primary"
+                              ? "bg-primary-fixed text-primary"
+                              : item.tone === "secondary"
+                                ? "bg-secondary-fixed text-secondary"
+                                : "bg-tertiary-fixed text-tertiary"
+                          } ${!isUnlocked ? "opacity-50 grayscale" : ""}`}
+                        >
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-extrabold text-on-surface">{item.title}</p>
+                          <p className="text-[11px] text-on-surface-variant">{item.detail}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-extrabold text-on-surface">{item.title}</p>
-                        <p className="text-[11px] text-on-surface-variant">{item.detail}</p>
-                      </div>
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${isUnlocked ? "bg-secondary-fixed text-on-secondary-fixed" : "bg-surface-container-high text-on-surface-variant"}`}>
+                        {isUnlocked ? "Buka" : "Kunci"}
+                      </span>
                     </div>
                   </div>
                 );

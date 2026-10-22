@@ -1,3 +1,5 @@
+import { CANONICAL_BADGES } from "@/lib/badges";
+
 export type LessonResult = {
   lessonId: number;
   answered: string;
@@ -36,6 +38,7 @@ export type UserProgress = {
 };
 
 const PROGRESS_PREFIX = "laras.progress.";
+const UNSYNCED_PREFIX = "laras.progress.unsynced.";
 
 export const DEFAULT_PROGRESS: UserProgress = {
   xp: 0,
@@ -50,6 +53,10 @@ export const DEFAULT_PROGRESS: UserProgress = {
 
 function progressKey(email: string) {
   return `${PROGRESS_PREFIX}${email.toLowerCase()}`;
+}
+
+function unsyncedKey(email: string) {
+  return `${UNSYNCED_PREFIX}${email.toLowerCase()}`;
 }
 
 export function readProgress(email: string): UserProgress {
@@ -73,18 +80,95 @@ export function readProgress(email: string): UserProgress {
   }
 }
 
+/**
+ * Merge local and remote progress using anti-regression rules.
+ * Neither XP, completed lessons, unlocked lessons, nor badges will ever regress.
+ */
+export function mergeClientProgress(
+  local: UserProgress,
+  remote: Partial<UserProgress>
+): UserProgress {
+  const completedLessons = Array.from(
+    new Set([...(local.completedLessons || []), ...(remote.completedLessons || [])])
+  ).sort((a, b) => a - b);
+
+  const unlockedLessons = Array.from(
+    new Set([...(local.unlockedLessons || [1]), ...(remote.unlockedLessons || [1]), 1])
+  ).sort((a, b) => a - b);
+
+  const badges = Array.from(
+    new Set([...(local.badges || []), ...(remote.badges || [])])
+  );
+
+  const xp = Math.max(Number(local.xp || 0), Number(remote.xp || 0));
+  const streak = Math.max(Number(local.streak || 0), Number(remote.streak || 0));
+  const hearts = typeof remote.hearts === "number" ? remote.hearts : local.hearts;
+  const lastLesson = remote.lastLesson || local.lastLesson || null;
+  const lastStudyDate = remote.lastStudyDate || local.lastStudyDate || null;
+
+  return {
+    xp,
+    streak,
+    hearts,
+    completedLessons,
+    unlockedLessons,
+    badges,
+    lastLesson,
+    lastStudyDate,
+  };
+}
+
 export function saveProgress(email: string, progress: UserProgress) {
   if (typeof window === "undefined") return;
+
+  // Immediately persist to local storage
   window.localStorage.setItem(progressKey(email), JSON.stringify(progress));
   window.dispatchEvent(new CustomEvent("laras-progress-updated"));
-  void fetch("/api/progress", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ email, progress }),
-  }).catch(() => {
-    // Keep the local cache when Supabase is unavailable.
-  });
+
+  // Background server sync with retry and unsynced cache
+  (async () => {
+    const sendPut = async () => {
+      return await fetch("/api/progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, progress }),
+      });
+    };
+
+    try {
+      let resp = await sendPut();
+
+      // If unauthorized (401), try to re-validate session once and retry
+      if (resp.status === 401) {
+        try {
+          await fetch("/api/auth/session", { credentials: "include", cache: "no-store" });
+          resp = await sendPut();
+        } catch {
+          // ignore session revalidation error
+        }
+      }
+
+      if (resp.ok) {
+        window.localStorage.removeItem(unsyncedKey(email));
+        const data = (await resp.json().catch(() => ({}))) as {
+          ok?: boolean;
+          progress?: Partial<UserProgress>;
+        };
+        if (data.progress) {
+          const merged = mergeClientProgress(progress, data.progress);
+          window.localStorage.setItem(progressKey(email), JSON.stringify(merged));
+          window.dispatchEvent(new CustomEvent("laras-progress-updated"));
+        }
+      } else {
+        // Server returned non-200: save in unsynced queue so progress is not lost
+        window.localStorage.setItem(unsyncedKey(email), JSON.stringify(progress));
+      }
+    } catch {
+      // Network failure / offline: keep in unsynced queue
+      window.localStorage.setItem(unsyncedKey(email), JSON.stringify(progress));
+    }
+  })();
 }
 
 export async function loadProgress(email: string): Promise<UserProgress> {
@@ -92,21 +176,33 @@ export async function loadProgress(email: string): Promise<UserProgress> {
   if (typeof window === "undefined") return local;
 
   try {
+    // Flush any pending unsynced progress
+    const unsyncedRaw = window.localStorage.getItem(unsyncedKey(email));
+    if (unsyncedRaw) {
+      try {
+        const unsyncedData = JSON.parse(unsyncedRaw);
+        const flushResp = await fetch("/api/progress", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email, progress: unsyncedData }),
+        });
+        if (flushResp.ok) {
+          window.localStorage.removeItem(unsyncedKey(email));
+        }
+      } catch {}
+    }
+
     const response = await fetch("/api/progress", { credentials: "include", cache: "no-store" });
     if (!response.ok) return local;
+
     const body = (await response.json()) as { progress?: Partial<UserProgress> | null };
     if (!body.progress) return local;
-    const remote: UserProgress = {
-      ...DEFAULT_PROGRESS,
-      ...body.progress,
-      completedLessons: body.progress.completedLessons ?? [],
-      unlockedLessons: body.progress.unlockedLessons ?? [1],
-      badges: body.progress.badges ?? [],
-      lastLesson: body.progress.lastLesson ?? null,
-      lastStudyDate: body.progress.lastStudyDate ?? null,
-    };
-    window.localStorage.setItem(progressKey(email), JSON.stringify(remote));
-    return remote;
+
+    // Merge anti-regressively: server data ∪ local data
+    const merged = mergeClientProgress(local, body.progress);
+    window.localStorage.setItem(progressKey(email), JSON.stringify(merged));
+    return merged;
   } catch {
     return local;
   }
@@ -120,17 +216,32 @@ export function recordLessonResult(email: string, result: LessonResult) {
   const yesterday = new Date(`${today}T12:00:00`);
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayKey = yesterday.toISOString().slice(0, 10);
-  const streak = previousDate === today
-    ? current.streak
-    : previousDate === yesterdayKey
-      ? current.streak + 1
-      : 1;
-  const completedLessons = result.correct && !alreadyCompleted
-    ? [...current.completedLessons, result.lessonId]
-    : current.completedLessons;
-  const unlockedLessons = result.correct && !alreadyCompleted
-    ? Array.from(new Set([...current.unlockedLessons, result.lessonId + 1]))
-    : current.unlockedLessons;
+  const streak =
+    previousDate === today
+      ? current.streak
+      : previousDate === yesterdayKey
+        ? current.streak + 1
+        : 1;
+
+  const completedLessons =
+    result.correct && !alreadyCompleted
+      ? [...current.completedLessons, result.lessonId]
+      : current.completedLessons;
+
+  const unlockedLessons =
+    result.correct && !alreadyCompleted
+      ? Array.from(new Set([...current.unlockedLessons, result.lessonId + 1]))
+      : current.unlockedLessons;
+
+  // Canonical badge for completed lesson
+  const badgeObj = CANONICAL_BADGES.find((b) => b.lessonId === result.lessonId);
+  const badgeTitle = badgeObj?.title;
+
+  let badges = current.badges;
+  if (result.correct && badgeTitle && !badges.includes(badgeTitle)) {
+    badges = [...badges, badgeTitle];
+  }
+
   const next: UserProgress = {
     ...current,
     xp: current.xp + (result.correct && !alreadyCompleted ? result.xp : 0),
@@ -138,15 +249,7 @@ export function recordLessonResult(email: string, result: LessonResult) {
     hearts: result.correct || alreadyCompleted ? current.hearts : Math.max(0, current.hearts - 1),
     completedLessons,
     unlockedLessons,
-    badges: (() => {
-      let b = current.badges;
-      if (result.correct) {
-        if (result.lessonId === 1 && !b.includes("Pionir Salam")) b = [...b, "Pionir Salam"];
-        if (result.lessonId === 2 && !b.includes("Penjaga Busana")) b = [...b, "Penjaga Busana"];
-        if (result.lessonId === 3 && !b.includes("Tamu Sopan")) b = [...b, "Tamu Sopan"];
-      }
-      return b;
-    })(),
+    badges,
     lastLesson: result,
     lastStudyDate: today,
   };
@@ -162,11 +265,13 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
   const yesterday = new Date(`${today}T12:00:00`);
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayKey = yesterday.toISOString().slice(0, 10);
-  const streak = previousDate === today
-    ? current.streak
-    : previousDate === yesterdayKey
-      ? current.streak + 1
-      : 1;
+  const streak =
+    previousDate === today
+      ? current.streak
+      : previousDate === yesterdayKey
+        ? current.streak + 1
+        : 1;
+
   const lessonResult: LessonResult = {
     lessonId: result.lessonId,
     answered: result.answered,
@@ -180,22 +285,28 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
     completed: true,
     completedAt: result.completedAt,
   };
+
+  // Canonical badge for completed lesson
+  const badgeObj = CANONICAL_BADGES.find((b) => b.lessonId === result.lessonId);
+  const badgeTitle = badgeObj?.title;
+
+  let badges = current.badges;
+  if (badgeTitle && !badges.includes(badgeTitle)) {
+    badges = [...badges, badgeTitle];
+  }
+
   const next: UserProgress = {
     ...current,
     xp: alreadyCompleted ? current.xp : current.xp + result.xpEarned + result.bonusXp,
     streak,
     hearts: result.heartsRemaining,
-    completedLessons: alreadyCompleted ? current.completedLessons : [...current.completedLessons, result.lessonId],
+    completedLessons: alreadyCompleted
+      ? current.completedLessons
+      : [...current.completedLessons, result.lessonId],
     unlockedLessons: alreadyCompleted
       ? current.unlockedLessons
       : Array.from(new Set([...current.unlockedLessons, result.lessonId + 1])),
-    badges: (() => {
-      let b = current.badges;
-      if (result.lessonId === 1 && !b.includes("Pionir Salam")) b = [...b, "Pionir Salam"];
-      if (result.lessonId === 2 && !b.includes("Penjaga Busana")) b = [...b, "Penjaga Busana"];
-      if (result.lessonId === 3 && !b.includes("Tamu Sopan")) b = [...b, "Tamu Sopan"];
-      return b;
-    })(),
+    badges,
     lastLesson: lessonResult,
     lastStudyDate: today,
   };
