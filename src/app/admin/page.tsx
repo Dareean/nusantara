@@ -228,24 +228,33 @@ export default function AdminPage() {
 
   const handleAddEntry = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTerm) return;
+    const termClean = newTerm.trim();
+    if (!termClean) return;
 
     const newId = `ENT-00${entries.length + 1}`;
     const entry: CulturalEntry = {
       id: newId,
-      term: newTerm,
+      term: termClean,
       type: newCategory.includes("Bahasa") ? "Bahasa" : "Busana",
       category: newCategory,
       chapter: newChapter,
       module: "Modul Baru",
       source: "Pengajuan Kurator",
-      informant: newInformant || "Menunggu Sidang Adat",
+      informant: newInformant.trim() || "Menunggu Sidang Adat",
       status: "draft",
       gating: "blocked",
       icon: "draft",
     };
 
-    setEntries([entry, ...entries]);
+    const updated = [entry, ...entries];
+    setEntries(updated);
+    try {
+      localStorage.setItem(CMS_STORAGE_KEY, JSON.stringify(updated));
+    } catch (err) {
+      console.warn("Gagal simpan laras_cms_entries:", err);
+    }
+    setFilterTab("all");
+    setSearchQuery("");
     setIsModalOpen(false);
     setNewTerm("");
     setNewInformant("");
@@ -1091,14 +1100,13 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <form onSubmit={handleAddEntry} className="space-y-3 text-[12px]">
+            <form onSubmit={handleAddEntry} noValidate className="space-y-3 text-[12px]">
               <div>
                 <label className="block text-[11px] text-on-surface-variant uppercase font-bold mb-1">
                   Entri Vernakular / Istilah Kaili
                 </label>
                 <input
                   type="text"
-                  required
                   value={newTerm}
                   onChange={(e) => setNewTerm(e.target.value)}
                   placeholder="Contoh: Salonde, Palapi, Baju Nggembe..."

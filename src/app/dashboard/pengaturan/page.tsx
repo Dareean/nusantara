@@ -1,12 +1,30 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TopBar from "../../components/TopBar";
+import { LogOut } from "lucide-react";
+import { getSession } from "../../auth/authClient";
 
 export default function PengaturanPage() {
   const [dailyGoal, setDailyGoal] = useState(true);
   const [pushNotif, setPushNotif] = useState(true);
   const [audioAutoPlay, setAudioAutoPlay] = useState(true);
+  const [session, setSession] = useState<{ email: string; name: string } | null>(null);
+
+  useEffect(() => {
+    getSession().then((sess) => {
+      if (sess) setSession(sess);
+    });
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Gagal logout:", err);
+    }
+    window.location.href = "/auth";
+  };
 
   return (
     <>
@@ -68,6 +86,27 @@ export default function PengaturanPage() {
               </button>
             </div>
           </section>
+
+          {session && (
+            <section className="rounded-[24px] bg-surface-container-lowest p-4 shadow-xs ring-1 ring-outline-variant/25 sm:p-5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <p className="text-base font-extrabold text-on-surface">Akun & Sesi</p>
+                  <p className="text-xs text-on-surface-variant mt-0.5">
+                    Masuk sebagai <strong className="text-on-surface">{session.name}</strong> ({session.email})
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-error-container/30 px-4 py-2.5 text-sm font-bold text-error ring-1 ring-error/25 transition hover:bg-error-container/60 cursor-pointer self-start sm:self-auto"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Keluar
+                </button>
+              </div>
+            </section>
+          )}
         </div>
       </main>
     </>
