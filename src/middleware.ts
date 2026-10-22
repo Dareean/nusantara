@@ -33,9 +33,19 @@ export async function middleware(req: NextRequest) {
     return response;
   };
 
-  // Cek cookie sesi (dukung format raw maupun URL-decoded)
-  const rawCookie = req.cookies.get('laras_session')?.value;
-  if (!rawCookie) {
+  // Cek cookie sesi
+  const cookie = req.cookies.get('laras_session')?.value;
+  if (!cookie) {
+    const nextAuthCookie =
+      req.cookies.get('next-auth.session-token')?.value ||
+      req.cookies.get('__Secure-next-auth.session-token')?.value;
+
+    if (nextAuthCookie && (isDashboard || isAdmin)) {
+      const syncUrl = new URL('/api/auth/oauth-sync', req.url);
+      syncUrl.searchParams.set('redirect', req.nextUrl.pathname + req.nextUrl.search);
+      return NextResponse.redirect(syncUrl);
+    }
+
     if (isDashboard || isAdmin) {
       return redirectToLogin();
     }

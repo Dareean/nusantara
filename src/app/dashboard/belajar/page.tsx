@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { getSession } from "../../auth/authClient";
-import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
+import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
 import { getStoredSessions, syncSessionsFromServer } from "../../components/game-engine/sessionStore";
 import type { GameSession } from "../../components/game-engine/types";
 
@@ -31,8 +31,8 @@ type Lesson = {
 };
 
 const lessons: Lesson[] = [
-  { id: 1, Icon: BookOpen, label: "Baca", status: "done", href: "/dashboard/latihan/1", left: 50, top: 12, size: 68 },
-  { id: 2, Icon: Headphones, label: "Dengar", status: "active", href: "/dashboard/latihan/1", left: 50, top: 32, size: 104 },
+  { id: 1, Icon: BookOpen, label: "Baca", status: "active", href: "/dashboard/latihan/1", left: 50, top: 12, size: 68 },
+  { id: 2, Icon: Headphones, label: "Dengar", status: "locked", href: "/dashboard/latihan/1", left: 50, top: 32, size: 104 },
   { id: 3, Icon: Languages, label: "Pahami", status: "locked", href: "/dashboard/latihan/2", left: 50, top: 52, size: 82 },
   { id: 4, Icon: Star, label: "Tantang", status: "locked", href: "/dashboard/latihan/3", left: 50, top: 68, size: 84 },
   { id: 5, Icon: BookMarked, label: "Rekap", status: "locked", href: "/dashboard/paspor", left: 50, top: 88, size: 82 },
@@ -43,9 +43,20 @@ export default function JalurBelajarPage() {
   const [curatorSessions, setCuratorSessions] = useState<GameSession[]>([]);
 
   useEffect(() => {
+    let email = "";
     getSession().then(async (session) => {
-      if (session) setProgress(await loadProgress(session.email));
+      if (session) {
+        email = session.email;
+        setProgress(readProgress(session.email));
+        const remote = await loadProgress(session.email);
+        setProgress(remote);
+      }
     });
+
+    const onProgressUpdated = () => {
+      if (email) setProgress(readProgress(email));
+    };
+    window.addEventListener("laras-progress-updated", onProgressUpdated);
 
     const updateSessions = () => {
       try {
@@ -61,7 +72,10 @@ export default function JalurBelajarPage() {
     updateSessions();
     window.addEventListener("laras-sessions-updated", updateSessions);
     syncSessionsFromServer().catch(() => {});
-    return () => window.removeEventListener("laras-sessions-updated", updateSessions);
+    return () => {
+      window.removeEventListener("laras-sessions-updated", updateSessions);
+      window.removeEventListener("laras-progress-updated", onProgressUpdated);
+    };
   }, []);
 
   return (
@@ -91,7 +105,7 @@ export default function JalurBelajarPage() {
             </svg>
 
             {lessons.map((lesson) => {
-              const isDone = progress.completedLessons.includes(lesson.id) || (lesson.id === 1 && lesson.status === "done");
+              const isDone = progress.completedLessons.includes(lesson.id);
               const isUnlocked = progress.unlockedLessons.includes(lesson.id) || lesson.id === 1;
               const isActive = isUnlocked && !isDone;
               const isLocked = !isUnlocked;

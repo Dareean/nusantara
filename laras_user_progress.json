@@ -37,5 +37,17 @@
       "isRepeat": true
     },
     "lastStudyDate": "2026-10-22"
+  },
+  "cernitro2@gmail.com": {
+    "xp": 0,
+    "streak": 0,
+    "hearts": 3,
+    "completedLessons": [],
+    "unlockedLessons": [
+      1
+    ],
+    "badges": [],
+    "lastLesson": null,
+    "lastStudyDate": null
   }
 }

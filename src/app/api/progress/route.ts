@@ -3,6 +3,8 @@ import fs from "fs";
 import path from "path";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession } from "@/app/auth/serverAuth";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth/authOptions";
 
 export type StoredProgress = {
   xp: number;
@@ -13,6 +15,17 @@ export type StoredProgress = {
   badges: string[];
   lastLesson: unknown;
   lastStudyDate: string | null;
+};
+
+export const INITIAL_EMPTY_PROGRESS: StoredProgress = {
+  xp: 0,
+  streak: 0,
+  hearts: 3,
+  completedLessons: [],
+  unlockedLessons: [1],
+  badges: [],
+  lastLesson: null,
+  lastStudyDate: null,
 };
 
 type ProgressPayload = {
@@ -50,10 +63,19 @@ function saveLocalProgress(email: string, progress: StoredProgress) {
   }
 }
 
-function authenticatedEmail(req: NextRequest) {
+async function authenticatedEmail(req: NextRequest): Promise<string | null> {
   const sessionId = req.cookies.get("laras_session")?.value;
   const session = getSession(sessionId);
-  return session?.email ?? null;
+  if (session?.email) return session.email.toLowerCase().trim();
+
+  try {
+    const nextSession = await getServerSession(authOptions);
+    if (nextSession?.user?.email) {
+      return nextSession.user.email.toLowerCase().trim();
+    }
+  } catch {}
+
+  return null;
 }
 
 export function mergeProgressAntiRegression(
@@ -130,11 +152,12 @@ export function mergeProgressAntiRegression(
 }
 
 export async function GET(req: NextRequest) {
-  const email = authenticatedEmail(req);
+  const email = await authenticatedEmail(req);
   if (!email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const { data, error } = await createAdminClient()
+    const adminClient = createAdminClient();
+    const { data, error } = await adminClient
       .from("user_progress")
       .select("progress, updated_at")
       .eq("email", email)
@@ -149,6 +172,28 @@ export async function GET(req: NextRequest) {
         progress: data.progress,
       });
     }
+
+    // Bila pengguna belum memiliki progres di Supabase (pengguna baru),
+    // otomatis inisialisasi baris progres bersih (0 XP, 0 streak, 3 hearts, dll.) ke Supabase!
+    if (!error && !data) {
+      const initial = { ...INITIAL_EMPTY_PROGRESS };
+      const { error: insertError } = await adminClient.from("user_progress").upsert({
+        email,
+        progress: initial,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (!insertError) {
+        saveLocalProgress(email, initial);
+        return NextResponse.json({
+          ok: true,
+          synced: true,
+          source: "database_init",
+          progress: initial,
+        });
+      }
+    }
+
     if (error) {
       console.warn("Supabase user_progress query returned error:", error.message);
     }
@@ -161,12 +206,12 @@ export async function GET(req: NextRequest) {
     ok: true,
     synced: false,
     source: "fallback_local",
-    progress: local,
+    progress: local || { ...INITIAL_EMPTY_PROGRESS },
   });
 }
 
 export async function PUT(req: NextRequest) {
-  const email = authenticatedEmail(req);
+  const email = await authenticatedEmail(req);
   if (!email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = (await req.json()) as ProgressPayload;
