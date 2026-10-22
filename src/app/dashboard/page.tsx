@@ -5,16 +5,20 @@ import Link from "next/link";
 import { ArrowRight, Check, Flame, Gift, Heart, Lock, MapPin, Play, Sparkles, Star, Trophy, Zap } from "lucide-react";
 import { getSession } from "../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "./progress";
+import { getStoredSessions } from "../components/game-engine/sessionStore";
 
 type PathNode = {
-  id: number;
+  id: number | string;
   title: string;
   subtitle: string;
   type: "lesson" | "chest" | "review";
   href: string;
   xp: number;
   offset: "left" | "center" | "right";
+  status?: NodeStatus;
 };
+
+const BUILTIN_SESSION_IDS = new Set(["SES-KL-MASTER-001", "SES-LALOVE-002"]);
 
 type NodeStatus = "completed" | "active" | "locked";
 
@@ -23,14 +27,14 @@ const pathNodes: PathNode[] = [
   { id: 2, title: "Kenali Baju Nggembe", subtitle: "Pelajaran 2 • Busana adat", type: "lesson", href: "/dashboard/latihan/2", xp: 25, offset: "left" },
   { id: 3, title: "Peti Budaya", subtitle: "Reward Bab 1", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "center" },
   { id: 4, title: "Skenario Souraja", subtitle: "Pelajaran 3 • Rumah adat", type: "lesson", href: "/dashboard/latihan/3", xp: 30, offset: "right" },
-  { id: 5, title: "Skenario Souraja", subtitle: "Culture Connection", type: "review", href: "/dashboard/culture-connection", xp: 30, offset: "center" },
+  { id: 5, title: "Culture Connection: Upacara Adat", subtitle: "Simulasi • Pernikahan adat Kaili", type: "review", href: "/dashboard/culture-connection", xp: 30, offset: "center" },
   { id: 6, title: "Lencana Tamu Sopan", subtitle: "Penutup Bab 1", type: "review", href: "/dashboard/paspor", xp: 50, offset: "left" },
 ];
 
 function getNodeStatus(node: PathNode, progress: UserProgress): NodeStatus {
   if (node.id === 1) return progress.completedLessons.includes(1) ? "completed" : "active";
   if (node.id === 2) return progress.completedLessons.includes(2) ? "completed" : progress.unlockedLessons.includes(2) ? "active" : "locked";
-  if (node.id === 3) return progress.completedLessons.includes(2) ? "completed" : "locked";
+  if (node.id === 3) return progress.completedLessons.includes(2) ? "completed" : progress.completedLessons.includes(1) ? "active" : "locked";
   if (node.id === 4) return progress.completedLessons.includes(3) ? "completed" : progress.unlockedLessons.includes(3) ? "active" : "locked";
   if (node.id === 5) return progress.unlockedLessons.includes(4) ? "active" : "locked";
   return progress.unlockedLessons.includes(5) ? "active" : "locked";
@@ -47,6 +51,7 @@ function NodeIcon({ node, status }: { node: PathNode; status: NodeStatus }) {
 export default function DashboardPage() {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   const [email, setEmail] = useState("");
+  const [curatorNodes, setCuratorNodes] = useState<PathNode[]>([]);
 
   useEffect(() => {
     getSession().then(async (session) => {
@@ -54,6 +59,25 @@ export default function DashboardPage() {
       setEmail(session.email);
       setProgress(await loadProgress(session.email));
     });
+
+    try {
+      const stored = getStoredSessions();
+      const custom = stored.filter((s) => !BUILTIN_SESSION_IDS.has(s.id));
+      const offsets: ("right" | "center" | "left")[] = ["right", "center", "left"];
+      const dynamic: PathNode[] = custom.map((s, idx) => ({
+        id: `curator-${s.id}`,
+        title: s.title || "Sesi Kurator",
+        subtitle: "Sesi Kurator • Game Engine",
+        type: "lesson",
+        href: `/dashboard/belajar/${s.id}`,
+        xp: s.xpReward || 30,
+        offset: offsets[idx % offsets.length],
+        status: "active",
+      }));
+      setCuratorNodes(dynamic);
+    } catch (err) {
+      console.error("Gagal membaca sesi kurator:", err);
+    }
   }, []);
 
   useEffect(() => {
@@ -63,7 +87,9 @@ export default function DashboardPage() {
     return () => window.removeEventListener("laras-progress-updated", refresh);
   }, [email]);
 
-  const nodes = pathNodes.map((node) => ({ ...node, status: getNodeStatus(node, progress) }));
+  const baseNodes = pathNodes.map((node) => ({ ...node, status: getNodeStatus(node, progress) }));
+  const dynamicNodes = curatorNodes.map((node) => ({ ...node, status: "active" as NodeStatus }));
+  const nodes = [...baseNodes, ...dynamicNodes];
   const activeNode = nodes.find((node) => node.status === "active") ?? nodes[nodes.length - 1];
   const dailyXp = Math.min(progress.xp, 50);
 

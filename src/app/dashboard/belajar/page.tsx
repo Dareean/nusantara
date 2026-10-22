@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { getSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
+import { getStoredSessions } from "../../components/game-engine/sessionStore";
+import type { GameSession } from "../../components/game-engine/types";
 
 type LessonStatus = "done" | "active" | "locked";
 
@@ -39,11 +41,21 @@ const lessons: Lesson[] = [
 
 export default function JalurBelajarPage() {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  const [curatorSessions, setCuratorSessions] = useState<GameSession[]>([]);
 
   useEffect(() => {
     getSession().then(async (session) => {
       if (session) setProgress(await loadProgress(session.email));
     });
+
+    try {
+      const builtinIds = new Set(["SES-KL-MASTER-001", "SES-LALOVE-002"]);
+      const stored = getStoredSessions();
+      const custom = stored.filter((s) => !builtinIds.has(s.id));
+      setCuratorSessions(custom);
+    } catch (err) {
+      console.error("Gagal membaca sesi kurator:", err);
+    }
   }, []);
 
   return (
@@ -169,6 +181,39 @@ export default function JalurBelajarPage() {
               N
             </div>
           </div>
+
+          {curatorSessions.length > 0 && (
+            <section className="mt-8 rounded-3xl bg-[#fffaf5] p-5 shadow-sm ring-1 ring-[#e8d5c2]">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#db9964]">Koleksi Kurator</p>
+                  <h3 className="text-base font-black text-[#2d1c15]">Sesi Tantangan Komunitas</h3>
+                </div>
+                <span className="rounded-full bg-[#f6d7ab] px-3 py-1 text-xs font-black text-[#482b1c]">
+                  {curatorSessions.length} Sesi Aktif
+                </span>
+              </div>
+              <div className="space-y-3">
+                {curatorSessions.map((session) => (
+                  <Link
+                    key={session.id}
+                    href={`/dashboard/belajar/${session.id}`}
+                    className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#e8d5c2]/70 transition-all hover:scale-[1.01] hover:shadow-md"
+                  >
+                    <div>
+                      <h4 className="text-sm font-bold text-[#2d1c15]">{session.title}</h4>
+                      <p className="mt-0.5 text-xs text-[#7d6b62]">
+                        {session.subEthnic || "Budaya Kaili"} • {session.questions?.length || 0} tantangan • +{session.xpReward || 30} XP
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-[#f29b5b] px-3.5 py-1.5 text-xs font-black text-white shadow-sm">
+                      Mulai
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </main>
     </>
