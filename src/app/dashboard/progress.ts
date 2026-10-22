@@ -138,9 +138,15 @@ export function recordLessonResult(email: string, result: LessonResult) {
     hearts: result.correct || alreadyCompleted ? current.hearts : Math.max(0, current.hearts - 1),
     completedLessons,
     unlockedLessons,
-    badges: result.correct && result.lessonId === 1 && !current.badges.includes("Pionir Salam")
-      ? [...current.badges, "Pionir Salam"]
-      : current.badges,
+    badges: (() => {
+      let b = current.badges;
+      if (result.correct) {
+        if (result.lessonId === 1 && !b.includes("Pionir Salam")) b = [...b, "Pionir Salam"];
+        if (result.lessonId === 2 && !b.includes("Penjaga Busana")) b = [...b, "Penjaga Busana"];
+        if (result.lessonId === 3 && !b.includes("Tamu Sopan")) b = [...b, "Tamu Sopan"];
+      }
+      return b;
+    })(),
     lastLesson: result,
     lastStudyDate: today,
   };
@@ -183,9 +189,13 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
     unlockedLessons: alreadyCompleted
       ? current.unlockedLessons
       : Array.from(new Set([...current.unlockedLessons, result.lessonId + 1])),
-    badges: result.lessonId === 1 && !current.badges.includes("Pionir Salam")
-      ? [...current.badges, "Pionir Salam"]
-      : current.badges,
+    badges: (() => {
+      let b = current.badges;
+      if (result.lessonId === 1 && !b.includes("Pionir Salam")) b = [...b, "Pionir Salam"];
+      if (result.lessonId === 2 && !b.includes("Penjaga Busana")) b = [...b, "Penjaga Busana"];
+      if (result.lessonId === 3 && !b.includes("Tamu Sopan")) b = [...b, "Tamu Sopan"];
+      return b;
+    })(),
     lastLesson: lessonResult,
     lastStudyDate: today,
   };

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,7 +10,9 @@ import {
   User,
   Settings,
   ShieldAlert,
+  LogOut,
 } from "lucide-react";
+import { getSession } from "../auth/authClient";
 
 const navItems = [
   { path: "/dashboard", Icon: Compass, label: "Belajar" },
@@ -20,6 +23,22 @@ const navItems = [
 
 export default function DuolingoSidebar() {
   const pathname = usePathname();
+  const [session, setSession] = useState<{ email: string; name: string } | null>(null);
+
+  useEffect(() => {
+    getSession().then((sess) => {
+      if (sess) setSession(sess);
+    });
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Gagal logout:", err);
+    }
+    window.location.href = "/auth";
+  };
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-surface border-r-2 border-outline-variant/30 z-40 hidden md:flex flex-col justify-between p-4">
@@ -28,7 +47,7 @@ export default function DuolingoSidebar() {
         <Link href="/" className="flex items-center gap-3 px-3 py-2 group">
           <img
             alt="LARAS"
-            className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
+            className="h-12 w-auto object-contain transition-transform group-hover:scale-105"
             src="/logo/logo_laras.png"
           />
           <div className="flex flex-col">
@@ -68,7 +87,7 @@ export default function DuolingoSidebar() {
         </nav>
       </div>
 
-      {/* Bottom utility */}
+      {/* Bottom utility & User Area */}
       <div className="flex flex-col gap-2 pt-4 border-t-2 border-outline-variant/20">
         <Link
           href="/dashboard/pengaturan"
@@ -84,6 +103,55 @@ export default function DuolingoSidebar() {
           <ShieldAlert className="w-4 h-4 text-primary" />
           <span>Panel Kurator</span>
         </Link>
+
+        {/* Logo Resmi Munas IX & Permikomnas */}
+        <div className="mt-1 p-2 rounded-xl bg-surface-container-low border border-outline-variant/30 flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 p-1 rounded-lg bg-white shrink-0 shadow-xs">
+            <img
+              src="/logo-munas-ix.png"
+              alt="Logo Munas IX PERMIKOMNAS"
+              className="h-7 w-7 object-contain"
+            />
+            <img
+              src="/logo-permikomnas.png"
+              alt="Logo Permikomnas RI"
+              className="h-7 w-7 object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-black leading-tight text-on-surface truncate">
+              Munas IX
+            </span>
+            <span className="text-[9px] font-extrabold text-on-surface-variant truncate">
+              PERMIKOMNAS RI
+            </span>
+          </div>
+        </div>
+
+        {session && (
+          <div className="mt-2 pt-2 border-t border-outline-variant/30 flex flex-col gap-1.5">
+            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-surface-container-low">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-on-primary">
+                {session.name ? session.name.slice(0, 1).toUpperCase() : "U"}
+              </div>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-xs font-bold text-on-surface truncate">{session.name}</span>
+                <span className="text-[10px] text-on-surface-variant truncate">{session.email}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-extrabold text-error hover:bg-error-container/30 transition-all cursor-pointer uppercase tracking-wider"
+            >
+              <LogOut className="w-4 h-4 text-error" />
+              <span>Keluar</span>
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );

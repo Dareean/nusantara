@@ -192,6 +192,35 @@ export function lessonToGameSession(lesson: Lesson): GameSession {
       }
     : undefined;
 
+  const questions: GameQuestion[] = [];
+  for (const q of lesson.questions || []) {
+    if (q.type === "scenario") {
+      const data = q.data as ScenarioQuestionData;
+      if (data.steps && data.steps.length > 0) {
+        data.steps.forEach((step, idx) => {
+          const maxScore = Math.max(...step.choices.map((c) => c.score));
+          const options: QuestionOption[] = (step.choices || []).map((c) => ({
+            id: c.id,
+            title: c.label,
+            isCorrect: c.score === maxScore,
+          }));
+          questions.push({
+            id: `${q.id}-step-${idx + 1}`,
+            type: "roleplay",
+            prompt: q.prompt,
+            scenarioContext: lesson.intro,
+            npcDialogue: step.prompt,
+            options,
+            curatorNote: q.why || "",
+            audioUrl: q.audioUrl,
+          });
+        });
+        continue;
+      }
+    }
+    questions.push(questionToGameQuestion(q, lesson.intro));
+  }
+
   return {
     id: "lesson-" + lesson.id,
     title: lesson.title,
@@ -200,8 +229,6 @@ export function lessonToGameSession(lesson: Lesson): GameSession {
     xpReward: lesson.rewardXp,
     streakDays: 0,
     culturalSourceCard,
-    questions: (lesson.questions || []).map((q) =>
-      questionToGameQuestion(q, lesson.intro)
-    ),
+    questions,
   };
 }

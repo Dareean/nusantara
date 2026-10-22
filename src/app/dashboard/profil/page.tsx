@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -7,8 +7,9 @@ import {
   Settings,
   Award,
   BadgeCheck,
-  Sparkles,
+  Compass,
   GraduationCap,
+  LogOut,
 } from "lucide-react";
 import { getSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
@@ -22,21 +23,32 @@ const learningTracks = [
 const achievements = [
   { title: "Pionir Salam", detail: "3 sesi sapaan selesai", Icon: Award },
   { title: "Penjaga Adab", detail: "12 ekspresi hormat dikuasai", Icon: BadgeCheck },
-  { title: "Petualang Budaya", detail: "5 quest diselesaikan", Icon: Sparkles },
+  { title: "Petualang Budaya", detail: "5 quest diselesaikan", Icon: Compass },
   { title: "Riset Ledo", detail: "1 mini challenge selesai", Icon: GraduationCap },
 ];
 
 export default function ProfilPage() {
+  const [session, setSession] = useState<{ email: string; name: string } | null>(null);
   const [userName, setUserName] = useState("Pelajar LARAS");
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
 
   useEffect(() => {
-    getSession().then(async (session) => {
-      if (!session) return;
-      setUserName(session.name);
-      setProgress(await loadProgress(session.email));
+    getSession().then(async (sess) => {
+      if (!sess) return;
+      setSession(sess);
+      setUserName(sess.name);
+      setProgress(await loadProgress(sess.email));
     });
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Gagal logout:", err);
+    }
+    window.location.href = "/auth";
+  };
 
   return (
     <>
@@ -66,6 +78,16 @@ export default function ProfilPage() {
                   <Settings className="w-4 h-4" />
                   Pengaturan
                 </Link>
+                {session && (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-error-container/30 px-4 py-2.5 text-sm font-bold text-error ring-1 ring-error/25 transition hover:bg-error-container/60 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Keluar
+                  </button>
+                )}
               </div>
             </div>
           </section>

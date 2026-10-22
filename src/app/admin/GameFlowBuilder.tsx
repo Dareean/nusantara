@@ -10,7 +10,6 @@ import {
   Eye,
   Save,
   CheckCircle2,
-  Sparkles,
   Image as ImageIcon,
   Music,
   HelpCircle,

@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import TopBar from "../../components/TopBar";
-import { Award, BadgeCheck, Sparkles, GraduationCap, Play } from "lucide-react";
+import { Award, BadgeCheck, Compass, GraduationCap, Play } from "lucide-react";
 import { getSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
 
@@ -23,7 +23,7 @@ const achievements = [
   {
     title: "Petualang Budaya",
     detail: "Menyelesaikan 5 quest dalam 7 hari berturut-turut.",
-    Icon: Sparkles,
+    Icon: Compass,
     tone: "tertiary",
   },
   {
