@@ -24,6 +24,7 @@ import {
   LayoutDashboard,
   ChevronRight,
   Filter,
+  FileText,
 } from "lucide-react";
 import GameFlowBuilder from "./GameFlowBuilder";
 import { getStoredSessions } from "../components/game-engine/sessionStore";
@@ -71,7 +72,7 @@ const initialEntries: CulturalEntry[] = [
     status: "verified",
     gating: "published",
     thumbnail:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDj2iA59wILAhgAw8HMAnmW9QdcqFfX57-hJxYVwmDa_TIIWaSw-Kc4eFO1rMzFSmUSWaCsR1mc9aG9AJN89VtVyZUXli2LW4NjVz3ml-5uq6E744sPk8UgPKxuJphS95np5CSgkykg5fgy3_LgLXvhj3CMceZH2EGLapdsSBHrbHSm9m9oAxEaEgaUxuV8LZqHldRPHobtxIN-TmnBfXDHI9TU7nC_212k-oXusVst0GcUGaQ4ma_Ysw",
+      "/media/presets/baju_nggembe.webp",
   },
   {
     id: "ENT-003",
@@ -85,7 +86,7 @@ const initialEntries: CulturalEntry[] = [
     status: "verified",
     gating: "published",
     thumbnail:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuC6SMOqiqdgy9jy0GKWVKDYKpLIIR8vpAH6cCdG2xUvlPd7kqApdh7wkPc1Xh6ceQ6FGr_t2IBREowE7IJXBuYWhiMG5CltqdAk0tPathcRH6_zaaG_M-mTqZLwgrSLCNPnqoXbVCzQw5qsnz5VNDlpgsWW9Ppt3UC398BAzyGGbl3hndvSZppnRz2ds0ECQssa_YUJuDSige6OCD9Ls_FZtRq0g3N9GjWN5mTEOpJ03oas0toLFlH-7Q",
+      "/media/presets/gimba.webp",
   },
   {
     id: "ENT-004",
@@ -112,7 +113,7 @@ const initialEntries: CulturalEntry[] = [
     status: "disputed",
     gating: "educational_note",
     thumbnail:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuA99tfPQRBVVtMXXGtMtlKHgSxSjzzIEGUQGQbCarbRHI1jOaWURL5jr78aETTdEhKke8meFtOLrl9X0gx8vyxYCiS_yWrOeXkOUZ1l6z-OZ9K_9GFLXs0kDKCI-H__0pXaAtrjs16Xh5R8JEJlxgMqWV9yn9Zs-IQGuEuCZYhHdOEtTgzumKJOZvzIf5Og5pyYLmjHu-GWCGUjVZ-gm5-qoCX3Gifqgzkkpof_6fw2F7JHtuIPKb9Nzw",
+      "/media/presets/lalove.webp",
   },
   {
     id: "ENT-006",
@@ -151,9 +152,25 @@ export default function AdminPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [adminTab, setAdminTab] = useState<"summary" | "builder" | "corpus">("summary");
   const [sessionCount, setSessionCount] = useState<number>(4);
+  const [adminUser, setAdminUser] = useState<{ name: string; role: string }>({
+    name: "Admin LARAS",
+    role: "Administrator",
+  });
 
-  // Load entries from localStorage after initial client mount to prevent hydration mismatch
+  // Load entries from localStorage and sync with server API
   useEffect(() => {
+    // Ambil sesi admin aktif
+    fetch("/api/auth/session")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((res) => {
+        if (res?.ok && res.session?.name) {
+          setAdminUser({
+            name: res.session.name,
+            role: res.session.isAdmin ? "Administrator" : "Pengelola Konten",
+          });
+        }
+      })
+      .catch(() => {});
     try {
       const raw = localStorage.getItem(CMS_STORAGE_KEY);
       if (raw) {
@@ -166,6 +183,30 @@ export default function AdminPage() {
       console.warn("Gagal membaca laras_cms_entries dari localStorage:", err);
     }
     setIsMounted(true);
+
+    // Sync from server API
+    fetch("/api/content/entries?all=1", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((serverEntries) => {
+        if (Array.isArray(serverEntries) && serverEntries.length > 0) {
+          const map = new Map<string, CulturalEntry>();
+          initialEntries.forEach((e) => map.set(e.id, e));
+          const raw = localStorage.getItem(CMS_STORAGE_KEY);
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) parsed.forEach((e: CulturalEntry) => map.set(e.id, e));
+            } catch {}
+          }
+          serverEntries.forEach((row: { id: string; payload: CulturalEntry }) => {
+            if (row.payload && row.id) {
+              map.set(row.id, { ...(row.payload as CulturalEntry), id: row.id });
+            }
+          });
+          setEntries(Array.from(map.values()));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Sync entries to localStorage only after mounted
@@ -238,8 +279,8 @@ export default function AdminPage() {
       category: newCategory,
       chapter: newChapter,
       module: "Modul Baru",
-      source: "Pengajuan Kurator",
-      informant: newInformant.trim() || "Menunggu Sidang Adat",
+      source: "Pengajuan Admin",
+      informant: newInformant.trim() || "Menunggu Tinjauan",
       status: "draft",
       gating: "blocked",
       icon: "draft",
@@ -252,6 +293,20 @@ export default function AdminPage() {
     } catch (err) {
       console.warn("Gagal simpan laras_cms_entries:", err);
     }
+
+    // Sync ke API server
+    fetch("/api/content/entries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        id: entry.id,
+        kind: entry.type,
+        payload: entry,
+        status: "draft",
+      }),
+    }).catch(() => {});
+
     setFilterTab("all");
     setSearchQuery("");
     setIsModalOpen(false);
@@ -264,13 +319,31 @@ export default function AdminPage() {
     newStatus: "verified" | "pending" | "disputed" | "draft",
     newGating: "published" | "blocked" | "educational_note"
   ) => {
+    let updatedPayload: CulturalEntry | null = null;
     setEntries((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: newStatus, gating: newGating } : item
-      )
+      prev.map((item) => {
+        if (item.id === id) {
+          const mod = { ...item, status: newStatus, gating: newGating };
+          updatedPayload = mod;
+          return mod;
+        }
+        return item;
+      })
     );
     if (selectedEntry && selectedEntry.id === id) {
       setSelectedEntry({ ...selectedEntry, status: newStatus, gating: newGating });
+    }
+
+    if (updatedPayload) {
+      fetch(`/api/content/entries/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          payload: updatedPayload,
+          status: newGating === "published" ? "published" : "draft",
+        }),
+      }).catch(() => {});
     }
   };
 
@@ -313,7 +386,7 @@ export default function AdminPage() {
                   LARAS CMS
                 </span>
                 <span className="text-[10px] text-secondary font-bold tracking-wider uppercase -mt-0.5 truncate">
-                  Panel Kurasi Budaya
+                  Panel Admin
                 </span>
               </div>
             </Link>
@@ -327,7 +400,7 @@ export default function AdminPage() {
           </div>
 
           <div className="mt-3 px-2 py-1 rounded-md bg-secondary-fixed/50 text-[10px] text-on-secondary-fixed font-bold border border-secondary-fixed">
-            Dewan Kurator Adat Wil. XVIII
+            Pengelola Konten
           </div>
 
           {/* Menu Navigasi Vertikal */}
@@ -377,11 +450,11 @@ export default function AdminPage() {
                   ? "bg-primary text-on-primary shadow-xs"
                   : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
               }`}
-              title="Verifikasi Korpus Budaya"
+              title="Korpus Budaya"
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <BookOpen className="w-4 h-4 shrink-0" />
-                <span className="truncate">Verifikasi Korpus</span>
+                <span className="truncate">Korpus Budaya</span>
               </div>
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
@@ -425,14 +498,14 @@ export default function AdminPage() {
             </button>
             <div className="min-w-0">
               <h1 className="text-base sm:text-lg font-black text-on-surface tracking-tight truncate leading-tight">
-              {adminTab === "summary" && "Ringkasan Kurasi Budaya"}
+              {adminTab === "summary" && "Ringkasan Konten"}
               {adminTab === "builder" && "Penyusun Alur Game & Soal"}
-              {adminTab === "corpus" && "Verifikasi Korpus Budaya Kaili"}
+              {adminTab === "corpus" && "Korpus Budaya Kaili"}
             </h1>
             <p className="text-[11px] text-on-surface-variant truncate hidden sm:block">
-              {adminTab === "summary" && "Ikhtisar status validasi naskah adat, korpus dan alur modul"}
+              {adminTab === "summary" && "Ikhtisar status korpus, sesi game, dan publikasi modul"}
               {adminTab === "builder" && "Rancang urutan permainan, format hotspot visual, dan audio adat"}
-              {adminTab === "corpus" && "Audit keabsahan istilah vernakular Kaili, busana & narasumber adat"}
+              {adminTab === "corpus" && "Kelola istilah vernakular Kaili, busana & dokumentasi materi"}
             </p>
           </div>
         </div>
@@ -454,14 +527,14 @@ export default function AdminPage() {
               <img
                 alt="Admin Profile"
                 className="w-7 h-7 rounded-full object-cover ring-1 ring-primary-fixed"
-                src="https://lh3.googleusercontent.com/aida/AEtjO1Vhf8Tpf1UP_r76LEL-9Olxy-KamrRKdvbuw_IdSOUdsPnutS-ucQSUNrUwCmvv79RwssCekEhlPat9dql81M0_w3TdFVqc0hENXtxegKWhP1UapZD9OlTcn4MiCZZPhuf7VNtyofbbQ8ByHlCDXGq8phTykzER2D0OKlgZrlUIKLycgNPOKpSjSCeQYrau-XCBnFjpIEDXwO8PKFKpjzvu77uKgmWMakGwQ2PeNYy_zuHKKvm8sSrmGaG3"
+                src="/media/presets/avatar_admin.webp"
               />
               <div className="hidden md:flex flex-col text-left">
                 <span className="text-[12px] font-bold text-on-surface leading-tight">
-                  Drs. Rusdi M.Pd.
+                  {adminUser.name || "Admin LARAS"}
                 </span>
                 <span className="text-[10px] text-on-surface-variant leading-none">
-                  Kurator Adat Kaili
+                  {adminUser.role || "Administrator"}
                 </span>
               </div>
             </div>
@@ -495,11 +568,11 @@ export default function AdminPage() {
                     <span className="text-[11px] text-on-surface-variant font-medium">Entri</span>
                   </div>
                   <span className="text-[11px] text-secondary font-semibold mt-1">
-                    {verifiedCount} telah disahkan
+                    {verifiedCount} terverifikasi
                   </span>
                 </div>
 
-                {/* Stat 2: Menunggu Verifikasi */}
+                {/* Stat 2: Menunggu Tinjauan */}
                 <div
                   onClick={() => {
                     setFilterTab("pending");
@@ -509,7 +582,7 @@ export default function AdminPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
-                      Menunggu Verifikasi
+                      Menunggu Tinjauan
                     </span>
                     <div className="w-7 h-7 rounded-lg bg-primary-fixed/40 flex items-center justify-center text-on-primary-fixed">
                       <Timer className="w-3.5 h-3.5" />
@@ -522,11 +595,11 @@ export default function AdminPage() {
                     <span className="text-[11px] text-on-surface-variant font-medium">Perlu Tinjauan</span>
                   </div>
                   <span className="text-[11px] text-primary font-semibold mt-1">
-                    Menunggu sidang pleno
+                    Perlu tinjauan admin
                   </span>
                 </div>
 
-                {/* Stat 3: Status Draft */}
+                {/* Stat 3: Draf */}
                 <div
                   onClick={() => {
                     setFilterTab("draft");
@@ -536,7 +609,7 @@ export default function AdminPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
-                      Status Draft
+                      Draf
                     </span>
                     <div className="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant">
                       <Lock className="w-3.5 h-3.5" />
@@ -549,7 +622,7 @@ export default function AdminPage() {
                     <span className="text-[11px] text-on-surface-variant font-medium">Terkunci</span>
                   </div>
                   <span className="text-[11px] text-on-surface-variant font-semibold mt-1">
-                    Draf kurator independen
+                    Draf konten lokal
                   </span>
                 </div>
 
@@ -578,7 +651,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Kartu Pengingat Protokol Kurasi (Isi Ringkas HARD RULE) */}
+              {/* Spanduk Prinsip Konten LARAS */}
               <div className="p-3.5 sm:p-4 rounded-xl bg-surface-container-high border border-outline-variant/30 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-start sm:items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-xs">
@@ -587,40 +660,32 @@ export default function AdminPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] uppercase tracking-wider text-primary font-black">
-                        Hard Rule: Otentisitas Kaili
+                        Prinsip Konten LARAS
                       </span>
                       <span className="inline-block w-1 h-1 rounded-full bg-primary" />
                       <span className="text-[11px] text-on-surface-variant font-semibold">
-                        Protokol Kurasi Adat #P-17
+                        Panduan Integritas Konten
                       </span>
                     </div>
                     <p className="text-[12px] text-on-surface mt-0.5 leading-snug">
-                      Seluruh entri berstatus{" "}
-                      <span className="text-error font-bold bg-error-container/40 px-1 py-0.2 rounded text-[11px]">
-                        Draft
-                      </span>{" "}
-                      atau{" "}
-                      <span className="text-secondary font-bold bg-secondary-fixed/50 px-1 py-0.2 rounded text-[11px]">
-                        Menunggu Verifikasi
-                      </span>{" "}
-                      otomatis diblokir dari antarmuka murid demi prinsip <em>&ldquo;No Cultural Fabrication&rdquo;</em>.
+                      Konten berstatus draf tidak tampil ke murid. Seluruh konten budaya di aplikasi ini berstatus data demo dan sedang dalam proses validasi bersama narasumber budaya; jangan pernah menampilkan status validasi yang belum terjadi.
                     </p>
                   </div>
                 </div>
                 <span className="text-[11px] px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-semibold shrink-0">
-                  BPK Wilayah XVIII
+                  Kebijakan Internal
                 </span>
               </div>
 
-              {/* Antrean Verifikasi Budaya (Maks 5 item berstatus pending/draft) */}
+              {/* Antrean Tinjauan Konten (Maks 5 item berstatus pending/draft) */}
               <div className="p-4 sm:p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-3">
                 <div className="flex items-center justify-between pb-2.5 border-b border-outline-variant/20">
                   <div>
                     <h2 className="text-[15px] font-bold text-on-surface tracking-tight">
-                      Antrean Verifikasi Budaya
+                      Antrean Tinjauan Konten
                     </h2>
                     <p className="text-[12px] text-on-surface-variant mt-0.5">
-                      Entri yang memerlukan penetapan status sidang adat atau kelengkapan berkas informan.
+                      Entri berstatus draf atau menunggu tinjauan sebelum dapat diterbitkan.
                     </p>
                   </div>
                   <button
@@ -636,9 +701,15 @@ export default function AdminPage() {
                   </button>
                 </div>
 
+                {/* Penanda Data Demo Persisten (Bagian 3) */}
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container text-on-surface-variant text-[11px] font-medium border border-outline-variant/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <span>Data contoh (demo) — belum tervalidasi narasumber</span>
+                </div>
+
                 {pendingOrDraftQueue.length === 0 ? (
                   <div className="py-6 text-center text-on-surface-variant text-[13px]">
-                    Semua entri telah diverifikasi secara sah.
+                    Semua entri telah ditinjau.
                   </div>
                 ) : (
                   <div className="divide-y divide-outline-variant/20">
@@ -677,12 +748,12 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2 shrink-0">
                           {entry.status === "pending" && (
                             <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-bold">
-                              Menunggu Verifikasi
+                              Menunggu Tinjauan
                             </span>
                           )}
                           {entry.status === "draft" && (
                             <span className="text-[11px] px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-bold">
-                              Draft
+                              Draf
                             </span>
                           )}
 
@@ -700,76 +771,17 @@ export default function AdminPage() {
                 )}
               </div>
 
-              {/* Provenance Ledger & Elder Contacts (2 Kolom Bawah) */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
-                {/* Catatan Sidang Adat Terbaru */}
-                <div className="lg:col-span-2 p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-outline-variant/20">
-                    <div className="flex items-center gap-2">
-                      <History className="w-4 h-4 text-secondary" />
-                      <h3 className="text-[13px] font-bold text-on-surface">
-                        Risalah Pleno Validasi Adat Terbaru
-                      </h3>
-                    </div>
-                    <span className="text-[11px] text-secondary font-bold">LAK Palu Barat</span>
-                  </div>
-
-                  <div className="space-y-2 text-[12px]">
-                    <div className="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/20">
-                      <div className="flex items-center justify-between font-bold text-on-surface">
-                        <span>Pemberian Status Sah: Frasa &ldquo;Tabe&rdquo; &amp; &ldquo;Nggembe&rdquo;</span>
-                        <span className="text-[10px] text-outline font-normal">14 Feb 2025</span>
-                      </div>
-                      <p className="text-[11px] text-on-surface-variant mt-0.5">
-                        Disahkan dalam sidang pleno ke-12 bersama BPK Wilayah XVIII dan tetua 5 sub-etnis Kaili.
-                      </p>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/20">
-                      <div className="flex items-center justify-between font-bold text-on-surface">
-                        <span>Catatan Edukatif Disematkan: Istilah &ldquo;Sampa&rdquo;</span>
-                        <span className="text-[10px] text-outline font-normal">11 Feb 2025</span>
-                      </div>
-                      <p className="text-[11px] text-on-surface-variant mt-0.5">
-                        Ketetapan varian: Donggala menyebut &ldquo;Dali&rdquo;, Sigi menyebut &ldquo;Sampa&rdquo;. Keduanya diakui berdampingan.
-                      </p>
-                    </div>
-                  </div>
+              {/* Catatan Validasi (Bagian 2.5) */}
+              <div className="p-4 sm:p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs space-y-2">
+                <div className="flex items-center gap-2 pb-2 border-b border-outline-variant/20">
+                  <FileText className="w-4 h-4 text-primary" />
+                  <h3 className="text-[13px] font-bold text-on-surface">
+                    Catatan Validasi
+                  </h3>
                 </div>
-
-                {/* Hotline Narahubung Tetua */}
-                <div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 pb-2 border-b border-outline-variant/20 mb-2">
-                      <Landmark className="w-4 h-4 text-tertiary" />
-                      <h3 className="text-[13px] font-bold text-on-surface">
-                        Narahubung Tetua Adat
-                      </h3>
-                    </div>
-                    <p className="text-[11px] text-on-surface-variant leading-relaxed">
-                      Konsultasikan keraguan istilah dialek atau naskah tutur lisan dengan majelis tetua terverifikasi.
-                    </p>
-
-                    <div className="mt-2.5 space-y-1.5 text-[11px]">
-                      <div className="flex items-center justify-between p-2 rounded-lg bg-surface-container-low border border-outline-variant/20">
-                        <span className="font-bold text-on-surface">Dewan Adat Kaili (LAK)</span>
-                        <span className="text-secondary font-bold">Aktif • Palu</span>
-                      </div>
-                      <div className="flex items-center justify-between p-2 rounded-lg bg-surface-container-low border border-outline-variant/20">
-                        <span className="font-bold text-on-surface">Balai Bahasa Sulteng</span>
-                        <span className="text-secondary font-bold">Terhubung</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => alert("Menghubungkan ke saluran kurator Balai Pelestarian Kebudayaan XVIII...")}
-                    className="mt-3 w-full py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-[12px] font-bold transition-all text-center cursor-pointer"
-                  >
-                    Hubungi Hotline Kurator
-                  </button>
-                </div>
+                <p className="text-[12px] text-on-surface-variant leading-relaxed">
+                  Validasi narasumber budaya sedang berjalan. Entri yang belum tervalidasi tampil ke murid dengan label data demo.
+                </p>
               </div>
             </div>
           )}
@@ -781,7 +793,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ── SEKSI 3: VERIFIKASI KORPUS BUDAYA ── */}
+          {/* ── SEKSI 3: KORPUS BUDAYA ── */}
           {adminTab === "corpus" && (
             <div className="space-y-3.5 max-w-7xl mx-auto">
               {/* Content Management Matrix Table Card */}
@@ -843,7 +855,7 @@ export default function AdminPage() {
                           : "text-on-surface-variant hover:bg-surface-container-high"
                       }`}
                     >
-                      Draft ({draftCount})
+                      Draf ({draftCount})
                     </button>
                   </div>
 
@@ -885,6 +897,12 @@ export default function AdminPage() {
                   </div>
                 </div>
 
+                {/* Penanda Data Demo Persisten (Bagian 3) */}
+                <div className="mx-3 sm:mx-4 mt-3 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container text-on-surface-variant text-[11px] font-medium border border-outline-variant/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <span>Data contoh (demo) — belum tervalidasi narasumber</span>
+                </div>
+
                 {/* Table Data Dense */}
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
@@ -893,7 +911,7 @@ export default function AdminPage() {
                         <th className="py-2.5 px-3 lg:px-4">Istilah &amp; Kategori</th>
                         <th className="py-2.5 px-3">Bab &amp; Modul</th>
                         <th className="py-2.5 px-3">Sumber &amp; Informan</th>
-                        <th className="py-2.5 px-3 text-center">Status Verifikasi</th>
+                        <th className="py-2.5 px-3 text-center">Status Konten</th>
                         <th className="py-2.5 px-3 text-center">Akses Murid (Gating)</th>
                         <th className="py-2.5 px-3 lg:px-4 text-right">Aksi</th>
                       </tr>
@@ -1004,7 +1022,7 @@ export default function AdminPage() {
                             {entry.status === "draft" && (
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant text-[11px] font-bold">
                                 <Lock className="w-3 h-3" />
-                                <span>Draft</span>
+                                <span>Draf</span>
                               </span>
                             )}
                           </td>
@@ -1149,20 +1167,20 @@ export default function AdminPage() {
 
               <div>
                 <label className="block text-[11px] text-on-surface-variant uppercase font-bold mb-1">
-                  Narasumber / Informan Validasi Adat
+                  Narasumber / Informan Materi
                 </label>
                 <input
                   type="text"
                   value={newInformant}
                   onChange={(e) => setNewInformant(e.target.value)}
-                  placeholder="Nama Tetua Adat / Asal Lembaga / No. Arsip BPK"
+                  placeholder="Nama informan / asal lembaga / referensi materi..."
                   className="w-full px-3 py-2 rounded-lg bg-surface-container-low text-on-surface text-[12px] focus:outline-none focus:ring-1 focus:ring-primary border border-outline-variant/30"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] text-on-surface-variant uppercase font-bold mb-1">
-                  Unggah Rekaman Fonetik / Bukti Visual Adat
+                  Unggah Rekaman Fonetik / Bukti Visual
                 </label>
                 <div className="border border-dashed border-outline-variant rounded-lg p-4 text-center bg-surface-container-low/50 hover:bg-surface-container-low transition-colors cursor-pointer">
                   <AudioWaveform className="w-6 h-6 text-primary mx-auto" />
@@ -1170,7 +1188,7 @@ export default function AdminPage() {
                     Seret audio WAV/MP3 atau Foto Resolusi Tinggi
                   </p>
                   <p className="text-[10px] text-outline mt-0.5">
-                    Wajib memiliki persetujuan narasumber (Informed Consent)
+                    Disarankan memiliki persetujuan narasumber (Informed Consent)
                   </p>
                 </div>
               </div>
@@ -1202,7 +1220,7 @@ export default function AdminPage() {
             <div className="flex items-start justify-between">
               <div>
                 <span className="text-[10px] uppercase tracking-wider font-bold text-primary">
-                  Audit Verifikasi Konten Budaya
+                  Detail &amp; Peninjauan Konten Budaya
                 </span>
                 <h3 className="font-extrabold text-xl text-on-surface mt-0.5">
                   {selectedEntry.term}
@@ -1243,7 +1261,7 @@ export default function AdminPage() {
 
               <div>
                 <span className="text-[10px] text-on-surface-variant font-bold uppercase">
-                  Narasumber &amp; Validasi Lembaga
+                  Narasumber &amp; Lembaga Rujukan
                 </span>
                 <p className="font-semibold text-on-surface">
                   {selectedEntry.source}
@@ -1265,7 +1283,7 @@ export default function AdminPage() {
                   )}
                   {selectedEntry.gating === "blocked" && (
                     <span className="text-error font-bold">
-                      🔒 Terkunci Total: Murid tidak dapat melihat entri ini hingga sidang pleno adat selesai.
+                      🔒 Terkunci: Murid tidak dapat melihat entri ini sebelum status diterbitkan oleh admin.
                     </span>
                   )}
                   {selectedEntry.gating === "educational_note" && (
@@ -1280,7 +1298,7 @@ export default function AdminPage() {
             {/* Quick Actions Decision */}
             <div>
               <span className="text-[11px] uppercase font-bold text-on-surface-variant mb-2 block">
-                Ubah Keputusan Sidang Pleno
+                Ubah Status Konten
               </span>
               <div className="grid grid-cols-3 gap-2">
                 <button
@@ -1291,7 +1309,7 @@ export default function AdminPage() {
                   className="py-2 px-2.5 rounded-lg bg-secondary-fixed text-on-secondary-fixed font-bold text-[11px] hover:bg-secondary hover:text-on-secondary transition-all flex items-center justify-center gap-1 cursor-pointer"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Sahkan (Verified)</span>
+                  <span>Terbitkan (Verified)</span>
                 </button>
                 <button
                   type="button"
@@ -1301,7 +1319,7 @@ export default function AdminPage() {
                   className="py-2 px-2.5 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed font-bold text-[11px] hover:bg-tertiary hover:text-on-tertiary transition-all flex items-center justify-center gap-1 cursor-pointer"
                 >
                   <BookOpen className="w-3.5 h-3.5" />
-                  <span>Varian Dialek</span>
+                  <span>Catatan Varian</span>
                 </button>
                 <button
                   type="button"
@@ -1311,7 +1329,7 @@ export default function AdminPage() {
                   className="py-2 px-2.5 rounded-lg bg-error-container text-on-error-container font-bold text-[11px] hover:bg-error hover:text-on-error transition-all flex items-center justify-center gap-1 cursor-pointer"
                 >
                   <Lock className="w-3.5 h-3.5" />
-                  <span>Tahan (Draft)</span>
+                  <span>Jadikan Draf</span>
                 </button>
               </div>
             </div>

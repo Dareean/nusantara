@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { getSession } from "../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "./progress";
-import { getStoredSessions } from "../components/game-engine/sessionStore";
+import { getStoredSessions, syncSessionsFromServer } from "../components/game-engine/sessionStore";
 
 type PathNode = {
   id: number | string;
@@ -115,24 +115,31 @@ export default function DashboardPage() {
       setProgress(await loadProgress(session.email));
     });
 
-    try {
-      const stored = getStoredSessions();
-      const custom = stored.filter((s) => !BUILTIN_SESSION_IDS.has(s.id));
-      const offsets: ("right" | "center" | "left")[] = ["right", "center", "left"];
-      const dynamic: PathNode[] = custom.map((s, idx) => ({
-        id: `curator-${s.id}`,
-        title: s.title || "Sesi Kurator",
-        subtitle: "Sesi Kurator • Game Engine",
-        type: "lesson",
-        href: `/dashboard/belajar/${s.id}`,
-        xp: s.xpReward || 30,
-        offset: offsets[idx % offsets.length],
-        status: "active",
-      }));
-      setCuratorNodes(dynamic);
-    } catch (err) {
-      console.error("Gagal membaca sesi kurator:", err);
-    }
+    const updateNodes = () => {
+      try {
+        const stored = getStoredSessions();
+        const custom = stored.filter((s) => !BUILTIN_SESSION_IDS.has(s.id));
+        const offsets: ("right" | "center" | "left")[] = ["right", "center", "left"];
+        const dynamic: PathNode[] = custom.map((s, idx) => ({
+          id: `curator-${s.id}`,
+          title: s.title || "Sesi Kurator",
+          subtitle: "Sesi Kurator • Game Engine",
+          type: "lesson",
+          href: `/dashboard/belajar/${s.id}`,
+          xp: s.xpReward || 30,
+          offset: offsets[idx % offsets.length],
+          status: "active",
+        }));
+        setCuratorNodes(dynamic);
+      } catch (err) {
+        console.error("Gagal membaca sesi kurator:", err);
+      }
+    };
+
+    updateNodes();
+    window.addEventListener("laras-sessions-updated", updateNodes);
+    syncSessionsFromServer().catch(() => {});
+    return () => window.removeEventListener("laras-sessions-updated", updateNodes);
   }, []);
 
   useEffect(() => {

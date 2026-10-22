@@ -21,8 +21,10 @@ export const laloveMusicLesson: GameSession = {
     {
       id: "Q1-LALOVE-HOTSPOT",
       type: "visual",
+      title: "Identifikasi Instrumen Lalove",
+      badge: "Organologi & Akustik",
       prompt: "Alat Musik Tradisional Apakah Ini?",
-      imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuA99tfPQRBVVtMXXGtMtlKHgSxSjzzIEGUQGQbCarbRHI1jOaWURL5jr78aETTdEhKke8meFtOLrl9X0gx8vyxYCiS_yWrOeXkOUZ1l6z-OZ9K_9GFLXs0kDKCI-H__0pXaAtrjs16Xh5R8JEJlxgMqWV9yn9Zs-IQGuEuCZYhHdOEtTgzumKJOZvzIf5Og5pyYLmjHu-GWCGUjVZ-gm5-qoCX3Gifqgzkkpof_6fw2F7JHtuIPKb9Nzw",
+      imageUrl: "/media/presets/lalove.webp",
       hotspots: [
         {
           id: 1,
@@ -47,11 +49,14 @@ export const laloveMusicLesson: GameSession = {
         { id: "opt-lalove-3", title: "Sasando", isCorrect: false },
         { id: "opt-lalove-4", title: "Salonde", isCorrect: false },
       ],
-      curatorNote: "Lalove adalah suling sakral bambu tipis khas suku Kaili yang digunakan mengiringi tarian pemanggil roh dalam upacara Balia.",
+      curatorNote:
+        "Lalove adalah suling sakral bambu tipis khas suku Kaili yang digunakan mengiringi tarian pemanggil roh dalam upacara Balia.",
     },
     {
       id: "Q2-LALOVE-FUNGSI",
       type: "audio",
+      title: "Dwitunggal Lalove & Gimba",
+      badge: "Fungsi Ritual Adat",
       prompt: "Dengarkan dan Pahami: Lalove dimainkan berdampingan dengan instrumen apa?",
       term: "Lalove & Gimba",
       ipa: "[la-lo-ve]",
@@ -61,32 +66,79 @@ export const laloveMusicLesson: GameSession = {
         { id: "opt-f-3", title: "Sasando Rote", isCorrect: false },
         { id: "opt-f-4", title: "Kolintang Kayu", isCorrect: false },
       ],
-      curatorNote: "Lalove dan Gimba adalah dwitunggal instrumen sakral Kaili: Lalove memandu melodi doa, sedangkan Gimba mengendalikan tempo trance penari Balia.",
+      curatorNote:
+        "Lalove dan Gimba adalah dwitunggal instrumen sakral Kaili: Lalove memandu melodi doa, sedangkan Gimba mengendalikan tempo trance penari Balia.",
     },
   ],
 };
 
-const DEFAULT_SESSIONS: GameSession[] = [sampleKailiLesson, laloveMusicLesson];
+export const DEFAULT_SESSIONS: GameSession[] = [sampleKailiLesson, laloveMusicLesson];
 
 const STORAGE_KEY = "laras_game_sessions_v2";
+const SERVER_CACHE_KEY = "laras_server_sessions_cache";
 
+/**
+ * Membaca daftar sesi aktif dengan pola gabungan:
+ * - Sumber utama: server (published) dari cache server
+ * - Sumber cadangan/offline: localStorage user
+ * - Dedupe berdasarkan id; bila id sama, versi server menang.
+ * Callers lama (roadmap & halaman belajar) tetap memanggil getStoredSessions() secara sinkron.
+ */
 export function getStoredSessions(): GameSession[] {
   if (typeof window === "undefined") {
     return DEFAULT_SESSIONS;
   }
+
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
+    // 1. Baca sesi lokal (draft/offline)
+    let localSessions: GameSession[] = [];
+    const rawLocal = localStorage.getItem(STORAGE_KEY);
+    if (rawLocal) {
+      try {
+        const parsed = JSON.parse(rawLocal);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          localSessions = parsed;
+        }
+      } catch {
+        // ignore JSON error
+      }
+    } else {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SESSIONS));
-      return DEFAULT_SESSIONS;
+      localSessions = DEFAULT_SESSIONS;
     }
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_SESSIONS;
+
+    // 2. Baca cache server (published sessions)
+    let serverSessions: GameSession[] = [];
+    const rawServer = localStorage.getItem(SERVER_CACHE_KEY);
+    if (rawServer) {
+      try {
+        const parsedServer = JSON.parse(rawServer);
+        if (Array.isArray(parsedServer)) {
+          serverSessions = parsedServer;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // 3. Gabungkan dan deduplikasi berdasarkan id.
+    // Urutan prioritas: Default -> Local -> Server (server menang jika id sama)
+    const map = new Map<string, GameSession>();
+
+    DEFAULT_SESSIONS.forEach((s) => map.set(s.id, s));
+    localSessions.forEach((s) => map.set(s.id, s));
+    serverSessions.forEach((s) => map.set(s.id, s));
+
+    const merged = Array.from(map.values());
+    return merged.length > 0 ? merged : DEFAULT_SESSIONS;
   } catch {
     return DEFAULT_SESSIONS;
   }
 }
 
+/**
+ * Menyimpan array sesi ke localStorage lokal
+ */
 export function saveStoredSessions(sessions: GameSession[]): void {
   if (typeof window === "undefined") return;
   try {
@@ -96,6 +148,9 @@ export function saveStoredSessions(sessions: GameSession[]): void {
   }
 }
 
+/**
+ * Menyimpan satu sesi secara lokal dan memicu sinkronisasi latar belakang jika memungkinkan
+ */
 export function saveSingleSession(session: GameSession): GameSession[] {
   const current = getStoredSessions();
   const exists = current.some((s) => s.id === session.id);
@@ -104,4 +159,171 @@ export function saveSingleSession(session: GameSession): GameSession[] {
     : [session, ...current];
   saveStoredSessions(updated);
   return updated;
+}
+
+/**
+ * Sinkronisasi sesi dari server (hanya sesi published untuk murid).
+ * Memperbarui SERVER_CACHE_KEY dan memicu event 'laras-sessions-updated'.
+ */
+export async function syncSessionsFromServer(): Promise<GameSession[]> {
+  if (typeof window === "undefined") return DEFAULT_SESSIONS;
+
+  try {
+    const res = await fetch("/api/content/sessions", {
+      credentials: "include",
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        const publishedSessions: GameSession[] = data
+          .map((item: { payload?: GameSession } | GameSession) => {
+            return (item as { payload?: GameSession }).payload || (item as GameSession);
+          })
+          .filter((s): s is GameSession => Boolean(s && s.id && Array.isArray(s.questions)));
+
+        localStorage.setItem(SERVER_CACHE_KEY, JSON.stringify(publishedSessions));
+        window.dispatchEvent(
+          new CustomEvent("laras-sessions-updated", { detail: publishedSessions })
+        );
+        return getStoredSessions();
+      }
+    }
+  } catch (err) {
+    // Offline / API down: tetap fallback ke getStoredSessions()
+    console.warn("Gagal sinkron sesi dari server, menggunakan cache lokal:", err);
+  }
+
+  return getStoredSessions();
+}
+
+export type SaveServerResult = {
+  success: boolean;
+  version?: number;
+  fallbackLocal: boolean;
+  error?: string;
+};
+
+/**
+ * Simpan sesi ke server via API admin (/api/content/sessions).
+ * Selalu menyimpan ke localStorage terlebih dahulu sebagai draf cadangan/offline.
+ */
+export async function saveSingleSessionToServer(
+  session: GameSession,
+  status: "draft" | "published" = "published"
+): Promise<SaveServerResult> {
+  // 1. Simpan lokal sebagai cadangan wajib
+  saveSingleSession(session);
+
+  // 2. Kirim ke API server
+  try {
+    const res = await fetch("/api/content/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        id: session.id,
+        title: session.title,
+        payload: session,
+        status,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const version = data.session?.version ?? 1;
+
+      // Perbarui cache server lokal jika published
+      if (status === "published") {
+        await syncSessionsFromServer().catch(() => {});
+      } else {
+        // Jika disimpan sebagai draft, pastikan dihapus dari SERVER_CACHE_KEY agar murid tidak melihatnya
+        try {
+          const rawServer = localStorage.getItem(SERVER_CACHE_KEY);
+          if (rawServer) {
+            const list = JSON.parse(rawServer);
+            if (Array.isArray(list)) {
+              const cleaned = list.filter((s: GameSession) => s.id !== session.id);
+              localStorage.setItem(SERVER_CACHE_KEY, JSON.stringify(cleaned));
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      window.dispatchEvent(new CustomEvent("laras-sessions-updated"));
+      return { success: true, version, fallbackLocal: false };
+    } else {
+      const errJson = await res.json().catch(() => ({}));
+      const msg = errJson.error || `Server menolak dengan status ${res.status}`;
+      return { success: false, fallbackLocal: true, error: msg };
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Koneksi ke server gagal";
+    return { success: false, fallbackLocal: true, error: msg };
+  }
+}
+
+/**
+ * Mengubah status publish sesi di server
+ */
+export async function setSessionPublishStatusOnServer(
+  id: string,
+  publish: boolean
+): Promise<{ ok: boolean; error?: string }> {
+  const endpoint = `/api/content/sessions/${encodeURIComponent(id)}/${publish ? "publish" : "unpublish"}`;
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (res.ok) {
+      await syncSessionsFromServer().catch(() => {});
+      window.dispatchEvent(new CustomEvent("laras-sessions-updated"));
+      return { ok: true };
+    } else {
+      const errJson = await res.json().catch(() => ({}));
+      return { ok: false, error: errJson.error || "Gagal mengubah status publish" };
+    }
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Jaringan bermasalah" };
+  }
+}
+
+/**
+ * Menghapus sesi dari server dan lokal
+ */
+export async function deleteSessionFromServer(id: string): Promise<boolean> {
+  // Hapus lokal
+  const current = getStoredSessions().filter((s) => s.id !== id);
+  saveStoredSessions(current);
+
+  // Hapus dari server cache
+  try {
+    const rawServer = localStorage.getItem(SERVER_CACHE_KEY);
+    if (rawServer) {
+      const list = JSON.parse(rawServer);
+      if (Array.isArray(list)) {
+        localStorage.setItem(SERVER_CACHE_KEY, JSON.stringify(list.filter((s: GameSession) => s.id !== id)));
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  // Kirim delete ke API
+  try {
+    await fetch(`/api/content/sessions/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+  } catch {
+    // ignore
+  }
+
+  window.dispatchEvent(new CustomEvent("laras-sessions-updated"));
+  return true;
 }
