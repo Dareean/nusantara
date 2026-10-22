@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { getSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
-import { getStoredSessions } from "../../components/game-engine/sessionStore";
+import { getStoredSessions, syncSessionsFromServer } from "../../components/game-engine/sessionStore";
 import type { GameSession } from "../../components/game-engine/types";
 
 type LessonStatus = "done" | "active" | "locked";
@@ -48,14 +48,21 @@ export default function JalurBelajarPage() {
       if (session) setProgress(await loadProgress(session.email));
     });
 
-    try {
-      const builtinIds = new Set(["SES-KL-MASTER-001", "SES-LALOVE-002"]);
-      const stored = getStoredSessions();
-      const custom = stored.filter((s) => !builtinIds.has(s.id));
-      setCuratorSessions(custom);
-    } catch (err) {
-      console.error("Gagal membaca sesi kurator:", err);
-    }
+    const updateSessions = () => {
+      try {
+        const builtinIds = new Set(["SES-KL-MASTER-001", "SES-LALOVE-002"]);
+        const stored = getStoredSessions();
+        const custom = stored.filter((s) => !builtinIds.has(s.id));
+        setCuratorSessions(custom);
+      } catch (err) {
+        console.error("Gagal membaca sesi kurator:", err);
+      }
+    };
+
+    updateSessions();
+    window.addEventListener("laras-sessions-updated", updateSessions);
+    syncSessionsFromServer().catch(() => {});
+    return () => window.removeEventListener("laras-sessions-updated", updateSessions);
   }, []);
 
   return (

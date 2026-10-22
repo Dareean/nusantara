@@ -71,7 +71,7 @@ const initialEntries: CulturalEntry[] = [
     status: "verified",
     gating: "published",
     thumbnail:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDj2iA59wILAhgAw8HMAnmW9QdcqFfX57-hJxYVwmDa_TIIWaSw-Kc4eFO1rMzFSmUSWaCsR1mc9aG9AJN89VtVyZUXli2LW4NjVz3ml-5uq6E744sPk8UgPKxuJphS95np5CSgkykg5fgy3_LgLXvhj3CMceZH2EGLapdsSBHrbHSm9m9oAxEaEgaUxuV8LZqHldRPHobtxIN-TmnBfXDHI9TU7nC_212k-oXusVst0GcUGaQ4ma_Ysw",
+      "/media/presets/baju_nggembe.webp",
   },
   {
     id: "ENT-003",
@@ -85,7 +85,7 @@ const initialEntries: CulturalEntry[] = [
     status: "verified",
     gating: "published",
     thumbnail:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuC6SMOqiqdgy9jy0GKWVKDYKpLIIR8vpAH6cCdG2xUvlPd7kqApdh7wkPc1Xh6ceQ6FGr_t2IBREowE7IJXBuYWhiMG5CltqdAk0tPathcRH6_zaaG_M-mTqZLwgrSLCNPnqoXbVCzQw5qsnz5VNDlpgsWW9Ppt3UC398BAzyGGbl3hndvSZppnRz2ds0ECQssa_YUJuDSige6OCD9Ls_FZtRq0g3N9GjWN5mTEOpJ03oas0toLFlH-7Q",
+      "/media/presets/gimba.webp",
   },
   {
     id: "ENT-004",
@@ -112,7 +112,7 @@ const initialEntries: CulturalEntry[] = [
     status: "disputed",
     gating: "educational_note",
     thumbnail:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuA99tfPQRBVVtMXXGtMtlKHgSxSjzzIEGUQGQbCarbRHI1jOaWURL5jr78aETTdEhKke8meFtOLrl9X0gx8vyxYCiS_yWrOeXkOUZ1l6z-OZ9K_9GFLXs0kDKCI-H__0pXaAtrjs16Xh5R8JEJlxgMqWV9yn9Zs-IQGuEuCZYhHdOEtTgzumKJOZvzIf5Og5pyYLmjHu-GWCGUjVZ-gm5-qoCX3Gifqgzkkpof_6fw2F7JHtuIPKb9Nzw",
+      "/media/presets/lalove.webp",
   },
   {
     id: "ENT-006",
@@ -152,7 +152,7 @@ export default function AdminPage() {
   const [adminTab, setAdminTab] = useState<"summary" | "builder" | "corpus">("summary");
   const [sessionCount, setSessionCount] = useState<number>(4);
 
-  // Load entries from localStorage after initial client mount to prevent hydration mismatch
+  // Load entries from localStorage and sync with server API
   useEffect(() => {
     try {
       const raw = localStorage.getItem(CMS_STORAGE_KEY);
@@ -166,6 +166,30 @@ export default function AdminPage() {
       console.warn("Gagal membaca laras_cms_entries dari localStorage:", err);
     }
     setIsMounted(true);
+
+    // Sync from server API
+    fetch("/api/content/entries?all=1", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((serverEntries) => {
+        if (Array.isArray(serverEntries) && serverEntries.length > 0) {
+          const map = new Map<string, CulturalEntry>();
+          initialEntries.forEach((e) => map.set(e.id, e));
+          const raw = localStorage.getItem(CMS_STORAGE_KEY);
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) parsed.forEach((e: CulturalEntry) => map.set(e.id, e));
+            } catch {}
+          }
+          serverEntries.forEach((row: { id: string; payload: CulturalEntry }) => {
+            if (row.payload && row.id) {
+              map.set(row.id, { ...(row.payload as CulturalEntry), id: row.id });
+            }
+          });
+          setEntries(Array.from(map.values()));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Sync entries to localStorage only after mounted
@@ -252,6 +276,20 @@ export default function AdminPage() {
     } catch (err) {
       console.warn("Gagal simpan laras_cms_entries:", err);
     }
+
+    // Sync ke API server
+    fetch("/api/content/entries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        id: entry.id,
+        kind: entry.type,
+        payload: entry,
+        status: "draft",
+      }),
+    }).catch(() => {});
+
     setFilterTab("all");
     setSearchQuery("");
     setIsModalOpen(false);
@@ -264,13 +302,31 @@ export default function AdminPage() {
     newStatus: "verified" | "pending" | "disputed" | "draft",
     newGating: "published" | "blocked" | "educational_note"
   ) => {
+    let updatedPayload: CulturalEntry | null = null;
     setEntries((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: newStatus, gating: newGating } : item
-      )
+      prev.map((item) => {
+        if (item.id === id) {
+          const mod = { ...item, status: newStatus, gating: newGating };
+          updatedPayload = mod;
+          return mod;
+        }
+        return item;
+      })
     );
     if (selectedEntry && selectedEntry.id === id) {
       setSelectedEntry({ ...selectedEntry, status: newStatus, gating: newGating });
+    }
+
+    if (updatedPayload) {
+      fetch(`/api/content/entries/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          payload: updatedPayload,
+          status: newGating === "published" ? "published" : "draft",
+        }),
+      }).catch(() => {});
     }
   };
 
@@ -454,7 +510,7 @@ export default function AdminPage() {
               <img
                 alt="Admin Profile"
                 className="w-7 h-7 rounded-full object-cover ring-1 ring-primary-fixed"
-                src="https://lh3.googleusercontent.com/aida/AEtjO1Vhf8Tpf1UP_r76LEL-9Olxy-KamrRKdvbuw_IdSOUdsPnutS-ucQSUNrUwCmvv79RwssCekEhlPat9dql81M0_w3TdFVqc0hENXtxegKWhP1UapZD9OlTcn4MiCZZPhuf7VNtyofbbQ8ByHlCDXGq8phTykzER2D0OKlgZrlUIKLycgNPOKpSjSCeQYrau-XCBnFjpIEDXwO8PKFKpjzvu77uKgmWMakGwQ2PeNYy_zuHKKvm8sSrmGaG3"
+                src="/media/presets/avatar_admin.webp"
               />
               <div className="hidden md:flex flex-col text-left">
                 <span className="text-[12px] font-bold text-on-surface leading-tight">

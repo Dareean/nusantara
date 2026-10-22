@@ -19,30 +19,44 @@ import {
   MapPin,
   Flame,
   Download,
+  Upload,
+  Volume2,
+  RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import { GameSession, GameQuestion, QuestionOption, HotspotItem } from "../components/game-engine/types";
-import { getStoredSessions, saveSingleSession } from "../components/game-engine/sessionStore";
+import {
+  getStoredSessions,
+  saveSingleSession,
+  saveSingleSessionToServer,
+  syncSessionsFromServer,
+} from "../components/game-engine/sessionStore";
 import CulturalGameEngine from "../components/game-engine/CulturalGameEngine";
 
 const IMAGE_PRESETS = [
   {
     name: "Alat Musik Suling Lalove",
-    url: "https://lh3.googleusercontent.com/aida-public/AB6AXuA99tfPQRBVVtMXXGtMtlKHgSxSjzzIEGUQGQbCarbRHI1jOaWURL5jr78aETTdEhKke8meFtOLrl9X0gx8vyxYCiS_yWrOeXkOUZ1l6z-OZ9K_9GFLXs0kDKCI-H__0pXaAtrjs16Xh5R8JEJlxgMqWV9yn9Zs-IQGuEuCZYhHdOEtTgzumKJOZvzIf5Og5pyYLmjHu-GWCGUjVZ-gm5-qoCX3Gifqgzkkpof_6fw2F7JHtuIPKb9Nzw",
+    url: "/media/presets/lalove.webp",
     type: "hotspot",
   },
   {
     name: "Busana Tradisional Baju Nggembe",
-    url: "https://lh3.googleusercontent.com/aida-public/AB6AXuDj2iA59wILAhgAw8HMAnmW9QdcqFfX57-hJxYVwmDa_TIIWaSw-Kc4eFO1rMzFSmUSWaCsR1mc9aG9AJN89VtVyZUXli2LW4NjVz3ml-5uq6E744sPk8UgPKxuJphS95np5CSgkykg5fgy3_LgLXvhj3CMceZH2EGLapdsSBHrbHSm9m9oAxEaEgaUxuV8LZqHldRPHobtxIN-TmnBfXDHI9TU7nC_212k-oXusVst0GcUGaQ4ma_Ysw",
+    url: "/media/presets/baju_nggembe.webp",
     type: "hotspot",
   },
   {
     name: "Gestur Sikap Adat Tabe",
-    url: "https://lh3.googleusercontent.com/aida-public/AB6AXuD7N2RFcBe-VYBGKMVs4RI4fFK_WSAUDavo27MijrqUn0YQFka80Yn6NkLi6NvGUbK_bJsS8bxcs28vXZzzSYuCH3Ml0J8fP_QUR9cO8O6P4uj6LPVZiMDbqT-WEq9WNuQpc2RkTZjx2GyyDWs9peP4G71dL_BEyEljdiyuWO1T87OOfAPwt55ywofq5wU-uIHzArEIeZvJHOo2j8vTDtd7ZuvboUHGas1ryZWxBpc6twFUkXuBoN1i4Q",
+    url: "/media/presets/sikap_tabe.webp",
     type: "multiple_choice",
   },
   {
     name: "Pelataran Arsitektur Souraja",
-    url: "https://lh3.googleusercontent.com/aida-public/AB6AXuBL3GhtQRWPzykvIVNWr2V35NhJTe_dCVIIrRtyBVfZEEj3XqYhEOJv_SEbk1PTWX0c31bxzkMEw4gOh7sN-WlcJNaV67h505nMT6eV4hEBOjXkJ6KJwhuR9O1EtZUS6Z3a5-anWincRSwsEM6Cd1eIcoTaILOCLMI3NIxB7VqVikEobrcT0CoVvKVVkAc_aFxEbqVUD4ypGJjz4ltJB0RE8BCXz7x3pKJC2QF3wSnftvmW7hDh7y67iQ",
+    url: "/media/presets/souraja.webp",
+    type: "hotspot",
+  },
+  {
+    name: "Instrumen Gendang Gimba",
+    url: "/media/presets/gimba.webp",
     type: "hotspot",
   },
 ];
@@ -53,9 +67,14 @@ export default function GameFlowBuilder() {
   const [activeSession, setActiveSession] = useState<GameSession | null>(null);
   const [selectedQuestionIdx, setSelectedQuestionIdx] = useState<number>(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [saveToast, setSaveToast] = useState(false);
+  const [sessionStatus, setSessionStatus] = useState<"published" | "draft">("published");
+  const [saveState, setSaveState] = useState<{
+    status: "idle" | "saving" | "saved" | "failed_local";
+    message: string;
+  }>({ status: "idle", message: "" });
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
-  // Load sessions from store on mount
+  // Load sessions from store on mount and sync with server
   useEffect(() => {
     const list = getStoredSessions();
     setSessions(list);
@@ -63,6 +82,24 @@ export default function GameFlowBuilder() {
       setActiveSessionId(list[0].id);
       setActiveSession(list[0]);
     }
+
+    // Ambil seluruh sesi termasuk draft dari server untuk kurator admin
+    fetch("/api/content/sessions?all=1", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((serverData) => {
+        if (Array.isArray(serverData) && serverData.length > 0) {
+          const map = new Map<string, GameSession>();
+          list.forEach((s) => map.set(s.id, s));
+          serverData.forEach((row: { id: string; title: string; payload: GameSession }) => {
+            if (row.payload && row.id) {
+              map.set(row.id, { ...row.payload, id: row.id, title: row.title || row.payload.title });
+            }
+          });
+          const combined = Array.from(map.values());
+          setSessions(combined);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Switch active session
@@ -226,13 +263,65 @@ export default function GameFlowBuilder() {
     setSelectedQuestionIdx(Math.max(0, idx - 1));
   };
 
-  // Save current active session
-  const handleSave = () => {
+  // Save current active session to server API with honest status feedback
+  const handleSave = async () => {
     if (!activeSession) return;
-    saveSingleSession(activeSession);
-    setSessions((prev) => prev.map((s) => (s.id === activeSession.id ? activeSession : s)));
-    setSaveToast(true);
-    setTimeout(() => setSaveToast(false), 2500);
+    setSaveState({ status: "saving", message: "Menyimpan ke server..." });
+
+    const res = await saveSingleSessionToServer(activeSession, sessionStatus);
+    if (res.success) {
+      setSaveState({
+        status: "saved",
+        message: `Tersimpan di server v${res.version ?? 1} (${sessionStatus === "published" ? "Terbit" : "Draf"})`,
+      });
+      setSessions((prev) => prev.map((s) => (s.id === activeSession.id ? activeSession : s)));
+    } else {
+      setSaveState({
+        status: "failed_local",
+        message: `Gagal ke server — tersimpan lokal sebagai draf cadangan (${res.error || "offline"})`,
+      });
+    }
+
+    setTimeout(() => {
+      setSaveState({ status: "idle", message: "" });
+    }, 3500);
+  };
+
+  // Upload image or audio file to /api/content/media/upload
+  const handleUploadFile = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "imageUrl" | "audioUrl"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeSession) return;
+
+    setUploadingMedia(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/content/media/upload", {
+        method: "POST",
+        credentials: "include",
+        body: fd,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const updated = [...activeSession.questions];
+        updated[selectedQuestionIdx] = {
+          ...currentQ,
+          [field]: data.url,
+        };
+        setActiveSession({ ...activeSession, questions: updated });
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        alert(errJson.error || "Gagal mengunggah media");
+      }
+    } catch (err) {
+      alert("Gagal mengunggah media: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setUploadingMedia(false);
+    }
   };
 
   // Export active session as JSON
@@ -262,11 +351,25 @@ export default function GameFlowBuilder() {
 
   return (
     <div className="space-y-4">
-      {/* Toast Alert */}
-      {saveToast && (
-        <div className="fixed top-16 right-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-secondary text-on-secondary rounded-xl shadow-lg border border-secondary-container animate-in fade-in slide-in-from-top-2 duration-200">
-          <CheckCircle2 className="w-4 h-4" />
-          <span className="text-label-sm font-bold">Alur Game Berhasil Disimpan &amp; Siap Dimainkan!</span>
+      {/* Honest Toast Alert */}
+      {saveState.status !== "idle" && (
+        <div
+          className={`fixed top-16 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg border animate-in fade-in slide-in-from-top-2 duration-200 ${
+            saveState.status === "saved"
+              ? "bg-secondary text-on-secondary border-secondary-container"
+              : saveState.status === "failed_local"
+              ? "bg-amber-700 text-white border-amber-800"
+              : "bg-surface-container-highest text-on-surface border-outline-variant/30"
+          }`}
+        >
+          {saveState.status === "saved" ? (
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+          ) : saveState.status === "failed_local" ? (
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+          ) : (
+            <RefreshCw className="w-4 h-4 shrink-0 animate-spin" />
+          )}
+          <span className="text-label-sm font-bold">{saveState.message}</span>
         </div>
       )}
 
@@ -298,10 +401,41 @@ export default function GameFlowBuilder() {
                 <label className="text-[11px] font-bold text-on-surface-variant">Judul Sesi</label>
                 <input
                   type="text"
-                  value={activeSession.title}
+                  value={activeSession.title || ""}
                   onChange={(e) => setActiveSession({ ...activeSession, title: e.target.value })}
                   className="w-full mt-0.5 px-2.5 py-1.5 rounded-lg bg-surface-container-low text-body-sm text-on-surface border border-outline-variant/20 focus:outline-none focus:ring-1 focus:ring-primary"
                 />
+              </div>
+
+              {/* Status Publikasi: Published vs Draft */}
+              <div>
+                <label className="text-[11px] font-bold text-on-surface-variant block mb-1">
+                  Status Publikasi Sesi
+                </label>
+                <div className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-surface-container-low border border-outline-variant/20">
+                  <button
+                    type="button"
+                    onClick={() => setSessionStatus("published")}
+                    className={`py-1 text-[11px] font-bold rounded-md transition-all cursor-pointer ${
+                      sessionStatus === "published"
+                        ? "bg-secondary text-on-secondary shadow-xs"
+                        : "text-on-surface-variant hover:text-on-surface"
+                    }`}
+                  >
+                    Terbit (Murid)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSessionStatus("draft")}
+                    className={`py-1 text-[11px] font-bold rounded-md transition-all cursor-pointer ${
+                      sessionStatus === "draft"
+                        ? "bg-amber-600 text-white shadow-xs"
+                        : "text-on-surface-variant hover:text-on-surface"
+                    }`}
+                  >
+                    Draf (Kurator)
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -309,7 +443,7 @@ export default function GameFlowBuilder() {
                   <label className="text-[11px] font-bold text-on-surface-variant">Bab</label>
                   <input
                     type="text"
-                    value={activeSession.chapter}
+                    value={activeSession.chapter || ""}
                     onChange={(e) => setActiveSession({ ...activeSession, chapter: e.target.value })}
                     className="w-full mt-0.5 px-2.5 py-1.5 rounded-lg bg-surface-container-low text-body-sm text-on-surface border border-outline-variant/20 focus:outline-none focus:ring-1 focus:ring-primary"
                   />
@@ -318,7 +452,7 @@ export default function GameFlowBuilder() {
                   <label className="text-[11px] font-bold text-on-surface-variant">XP Reward</label>
                   <input
                     type="number"
-                    value={activeSession.xpReward}
+                    value={activeSession.xpReward ?? 30}
                     onChange={(e) => setActiveSession({ ...activeSession, xpReward: Number(e.target.value) })}
                     className="w-full mt-0.5 px-2.5 py-1.5 rounded-lg bg-surface-container-low text-body-sm text-on-surface border border-outline-variant/20 focus:outline-none focus:ring-1 focus:ring-primary"
                   />
@@ -471,11 +605,39 @@ export default function GameFlowBuilder() {
 
               <button
                 type="button"
+                disabled={saveState.status === "saving"}
                 onClick={handleSave}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-primary text-on-primary text-[12px] font-bold shadow-xs hover:bg-primary-container active:scale-95 transition-all cursor-pointer"
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer ${
+                  saveState.status === "saving"
+                    ? "bg-surface-container-highest text-on-surface-variant cursor-wait"
+                    : saveState.status === "saved"
+                    ? "bg-secondary text-on-secondary hover:bg-secondary-container"
+                    : saveState.status === "failed_local"
+                    ? "bg-amber-600 text-white hover:bg-amber-700"
+                    : "bg-primary text-on-primary hover:bg-primary-container"
+                }`}
               >
-                <Save className="w-3.5 h-3.5" />
-                <span>Simpan Alur Sesi</span>
+                {saveState.status === "saving" ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Menyimpan ke Server...</span>
+                  </>
+                ) : saveState.status === "saved" ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Tersimpan di Server</span>
+                  </>
+                ) : saveState.status === "failed_local" ? (
+                  <>
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Tersimpan Lokal</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Simpan Alur Sesi</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -549,7 +711,7 @@ export default function GameFlowBuilder() {
                 <label className="text-label-sm font-bold text-on-surface">Judul Soal</label>
                 <input
                   type="text"
-                  value={currentQ.title}
+                  value={currentQ.title || ""}
                   onChange={(e) => {
                     const updated = [...activeSession.questions];
                     updated[selectedQuestionIdx] = { ...currentQ, title: e.target.value };
@@ -580,7 +742,7 @@ export default function GameFlowBuilder() {
               <label className="text-label-sm font-bold text-on-surface">Pertanyaan / Instruksi Utama</label>
               <textarea
                 rows={2}
-                value={currentQ.prompt}
+                value={currentQ.prompt || ""}
                 onChange={(e) => {
                   const updated = [...activeSession.questions];
                   updated[selectedQuestionIdx] = { ...currentQ, prompt: e.target.value };
@@ -639,17 +801,30 @@ export default function GameFlowBuilder() {
 
                 <div>
                   <label className="text-label-xs font-bold text-on-surface-variant">URL Gambar Kustom</label>
-                  <input
-                    type="text"
-                    value={currentQ.imageUrl || ""}
-                    onChange={(e) => {
-                      const updated = [...activeSession.questions];
-                      updated[selectedQuestionIdx] = { ...currentQ, imageUrl: e.target.value };
-                      setActiveSession({ ...activeSession, questions: updated });
-                    }}
-                    className="w-full mt-1 p-2 rounded-lg bg-surface-container-lowest text-body-xs font-mono border border-outline-variant/20"
-                    placeholder="https://domain.com/foto-alat-musik.jpg"
-                  />
+                  <div className="flex items-center gap-2 mt-1">
+                    <input
+                      type="text"
+                      value={currentQ.imageUrl || ""}
+                      onChange={(e) => {
+                        const updated = [...activeSession.questions];
+                        updated[selectedQuestionIdx] = { ...currentQ, imageUrl: e.target.value };
+                        setActiveSession({ ...activeSession, questions: updated });
+                      }}
+                      className="flex-1 p-2 rounded-lg bg-surface-container-lowest text-body-xs font-mono border border-outline-variant/20"
+                      placeholder="/media/presets/lalove.webp atau https://..."
+                    />
+                    <label className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-[12px] font-semibold border border-outline-variant/30 cursor-pointer shrink-0">
+                      <Upload className="w-3.5 h-3.5 text-primary" />
+                      <span>{uploadingMedia ? "Mengunggah..." : "Unggah Gambar"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingMedia}
+                        onChange={(e) => handleUploadFile(e, "imageUrl")}
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 {/* Hotspots List */}
@@ -697,7 +872,7 @@ export default function GameFlowBuilder() {
                         <div className="md:col-span-4">
                           <input
                             type="text"
-                            value={spot.name}
+                            value={spot.name || ""}
                             onChange={(e) => {
                               const spots = [...(currentQ.hotspots || [])];
                               spots[spotIdx] = { ...spot, name: e.target.value };
@@ -712,7 +887,7 @@ export default function GameFlowBuilder() {
                         <div className="md:col-span-5">
                           <input
                             type="text"
-                            value={spot.description}
+                            value={spot.description || ""}
                             onChange={(e) => {
                               const spots = [...(currentQ.hotspots || [])];
                               spots[spotIdx] = { ...spot, description: e.target.value };
@@ -727,7 +902,7 @@ export default function GameFlowBuilder() {
                         <div className="md:col-span-2 flex items-center gap-1">
                           <input
                             type="text"
-                            value={spot.top}
+                            value={spot.top || ""}
                             onChange={(e) => {
                               const spots = [...(currentQ.hotspots || [])];
                               spots[spotIdx] = { ...spot, top: e.target.value };
@@ -740,7 +915,7 @@ export default function GameFlowBuilder() {
                           />
                           <input
                             type="text"
-                            value={spot.left}
+                            value={spot.left || ""}
                             onChange={(e) => {
                               const spots = [...(currentQ.hotspots || [])];
                               spots[spotIdx] = { ...spot, left: e.target.value };
@@ -802,7 +977,7 @@ export default function GameFlowBuilder() {
                     <input
                       type="radio"
                       name={`correct-option-${currentQ.id}`}
-                      checked={opt.isCorrect}
+                      checked={Boolean(opt.isCorrect)}
                       onChange={() => {
                         const opts = (currentQ.options || []).map((o, i) => ({
                           ...o,
@@ -820,7 +995,7 @@ export default function GameFlowBuilder() {
 
                     <input
                       type="text"
-                      value={opt.title}
+                      value={opt.title || ""}
                       onChange={(e) => {
                         const opts = [...(currentQ.options || [])];
                         opts[optIdx] = { ...opt, title: e.target.value };
@@ -865,6 +1040,66 @@ export default function GameFlowBuilder() {
               </div>
             </div>
 
+            {/* Audio Pipeline (Rekaman Narasumber) */}
+            <div className="p-4 rounded-2xl bg-surface-container-low/60 border border-outline-variant/30 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Volume2 className="w-5 h-5 text-secondary" />
+                  <span className="text-label-md font-extrabold text-on-surface">
+                    Rekaman Suara / Audio Narasumber (Opsional)
+                  </span>
+                </div>
+                <span className="text-label-xs text-on-surface-variant font-medium">
+                  (Format: mp3, wav, m4a, ogg • Terhubung ke Engine Pemutar Suara)
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-label-xs font-bold text-on-surface-variant block mb-1">
+                    Unggah File Audio Narasumber
+                  </label>
+                  <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-[12px] font-semibold border border-outline-variant/30 cursor-pointer">
+                    <Upload className="w-3.5 h-3.5 text-secondary" />
+                    <span>{uploadingMedia ? "Mengunggah..." : "Pilih File Rekaman Suara"}</span>
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      className="hidden"
+                      disabled={uploadingMedia}
+                      onChange={(e) => handleUploadFile(e, "audioUrl")}
+                    />
+                  </label>
+                </div>
+
+                <div>
+                  <label className="text-label-xs font-bold text-on-surface-variant block mb-1">
+                    URL File Audio
+                  </label>
+                  <input
+                    type="text"
+                    value={currentQ.audioUrl || ""}
+                    onChange={(e) => {
+                      const updated = [...activeSession.questions];
+                      updated[selectedQuestionIdx] = { ...currentQ, audioUrl: e.target.value };
+                      setActiveSession({ ...activeSession, questions: updated });
+                    }}
+                    placeholder="/uploads/suara.mp3 atau https://..."
+                    className="w-full p-2 rounded-lg bg-surface-container-lowest text-body-xs font-mono border border-outline-variant/20"
+                  />
+                </div>
+              </div>
+
+              {currentQ.audioUrl && (
+                <div className="pt-2 flex items-center gap-3 bg-surface-container-lowest p-2.5 rounded-xl border border-outline-variant/20">
+                  <audio controls src={currentQ.audioUrl} className="h-8 max-w-full" />
+                  <span className="text-[11px] text-on-surface-variant truncate">
+                    Suara terpasang ({currentQ.audioUrl.split("/").pop()})
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Curator Note (Lore on check) */}
             <div>
               <label className="text-label-sm font-bold text-on-surface">
@@ -872,7 +1107,7 @@ export default function GameFlowBuilder() {
               </label>
               <textarea
                 rows={2}
-                value={currentQ.curatorNote}
+                value={currentQ.curatorNote || ""}
                 onChange={(e) => {
                   const updated = [...activeSession.questions];
                   updated[selectedQuestionIdx] = { ...currentQ, curatorNote: e.target.value };

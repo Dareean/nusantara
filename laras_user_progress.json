@@ -1,0 +1,28 @@
+{
+  "demo@gmail.com": {
+    "xp": 150,
+    "streak": 4,
+    "hearts": 3,
+    "completedLessons": [
+      1,
+      2
+    ],
+    "unlockedLessons": [
+      1,
+      2,
+      3
+    ],
+    "badges": [
+      "pembelajar_kaili"
+    ],
+    "lastLesson": {
+      "lessonId": 999,
+      "answered": "engine-session-SES-TEST-SULTENG-U1",
+      "correct": true,
+      "score": 100,
+      "xp": 50,
+      "completedAt": "2026-10-22T06:20:32.739Z"
+    },
+    "lastStudyDate": "2026-10-22"
+  }
+}
