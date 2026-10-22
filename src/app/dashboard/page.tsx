@@ -20,7 +20,7 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
-import { getSession } from "../auth/authClient";
+import { getCachedSessionSync, getSession } from "../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "./progress";
 import { getStoredSessions, syncSessionsFromServer } from "../components/game-engine/sessionStore";
 
@@ -53,8 +53,12 @@ function getNodeStatus(node: PathNode, progress: UserProgress): NodeStatus {
   if (node.id === 2) return progress.completedLessons.includes(2) ? "completed" : progress.unlockedLessons.includes(2) ? "active" : "locked";
   if (node.id === 3) return progress.completedLessons.includes(2) ? "completed" : progress.completedLessons.includes(1) ? "active" : "locked";
   if (node.id === 4) return progress.completedLessons.includes(3) ? "completed" : progress.unlockedLessons.includes(3) ? "active" : "locked";
-  if (node.id === 5) return progress.unlockedLessons.includes(4) ? "active" : "locked";
-  return progress.unlockedLessons.includes(5) ? "active" : "locked";
+  if (node.id === 5) return progress.completedLessons.includes(4) ? "completed" : progress.unlockedLessons.includes(4) ? "active" : "locked";
+  return progress.badges.includes("Tamu Sopan") || progress.completedLessons.includes(4)
+    ? "completed"
+    : progress.unlockedLessons.includes(5)
+      ? "active"
+      : "locked";
 }
 
 function NodeIcon({ node, status }: { node: PathNode; status: NodeStatus }) {
@@ -93,8 +97,12 @@ const AMPLITUDE_DESKTOP = [0, 56, 88, 56, 0, -56, -88, -56];
 const AMPLITUDE_MOBILE = [0, 22, 35, 22, 0, -22, -35, -22];
 
 export default function DashboardPage() {
-  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
-  const [email, setEmail] = useState("");
+  const cached = getCachedSessionSync();
+  const [progress, setProgress] = useState<UserProgress>(() =>
+    cached ? readProgress(cached.email) : DEFAULT_PROGRESS
+  );
+  const [email, setEmail] = useState(() => cached?.email || "");
+  const [isLoaded, setIsLoaded] = useState(() => Boolean(cached));
   const [curatorNodes, setCuratorNodes] = useState<PathNode[]>([]);
   const [hoveredNodeId, setHoveredNodeId] = useState<number | string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -109,14 +117,18 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    let activeEmail = "";
+    let activeEmail = cached?.email || "";
     getSession().then(async (session) => {
-      if (!session) return;
+      if (!session) {
+        setIsLoaded(true);
+        return;
+      }
       activeEmail = session.email;
       setEmail(session.email);
       // Immediate local render
       const local = readProgress(session.email);
       setProgress(local);
+      setIsLoaded(true);
       // Remote sync and anti-regression update
       const remote = await loadProgress(session.email);
       setProgress(remote);
@@ -184,7 +196,9 @@ export default function DashboardPage() {
   const effectiveActiveIdx = activeIndex !== -1 ? activeIndex : 0;
   const activeNodeY = startY + effectiveActiveIdx * stepY;
   const activeOffset = offsets[effectiveActiveIdx % offsets.length];
-  const progressRatio = Math.min(1, Math.max(0, progress.completedLessons.length / 3));
+  const completedBaseCount = progress.completedLessons.filter((id) => [1, 2, 3].includes(id)).length;
+  const isUnit1Complete = completedBaseCount >= 3 && progress.completedLessons.includes(4);
+  const progressRatio = Math.min(1, Math.max(0, completedBaseCount / 3));
 
   return (
     <main className="min-h-screen bg-surface px-4 py-4 text-on-surface sm:px-6 lg:px-8">
@@ -215,8 +229,12 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div className="shrink-0 flex items-center">
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black shadow-xs">
-                      {progress.completedLessons.length}/3 selesai
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black shadow-xs min-h-[28px]">
+                      {isLoaded ? (
+                        `${completedBaseCount}/3 selesai`
+                      ) : (
+                        <span className="inline-block w-10 h-3 rounded bg-primary/20 animate-pulse" />
+                      )}
                     </span>
                   </div>
                 </div>
@@ -243,30 +261,57 @@ export default function DashboardPage() {
               </div>
 
               {/* Misi Berikutnya Hero Banner */}
-              <section className="relative overflow-hidden rounded-2xl bg-primary px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
-                <div className="relative z-10 flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary-fixed">
-                      Misi berikutnya
-                    </p>
-                    <h2 className="text-lg font-black tracking-tight truncate mt-0.5">
-                      {activeNode.title}
-                    </h2>
-                    <p className="text-xs font-semibold text-primary-fixed/90 truncate">
-                      {activeNode.subtitle} • +{activeNode.xp} XP
-                    </p>
+              {isUnit1Complete ? (
+                <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary-container px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
+                  <div className="relative z-10 flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary-fixed">
+                        Unit 1 Tuntas • Sempurna
+                      </p>
+                      <h2 className="text-lg font-black tracking-tight truncate mt-0.5">
+                        Selamat! Semua Misi Selesai
+                      </h2>
+                      <p className="text-xs font-semibold text-primary-fixed/90 truncate">
+                        Pernikahan adat selesai &amp; Cap Paspor diterima • +30 XP
+                      </p>
+                    </div>
+                    <Link
+                      href="/dashboard/paspor"
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
+                    >
+                      <Award className="h-3.5 w-3.5" />
+                      <span>Lihat Paspor</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
                   </div>
-                  <Link
-                    href={activeNode.href}
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
-                  >
-                    <Play className="h-3.5 w-3.5 fill-current" />
-                    <span>Mulai</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-                <div className="absolute -right-8 -top-12 h-32 w-32 rounded-full bg-primary-container/40 pointer-events-none" />
-              </section>
+                  <div className="absolute -right-8 -top-12 h-32 w-32 rounded-full bg-primary-container/40 pointer-events-none" />
+                </section>
+              ) : (
+                <section className="relative overflow-hidden rounded-2xl bg-primary px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
+                  <div className="relative z-10 flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary-fixed">
+                        Misi berikutnya
+                      </p>
+                      <h2 className="text-lg font-black tracking-tight truncate mt-0.5">
+                        {activeNode.title}
+                      </h2>
+                      <p className="text-xs font-semibold text-primary-fixed/90 truncate">
+                        {activeNode.subtitle} • +{activeNode.xp} XP
+                      </p>
+                    </div>
+                    <Link
+                      href={activeNode.href}
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
+                    >
+                      <Play className="h-3.5 w-3.5 fill-current" />
+                      <span>Mulai</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                  <div className="absolute -right-8 -top-12 h-32 w-32 rounded-full bg-primary-container/40 pointer-events-none" />
+                </section>
+              )}
 
               {/* Roadmap Canvas: Jalur Sinusoidal + Node Lingkaran Faux-3D */}
               <div
@@ -469,15 +514,19 @@ export default function DashboardPage() {
                 <h2 className="font-black">Hari ini</h2>
                 <Flame className="h-5 w-5 text-primary" />
               </div>
-              <p className="mt-5 text-3xl font-black">
-                {progress.streak} <span className="text-sm text-on-surface-variant">hari streak</span>
-              </p>
+              {isLoaded ? (
+                <p className="mt-5 text-3xl font-black">
+                  {progress.streak} <span className="text-sm text-on-surface-variant">hari streak</span>
+                </p>
+              ) : (
+                <div className="mt-5 h-9 w-28 rounded bg-surface-container-high animate-pulse" />
+              )}
               <div className="mt-5 flex items-center justify-between text-xs font-bold text-on-surface-variant">
                 <span>Target XP</span>
-                <span>{dailyXp}/50</span>
+                <span>{isLoaded ? `${dailyXp}/50` : "--/50"}</span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-high">
-                <div className="h-full rounded-full bg-secondary" style={{ width: `${dailyXp * 2}%` }} />
+                <div className="h-full rounded-full bg-secondary transition-all" style={{ width: `${dailyXp * 2}%` }} />
               </div>
             </section>
 
@@ -489,12 +538,20 @@ export default function DashboardPage() {
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-surface-container-low p-3">
                   <Heart className="h-4 w-4 text-error" />
-                  <p className="mt-2 text-lg font-black">{progress.hearts}</p>
+                  {isLoaded ? (
+                    <p className="mt-2 text-lg font-black">{progress.hearts}</p>
+                  ) : (
+                    <div className="mt-2 h-6 w-8 rounded bg-surface-container-high animate-pulse" />
+                  )}
                   <p className="text-xs font-bold text-on-surface-variant">hearts</p>
                 </div>
                 <div className="rounded-2xl bg-surface-container-low p-3">
                   <Trophy className="h-4 w-4 text-secondary" />
-                  <p className="mt-2 text-lg font-black">{progress.xp}</p>
+                  {isLoaded ? (
+                    <p className="mt-2 text-lg font-black">{progress.xp}</p>
+                  ) : (
+                    <div className="mt-2 h-6 w-12 rounded bg-surface-container-high animate-pulse" />
+                  )}
                   <p className="text-xs font-bold text-on-surface-variant">total XP</p>
                 </div>
               </div>
