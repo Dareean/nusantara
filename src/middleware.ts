@@ -34,8 +34,8 @@ export async function middleware(req: NextRequest) {
   };
 
   // Cek cookie sesi
-  const cookie = req.cookies.get('laras_session')?.value;
-  if (!cookie) {
+  const rawCookie = req.cookies.get('laras_session')?.value;
+  if (!rawCookie) {
     const nextAuthCookie =
       req.cookies.get('next-auth.session-token')?.value ||
       req.cookies.get('__Secure-next-auth.session-token')?.value;
