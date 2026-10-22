@@ -30,6 +30,15 @@ function isAnswerCorrect(question: Question, answer: string, scenarioScore: numb
   return scenarioScore >= (question.data as ScenarioQuestionData).passingScore;
 }
 
+function shuffleArray<T>(items: readonly T[]): T[] {
+  const array = [...items];
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
 export default function LessonSessionPage() {
   const params = useParams<{ lessonId: string }>();
   const router = useRouter();
@@ -48,6 +57,7 @@ export default function LessonSessionPage() {
   const [earnedXp, setEarnedXp] = useState(0);
   const [scenarioStep, setScenarioStep] = useState(0);
   const [scenarioScore, setScenarioScore] = useState(0);
+  const [sessionAttempt, setSessionAttempt] = useState(0);
 
   useEffect(() => {
     const lessonId = Number(params.lessonId);
@@ -80,8 +90,15 @@ export default function LessonSessionPage() {
   const currentQuestion = questionMap.get(questionOrder[questionIndex]);
   const totalExercises = lesson?.questions.length ?? 0;
 
+  const shuffledChoiceOptions = useMemo(() => {
+    if (!currentQuestion || currentQuestion.type !== "choice") return [];
+    const options = (currentQuestion.data as ChoiceQuestionData).options;
+    return shuffleArray(options);
+  }, [currentQuestion?.id, questionIndex, sessionAttempt]);
+
   const resetSession = () => {
     if (!lesson) return;
+    setSessionAttempt((prev) => prev + 1);
     setQuestionOrder(lesson.questions.map((question) => question.id));
     setQuestionIndex(0);
     setWrongQuestionIds([]);
@@ -306,7 +323,7 @@ export default function LessonSessionPage() {
 
   const renderExercise = () => {
     if (!currentQuestion) return null;
-    if (currentQuestion.type === "choice") return renderChoices((currentQuestion.data as ChoiceQuestionData).options);
+    if (currentQuestion.type === "choice") return renderChoices(shuffledChoiceOptions);
     if (currentQuestion.type === "truefalse") return renderChoices([{ id: "true", label: "Fakta" }, { id: "false", label: "Mitos" }]);
     if (currentQuestion.type === "hotspot") return renderHotspotExercise(currentQuestion.data as HotspotQuestionData);
     if (currentQuestion.type === "match") {

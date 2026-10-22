@@ -2,7 +2,7 @@
   "demo@gmail.com": {
     "xp": 270,
     "streak": 5,
-    "hearts": 1,
+    "hearts": 2,
     "completedLessons": [
       1,
       2,
@@ -22,18 +22,18 @@
       "Pionir Salam"
     ],
     "lastLesson": {
-      "lessonId": 3,
+      "lessonId": 1,
       "answered": "lesson-session",
       "correct": true,
       "score": 100,
       "xp": 0,
       "bonusXp": 0,
-      "baseRewardXp": 30,
+      "baseRewardXp": 20,
       "totalExercises": 5,
       "correctExercises": 5,
-      "heartsRemaining": 1,
+      "heartsRemaining": 2,
       "completed": true,
-      "completedAt": "2026-10-22T13:38:21.933Z",
+      "completedAt": "2026-10-22T14:09:02.567Z",
       "isRepeat": true
     },
     "lastStudyDate": "2026-10-22"
