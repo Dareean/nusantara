@@ -18,10 +18,28 @@ import {
   Zap,
 } from "lucide-react";
 
+export function resolvePostAuthRedirect(target: string | null | undefined, isAdmin: boolean): string {
+  const defaultTarget = isAdmin ? "/admin" : "/dashboard";
+  if (!target) return defaultTarget;
+
+  // Hanya boleh path internal (diawali satu '/', bukan '//', bukan URL absolut)
+  if (!target.startsWith("/") || target.startsWith("//") || target.includes("://")) {
+    return defaultTarget;
+  }
+
+  // Bila tujuan berada di area khusus admin (/admin) dan role pengguna BUKAN admin -> ABAIKAN
+  const isAdminPath = target === "/admin" || target.startsWith("/admin/");
+  if (isAdminPath && !isAdmin) {
+    return "/dashboard";
+  }
+
+  return target;
+}
+
 function AuthPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = (searchParams && searchParams.get("redirect")) || "/dashboard";
+  const rawRedirect = searchParams ? searchParams.get("redirect") : null;
   const modeParam = searchParams ? searchParams.get("mode") : null;
 
   const [authMode, setAuthMode] = useState<"login" | "register">(
@@ -36,6 +54,25 @@ function AuthPageContent() {
     }
   }, [modeParam]);
 
+  // Bila pengguna yang sudah memiliki sesi aktif membuka /auth
+  useEffect(() => {
+    let isMounted = true;
+    import("./authClient").then(({ getSession }) => {
+      getSession().then((session) => {
+        if (!isMounted || !session) return;
+        const userIsAdmin = Boolean(session.isAdmin || session.email === "admin@laras.id");
+        const safeDestination = resolvePostAuthRedirect(rawRedirect, userIsAdmin);
+        // Jika redirect yang diminta dilarang untuk rolenya atau pengguna sudah login tanpa redirect
+        if (rawRedirect !== safeDestination || !rawRedirect) {
+          router.replace(safeDestination);
+        }
+      });
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [rawRedirect, router]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -48,14 +85,18 @@ function AuthPageContent() {
     setErrorMessage("");
     setIsSubmitting(true);
     try {
+      let isUserAdmin = false;
       if (authMode === "register") {
         const { register } = await import("./authClient");
-        await register(name.trim(), email.trim(), password);
+        const res = await register(name.trim(), email.trim(), password);
+        isUserAdmin = Boolean(res.isAdmin);
       } else {
         const { login } = await import("./authClient");
-        await login(email.trim(), password);
+        const res = await login(email.trim(), password);
+        isUserAdmin = Boolean(res.isAdmin);
       }
-      router.push(redirectTo);
+      const safeDestination = resolvePostAuthRedirect(rawRedirect, isUserAdmin);
+      router.push(safeDestination);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Terjadi kesalahan autentikasi");
     } finally {

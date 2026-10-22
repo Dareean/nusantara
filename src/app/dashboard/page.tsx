@@ -149,10 +149,10 @@ export default function DashboardPage() {
   const dailyXp = Math.min(progress.xp, 50);
 
   // Perhitungan layout sinusoidal jalur & koordinat node
-  const containerWidth = isMobile ? 320 : 440;
+  const containerWidth = isMobile ? 340 : 540;
   const centerX = containerWidth / 2;
-  const stepY = 124;
-  const startY = 64;
+  const stepY = 126;
+  const startY = 72;
   const offsets = isMobile ? AMPLITUDE_MOBILE : AMPLITUDE_DESKTOP;
   const totalRoadmapHeight = startY + nodes.length * stepY + 40;
 
@@ -163,47 +163,43 @@ export default function DashboardPage() {
   const progressRatio = Math.min(1, Math.max(0, progress.completedLessons.length / 3));
 
   return (
-    <main className="min-h-screen bg-surface px-4 py-6 text-on-surface sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-surface px-4 py-4 text-on-surface sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        {/* Header Unit */}
-        <header className="mb-6 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">Unit 1 • Sulawesi Tengah</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Salam, Sapaan &amp; Busana Kaili</h1>
-            <p className="mt-2 text-sm font-medium text-on-surface-variant">Satu misi kecil setiap hari. Pelajari bahasanya, rasakan konteksnya.</p>
-          </div>
-          <div className="hidden items-center gap-1.5 rounded-full bg-secondary-fixed px-3 py-2 text-sm font-black text-on-secondary-fixed sm:flex">
-            <MapPin className="h-4 w-4" />
-            Kaili
-          </div>
-        </header>
-
         {/* 3-Zone Layout: Left Sidebar (Fixed) | Center Scroll (max-w-[560px]) | Right Rail (Sticky) */}
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px] items-start">
           {/* Kolom Tengah (Terpusat, Maksimal 560px) */}
           <div className="w-full flex flex-col items-center">
             <div className="w-full max-w-[560px]">
-              {/* Sticky Unit Banner */}
-              <div className="sticky top-0 z-30 pt-1 pb-3 bg-surface/90 backdrop-blur-md">
-                <div className="rounded-2xl bg-surface-container-lowest p-4 sm:p-5 border-2 border-outline-variant/30 shadow-[0_4px_0_0_#e8ded8] flex items-center justify-between gap-3">
+              {/* Sticky Unit Banner — Berfungsi sebagai Header Bab Utama yang Elegan */}
+              <div className="sticky top-0 z-30 pt-1 pb-4 bg-surface/90 backdrop-blur-md">
+                <div className="rounded-2xl bg-surface-container-lowest p-4 sm:p-5 border-2 border-outline-variant/30 shadow-[0_4px_0_0_#e8ded8] flex items-center justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-primary truncate">
-                      Unit 1 • SULAWESI TENGAH
-                    </p>
-                    <h2 className="text-base sm:text-lg font-black tracking-tight text-on-surface truncate mt-0.5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[11px] font-black uppercase tracking-[0.16em] text-primary truncate">
+                        Unit 1 • Sulawesi Tengah
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-md shrink-0">
+                        <MapPin className="h-3 w-3 text-primary" />
+                        Kaili
+                      </span>
+                    </div>
+                    <h1 className="text-xl sm:text-2xl font-black tracking-tight text-on-surface truncate">
                       Salam, Sapaan &amp; Busana Kaili
-                    </h2>
+                    </h1>
+                    <p className="text-xs text-on-surface-variant font-medium mt-1 truncate hidden sm:block">
+                      Satu misi kecil setiap hari. Pelajari bahasanya, rasakan konteksnya.
+                    </p>
                   </div>
-                  <div className="shrink-0 flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black">
+                  <div className="shrink-0 flex items-center">
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black shadow-xs">
                       {progress.completedLessons.length}/3 selesai
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Tablet & Mobile Accent Card: tampil di bawah banner unit di layar < lg */}
-              <div className="lg:hidden mb-4 rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-xs flex items-center gap-3 p-2.5">
+              {/* Mobile Accent Card: Hanya tampil di layar kecil (< sm) di bawah banner unit */}
+              <div className="sm:hidden mb-5 rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-xs flex items-center gap-3 p-2.5">
                 <img
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
                   alt="Souraja Rumah Adat Kaili"
@@ -223,23 +219,29 @@ export default function DashboardPage() {
               </div>
 
               {/* Misi Berikutnya Hero Banner */}
-              <section className="relative overflow-hidden rounded-3xl bg-primary px-6 py-5 text-on-primary shadow-[0_6px_0_0_#881f00] sm:px-8 mb-6">
-                <div className="relative z-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-[0.16em] text-primary-fixed">Misi berikutnya</p>
-                    <h2 className="mt-1 text-2xl font-black tracking-tight">{activeNode.title}</h2>
-                    <p className="mt-1 text-sm font-semibold text-primary-fixed">{activeNode.subtitle} • +{activeNode.xp} XP</p>
+              <section className="relative overflow-hidden rounded-2xl bg-primary px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
+                <div className="relative z-10 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary-fixed">
+                      Misi berikutnya
+                    </p>
+                    <h2 className="text-lg font-black tracking-tight truncate mt-0.5">
+                      {activeNode.title}
+                    </h2>
+                    <p className="text-xs font-semibold text-primary-fixed/90 truncate">
+                      {activeNode.subtitle} • +{activeNode.xp} XP
+                    </p>
                   </div>
                   <Link
                     href={activeNode.href}
-                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-surface px-5 py-3 text-sm font-black text-primary shadow-[0_3px_0_0_#ffdbd1] transition hover:bg-surface-container"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
                   >
-                    <Play className="h-4 w-4 fill-current" />
-                    Mulai misi
-                    <ArrowRight className="h-4 w-4" />
+                    <Play className="h-3.5 w-3.5 fill-current" />
+                    <span>Mulai</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
-                <div className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-primary-container/50" />
+                <div className="absolute -right-8 -top-12 h-32 w-32 rounded-full bg-primary-container/40 pointer-events-none" />
               </section>
 
               {/* Roadmap Canvas: Jalur Sinusoidal + Node Lingkaran Faux-3D */}
@@ -277,28 +279,28 @@ export default function DashboardPage() {
                   })}
                 </svg>
 
-                {/* Desktop Accent Card (sejajar dengan node active) */}
+                {/* Desktop Accent Card (sejajar dengan node active di sisi berlawanan) */}
                 <div
-                  style={{ top: `${Math.max(20, activeNodeY - 40)}px` }}
-                  className={`absolute z-10 hidden lg:flex flex-col w-[170px] xl:w-[190px] rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-md ${
-                    activeOffset > 0 ? "-left-44 xl:-left-48" : "-right-44 xl:-right-48"
+                  style={{ top: `${Math.max(16, activeNodeY - 48)}px` }}
+                  className={`absolute z-10 hidden sm:flex flex-col w-[170px] rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-md ${
+                    activeOffset >= 0 ? "left-2" : "right-2"
                   }`}
                 >
-                  <div className="relative h-24 w-full overflow-hidden bg-surface-container-high">
+                  <div className="relative h-20 w-full overflow-hidden bg-surface-container-high">
                     <img
                       src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
                       alt="Souraja Rumah Adat Kaili"
                       className="w-full h-full object-cover"
                     />
-                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[9px] font-black text-white uppercase tracking-wider">
+                    <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[8px] font-black text-white uppercase tracking-wider">
                       Kultur Kaili
                     </span>
                   </div>
-                  <div className="p-2.5">
-                    <p className="text-xs font-black text-on-surface leading-tight">
+                  <div className="p-2">
+                    <p className="text-[11px] font-black text-on-surface leading-tight">
                       Souraja — rumah adat Kaili
                     </p>
-                    <p className="text-[10px] text-on-surface-variant font-medium mt-0.5 line-clamp-1">
+                    <p className="text-[9px] text-on-surface-variant font-medium mt-0.5 line-clamp-1">
                       Pusat adab &amp; diplomasi Banua Oge
                     </p>
                   </div>
@@ -437,7 +439,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Rail Kanan Sticky: tetap diam saat konten tengah discroll */}
-          <aside className="space-y-4 xl:sticky xl:top-6 self-start w-full">
+          <aside className="space-y-4 xl:sticky xl:top-4 self-start w-full">
             <section className="rounded-3xl bg-surface-container-lowest p-5 ring-1 ring-outline-variant/25">
               <div className="flex items-center justify-between">
                 <h2 className="font-black">Hari ini</h2>

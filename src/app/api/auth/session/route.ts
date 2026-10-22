@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '../../../auth/serverAuth';
+import { getSession, isAdminEmail } from '../../../auth/serverAuth';
 
 export async function GET(req: NextRequest) {
   try {
@@ -7,7 +7,13 @@ export async function GET(req: NextRequest) {
     const sessionId = cookie?.value;
     const data = getSession(sessionId);
     if (!data) return NextResponse.json({ ok: false, session: null });
-    return NextResponse.json({ ok: true, session: data });
+    return NextResponse.json({
+      ok: true,
+      session: {
+        ...data,
+        isAdmin: isAdminEmail(data.email),
+      },
+    });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }

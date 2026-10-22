@@ -10,9 +10,10 @@ export async function middleware(req: NextRequest) {
 
   const isDashboard = pathname.startsWith('/dashboard');
   const isAdmin = pathname === '/admin' || pathname.startsWith('/admin/');
+  const isAuth = pathname === '/auth' || pathname.startsWith('/auth/');
 
-  // Hanya proteksi rute /dashboard dan /admin
-  if (!isDashboard && !isAdmin) return NextResponse.next();
+  // Hanya proteksi rute /dashboard, /admin, dan /auth
+  if (!isDashboard && !isAdmin && !isAuth) return NextResponse.next();
 
   const redirectToLogin = () => {
     const loginUrl = new URL('/auth', req.url);
@@ -23,7 +24,10 @@ export async function middleware(req: NextRequest) {
   // Cek cookie sesi
   const cookie = req.cookies.get('laras_session')?.value;
   if (!cookie) {
-    return redirectToLogin();
+    if (isDashboard || isAdmin) {
+      return redirectToLogin();
+    }
+    return NextResponse.next();
   }
 
   // Validasi sesi dengan memanggil internal session endpoint
@@ -34,28 +38,48 @@ export async function middleware(req: NextRequest) {
       cache: 'no-store',
     });
     if (!resp.ok) {
-      return redirectToLogin();
+      if (isDashboard || isAdmin) return redirectToLogin();
+      return NextResponse.next();
     }
     const data = await resp.json();
     if (!data?.ok || !data?.session) {
-      return redirectToLogin();
+      if (isDashboard || isAdmin) return redirectToLogin();
+      return NextResponse.next();
     }
 
-    // Jika rute admin, wajib memiliki email yang terdaftar sebagai admin
+    const email = data.session.email;
+    const userIsAdmin = Boolean(email && ADMIN_EMAILS.includes(email));
+
+    // Jika rute admin:
+    // Pengguna yang sudah login tapi BUKAN admin diarahkan ke /dashboard (bukan ke /auth)
     if (isAdmin) {
-      const email = data.session.email;
-      if (!email || !ADMIN_EMAILS.includes(email)) {
-        return redirectToLogin();
+      if (!userIsAdmin) {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
+    }
+
+    // Jika pengguna yang SUDAH login membuka /auth:
+    if (isAuth) {
+      const redirectParam = nextUrl.searchParams.get('redirect');
+      const isAdminRedirect = redirectParam === '/admin' || (redirectParam && redirectParam.startsWith('/admin/'));
+      // Bila redirect menunjuk ke area admin tapi role bukan admin -> buang redirect dan arahkan ke /dashboard
+      if (isAdminRedirect && !userIsAdmin) {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
+      // Bila tidak ada redirect khusus atau redirect aman, arahkan ke tujuan bawaan role
+      if (!redirectParam) {
+        return NextResponse.redirect(new URL(userIsAdmin ? '/admin' : '/dashboard', req.url));
       }
     }
 
     return NextResponse.next();
   } catch (err) {
-    // on error, redirect to login
-    return redirectToLogin();
+    // on error, jika di dashboard/admin redirect ke login
+    if (isDashboard || isAdmin) return redirectToLogin();
+    return NextResponse.next();
   }
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*', '/admin'],
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/admin', '/auth'],
 };
