@@ -1,30 +1,55 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import {
+  createSessionTokenSync,
+  verifySessionTokenSync,
+  DEFAULT_SESSION_TTL,
+} from '@/lib/auth/sessionToken';
 
-type User = { name: string; email: string; passwordHash: string };
+export { DEFAULT_SESSION_TTL };
 
-type SessionEntry = { email: string; name: string; createdAt: number; expiresAt: number };
+type User = { name: string; email: string; passwordHash: string; isAdmin?: boolean };
+
+export type SessionEntry = {
+  email: string;
+  name: string;
+  isAdmin: boolean;
+  createdAt: number;
+  expiresAt: number;
+};
 
 const STORE_FILENAME = path.join(process.cwd(), 'laras_auth_store.json');
-// default TTL: 7 days
-export const DEFAULT_SESSION_TTL = 7 * 24 * 60 * 60 * 1000;
 
-// In-memory maps backed by a file store for persistence across dev server restarts/processes
-export const users: Map<string, User> = new Map();
-export const sessions: Map<string, SessionEntry> = new Map();
+export const ADMIN_EMAILS = ['admin@laras.id'];
 
-function purgeExpiredSessions() {
-  let changed = false;
-  const now = Date.now();
-  for (const [sid, s] of Array.from(sessions.entries())) {
-    if (s.expiresAt <= now) {
-      sessions.delete(sid);
-      changed = true;
-    }
-  }
-  if (changed) saveStore();
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase().trim());
 }
+
+export function hashPassword(password: string) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+// Seed accounts are hardcoded and deterministic across all serverless instances
+export const SEED_USERS: Record<string, User> = {
+  'demo@gmail.com': {
+    name: 'Demo User',
+    email: 'demo@gmail.com',
+    passwordHash: hashPassword('demo123'),
+    isAdmin: false,
+  },
+  'admin@laras.id': {
+    name: 'Admin LARAS',
+    email: 'admin@laras.id',
+    passwordHash: hashPassword('admin123'),
+    isAdmin: true,
+  },
+};
+
+// In-memory map for dynamically registered users, backed by local file fallback
+export const users: Map<string, User> = new Map();
 
 function loadStore() {
   try {
@@ -35,117 +60,97 @@ function loadStore() {
     if (parsed.users) {
       Object.keys(parsed.users).forEach((email) => {
         const u = parsed.users[email];
-        users.set(email, { name: u.name, email, passwordHash: u.passwordHash });
+        users.set(email.toLowerCase(), {
+          name: u.name,
+          email: email.toLowerCase(),
+          passwordHash: u.passwordHash,
+          isAdmin: isAdminEmail(email),
+        });
       });
     }
-    if (parsed.sessions) {
-      Object.keys(parsed.sessions).forEach((sid) => {
-        const s = parsed.sessions[sid];
-        // ensure numeric timestamps
-        const createdAt = typeof s.createdAt === 'number' ? s.createdAt : Date.now();
-        const expiresAt = typeof s.expiresAt === 'number' ? s.expiresAt : (createdAt + DEFAULT_SESSION_TTL);
-        sessions.set(sid, { email: s.email, name: s.name, createdAt, expiresAt });
-      });
-    }
-    // purge expired immediately after loading
-    purgeExpiredSessions();
   } catch (err) {
-    // If parsing fails, ignore and start fresh
-    console.warn('Failed to load auth store:', err);
+    console.warn('Failed to load user store:', err);
   }
 }
 
 function saveStore() {
   try {
     const payload = {
-      users: Object.fromEntries(Array.from(users.entries()).map(([email, u]) => [email, { name: u.name, passwordHash: u.passwordHash }])),
-      sessions: Object.fromEntries(Array.from(sessions.entries()).map(([sid, s]) => [sid, { email: s.email, name: s.name, createdAt: s.createdAt, expiresAt: s.expiresAt }])),
+      users: Object.fromEntries(
+        Array.from(users.entries()).map(([email, u]) => [
+          email,
+          { name: u.name, passwordHash: u.passwordHash },
+        ])
+      ),
     };
     const tmp = STORE_FILENAME + '.tmp';
     fs.writeFileSync(tmp, JSON.stringify(payload, null, 2), 'utf8');
     fs.renameSync(tmp, STORE_FILENAME);
   } catch (err) {
-    console.warn('Failed to save auth store:', err);
+    console.warn('Failed to save user store:', err);
   }
 }
 
-export const ADMIN_EMAILS = ["admin@laras.id"];
-
-export function isAdminEmail(email: string | null | undefined): boolean {
-  if (!email) return false;
-  return ADMIN_EMAILS.includes(email);
-}
-
-// Initialize store on module load
+// Initialize dynamic user store
 loadStore();
-ensureDemoUser();
-ensureAdminUser();
-
-function ensureDemoUser() {
-  const demoEmail = 'demo@gmail.com';
-  if (!users.has(demoEmail)) {
-    users.set(demoEmail, {
-      name: 'Demo User',
-      email: demoEmail,
-      passwordHash: hashPassword('demo123'),
-    });
-    saveStore();
-  }
-}
-
-function ensureAdminUser() {
-  const adminEmail = 'admin@laras.id';
-  if (!users.has(adminEmail)) {
-    users.set(adminEmail, {
-      name: 'Admin LARAS',
-      email: adminEmail,
-      passwordHash: hashPassword('admin123'),
-    });
-    saveStore();
-  }
-}
-
-export function hashPassword(password: string) {
-  return crypto.createHash('sha256').update(password).digest('hex');
-}
 
 export function addUser(name: string, email: string, password: string) {
+  const normalized = email.toLowerCase().trim();
   const passwordHash = hashPassword(password);
-  users.set(email, { name, email, passwordHash });
+  users.set(normalized, { name, email: normalized, passwordHash, isAdmin: isAdminEmail(normalized) });
   saveStore();
 }
 
-export function getUserByEmail(email: string) {
-  return users.get(email);
-}
-
-export function createSessionForUser(user: { name: string; email: string }, ttlMs: number = DEFAULT_SESSION_TTL) {
-  const sessionId = crypto.randomUUID();
-  const createdAt = Date.now();
-  const expiresAt = createdAt + ttlMs;
-  sessions.set(sessionId, { email: user.email, name: user.name, createdAt, expiresAt });
-  saveStore();
-  return sessionId;
-}
-
-export function getSession(sessionId: string | null | undefined) {
-  if (!sessionId) return null;
-  // reload store before read to increase chance of seeing sessions created by other processes
-  try { loadStore(); } catch {};
-  purgeExpiredSessions();
-  const s = sessions.get(sessionId) || null;
-  // If found but expired (race), treat as null
-  if (s && s.expiresAt <= Date.now()) {
-    sessions.delete(sessionId);
-    saveStore();
-    return null;
+export function getUserByEmail(email: string | null | undefined): User | undefined {
+  if (!email) return undefined;
+  const normalized = email.toLowerCase().trim();
+  if (SEED_USERS[normalized]) {
+    return SEED_USERS[normalized];
   }
-  return s;
+  return users.get(normalized);
 }
 
-export function destroySession(sessionId: string | null | undefined) {
-  if (!sessionId) return false;
-  const removed = sessions.delete(sessionId);
-  saveStore();
-  return removed;
+/**
+ * Creates a stateless signed session token (HMAC-SHA256).
+ * Contains { email, name, isAdmin, exp, iat }.
+ */
+export function createSessionForUser(
+  user: { name: string; email: string },
+  ttlMs: number = DEFAULT_SESSION_TTL
+): string {
+  const normalizedEmail = user.email.toLowerCase().trim();
+  const isUserAdmin = isAdminEmail(normalizedEmail);
+  return createSessionTokenSync(
+    {
+      email: normalizedEmail,
+      name: user.name,
+      isAdmin: isUserAdmin,
+    },
+    ttlMs
+  );
+}
+
+/**
+ * Validates the stateless signed token locally.
+ * Returns SessionEntry or null. No cross-instance store required!
+ */
+export function getSession(sessionId: string | null | undefined): SessionEntry | null {
+  if (!sessionId) return null;
+  const payload = verifySessionTokenSync(sessionId);
+  if (!payload) return null;
+
+  return {
+    email: payload.email,
+    name: payload.name,
+    isAdmin: Boolean(payload.isAdmin || isAdminEmail(payload.email)),
+    createdAt: payload.iat,
+    expiresAt: payload.exp,
+  };
+}
+
+/**
+ * In stateless sessions, logout clears the cookie.
+ */
+export function destroySession(sessionId: string | null | undefined): boolean {
+  return Boolean(sessionId);
 }

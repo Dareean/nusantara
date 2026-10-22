@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifySessionToken } from './lib/auth/sessionToken';
 
 // Daftar email admin (selaras dengan ADMIN_EMAILS di src/app/auth/serverAuth.ts)
 const ADMIN_EMAILS = ['admin@laras.id'];
@@ -30,54 +31,39 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Validasi sesi dengan memanggil internal session endpoint
-  try {
-    const origin = req.nextUrl.origin;
-    const resp = await fetch(`${origin}/api/auth/session`, {
-      headers: { cookie: `laras_session=${cookie}` },
-      cache: 'no-store',
-    });
-    if (!resp.ok) {
-      if (isDashboard || isAdmin) return redirectToLogin();
-      return NextResponse.next();
-    }
-    const data = await resp.json();
-    if (!data?.ok || !data?.session) {
-      if (isDashboard || isAdmin) return redirectToLogin();
-      return NextResponse.next();
-    }
-
-    const email = data.session.email;
-    const userIsAdmin = Boolean(email && ADMIN_EMAILS.includes(email));
-
-    // Jika rute admin:
-    // Pengguna yang sudah login tapi BUKAN admin diarahkan ke /dashboard (bukan ke /auth)
-    if (isAdmin) {
-      if (!userIsAdmin) {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
-      }
-    }
-
-    // Jika pengguna yang SUDAH login membuka /auth:
-    if (isAuth) {
-      const redirectParam = nextUrl.searchParams.get('redirect');
-      const isAdminRedirect = redirectParam === '/admin' || (redirectParam && redirectParam.startsWith('/admin/'));
-      // Bila redirect menunjuk ke area admin tapi role bukan admin -> buang redirect dan arahkan ke /dashboard
-      if (isAdminRedirect && !userIsAdmin) {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
-      }
-      // Bila tidak ada redirect khusus atau redirect aman, arahkan ke tujuan bawaan role
-      if (!redirectParam) {
-        return NextResponse.redirect(new URL(userIsAdmin ? '/admin' : '/dashboard', req.url));
-      }
-    }
-
-    return NextResponse.next();
-  } catch (err) {
-    // on error, jika di dashboard/admin redirect ke login
+  // Validasi sesi secara lokal dan stateless (HMAC-SHA256) — tanpa fetch internal ke /api/auth/session!
+  const session = await verifySessionToken(cookie);
+  if (!session) {
     if (isDashboard || isAdmin) return redirectToLogin();
     return NextResponse.next();
   }
+
+  const email = session.email?.toLowerCase().trim();
+  const userIsAdmin = Boolean(session.isAdmin || (email && ADMIN_EMAILS.includes(email)));
+
+  // Jika rute admin:
+  // Pengguna yang sudah login tapi BUKAN admin diarahkan ke /dashboard (bukan ke /auth)
+  if (isAdmin) {
+    if (!userIsAdmin) {
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
+  }
+
+  // Jika pengguna yang SUDAH login membuka /auth:
+  if (isAuth) {
+    const redirectParam = nextUrl.searchParams.get('redirect');
+    const isAdminRedirect = redirectParam === '/admin' || (redirectParam && redirectParam.startsWith('/admin/'));
+    // Bila redirect menunjuk ke area admin tapi role bukan admin -> buang redirect dan arahkan ke /dashboard
+    if (isAdminRedirect && !userIsAdmin) {
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
+    // Bila tidak ada redirect khusus atau redirect aman, arahkan ke tujuan bawaan role
+    if (!redirectParam) {
+      return NextResponse.redirect(new URL(userIsAdmin ? '/admin' : '/dashboard', req.url));
+    }
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {

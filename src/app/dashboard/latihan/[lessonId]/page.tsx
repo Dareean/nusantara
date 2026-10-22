@@ -99,12 +99,13 @@ export default function LessonSessionPage() {
 
   const finishSession = () => {
     if (!lesson || !sessionEmail) return;
+    const lessonXp = lesson.rewardXp;
     recordLessonSession(sessionEmail, {
       lessonId: lesson.id,
       answered: "lesson-session",
       score: Math.round((correctCount / totalExercises) * 100),
-      xpEarned: earnedXp,
-      bonusXp: lesson.rewardXp,
+      xpEarned: lessonXp,
+      bonusXp: 0,
       totalExercises,
       correctExercises: correctCount,
       heartsRemaining: hearts,

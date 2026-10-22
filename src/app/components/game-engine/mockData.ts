@@ -30,7 +30,7 @@ export const sampleKailiLesson: GameSession = {
       meaning: "Permisi / Mohon Maaf / Hormat",
       speakerInfo: "Penutur Asli: Kak Rusdi (38 thn), Palu Barat",
       audioDuration: "0:04",
-      imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuD7N2RFcBe-VYBGKMVs4RI4fFK_WSAUDavo27MijrqUn0YQFka80Yn6NkLi6NvGUbK_bJsS8bxcs28vXZzzSYuCH3Ml0J8fP_QUR9cO8O6P4uj6LPVZiMDbqT-WEq9WNuQpc2RkTZjx2GyyDWs9peP4G71dL_BEyEljdiyuWO1T87OOfAPwt55ywofq5wU-uIHzArEIeZvJHOo2j8vTDtd7ZuvboUHGas1ryZWxBpc6twFUkXuBoN1i4Q",
+      imageUrl: "/media/presets/sikap_tabe.webp",
       imageCaption: "Sikap tubuh merunduk dengan tangan kanan terentang saat melintas di hadapan tetua.",
       curatorNote: "Ucapkan 'Tabe' sambil sedikit membungkukkan badan ketika melintas di depan tetua adat atau meminta izin berbicara dalam musyawarah.",
     },
@@ -43,7 +43,7 @@ export const sampleKailiLesson: GameSession = {
       type: "visual",
       title: "Layar 2: Uji Visual",
       prompt: "Baju Adat Apakah Ini?",
-      imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDj2iA59wILAhgAw8HMAnmW9QdcqFfX57-hJxYVwmDa_TIIWaSw-Kc4eFO1rMzFSmUSWaCsR1mc9aG9AJN89VtVyZUXli2LW4NjVz3ml-5uq6E744sPk8UgPKxuJphS95np5CSgkykg5fgy3_LgLXvhj3CMceZH2EGLapdsSBHrbHSm9m9oAxEaEgaUxuV8LZqHldRPHobtxIN-TmnBfXDHI9TU7nC_212k-oXusVst0GcUGaQ4ma_Ysw",
+      imageUrl: "/media/presets/baju_nggembe.webp",
       hotspots: [
         {
           id: 1,

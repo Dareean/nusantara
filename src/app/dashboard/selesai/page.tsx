@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { getSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, type UserProgress } from "../progress";
+import { CANONICAL_BADGES } from "@/lib/badges";
 
 export default function SelesaiLatihanPage() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
@@ -35,6 +36,11 @@ export default function SelesaiLatihanPage() {
       setProgress(await loadProgress(session.email));
     });
   }, []);
+
+  const lastLessonId = progress.lastLesson?.lessonId ?? 3;
+  const canonicalBadge = CANONICAL_BADGES.find((b) => b.lessonId === lastLessonId) ?? CANONICAL_BADGES[2];
+  const badgeTitle = canonicalBadge.title;
+  const sessionXp = progress.lastLesson?.xp ?? canonicalBadge.rewardXp;
 
   const handleAudio = () => {
     setIsPlayingAudio(true);
@@ -118,7 +124,7 @@ export default function SelesaiLatihanPage() {
                 <div className="my-4 flex flex-col items-center">
                   <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-secondary-fixed text-on-secondary-fixed rounded-full shadow-xs">
                     <Plus className="text-secondary-container w-5 h-5" />
-                    <span className="text-headline-md sm:text-headline-lg font-extrabold">{(progress.lastLesson?.xp ?? 0) + (progress.lastLesson?.bonusXp ?? 0)} XP</span>
+                    <span className="text-headline-md sm:text-headline-lg font-extrabold">+{sessionXp} XP</span>
                   </div>
                   <span className="text-headline-sm text-on-surface font-bold mt-2">
                     Skor Kemahiran Bahasa
@@ -293,7 +299,7 @@ export default function SelesaiLatihanPage() {
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
                   <Trophy className="w-3.5 h-3.5 text-secondary-container" />
-                  Lencana &ldquo;Penyapa Kaili&rdquo; Tersemat
+                  Lencana &ldquo;{badgeTitle}&rdquo; Tersemat
                 </span>
                 <span>•</span>
                 <span>Laras Nusantara ID: LR-KL-2024</span>

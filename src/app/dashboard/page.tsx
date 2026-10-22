@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { getSession } from "../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "./progress";
-import { getStoredSessions } from "../components/game-engine/sessionStore";
+import { getStoredSessions, syncSessionsFromServer } from "../components/game-engine/sessionStore";
 
 type PathNode = {
   id: number | string;
@@ -109,30 +109,54 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    let activeEmail = "";
     getSession().then(async (session) => {
       if (!session) return;
+      activeEmail = session.email;
       setEmail(session.email);
-      setProgress(await loadProgress(session.email));
+      // Immediate local render
+      const local = readProgress(session.email);
+      setProgress(local);
+      // Remote sync and anti-regression update
+      const remote = await loadProgress(session.email);
+      setProgress(remote);
     });
 
-    try {
-      const stored = getStoredSessions();
-      const custom = stored.filter((s) => !BUILTIN_SESSION_IDS.has(s.id));
-      const offsets: ("right" | "center" | "left")[] = ["right", "center", "left"];
-      const dynamic: PathNode[] = custom.map((s, idx) => ({
-        id: `curator-${s.id}`,
-        title: s.title || "Sesi Kurator",
-        subtitle: "Sesi Kurator • Game Engine",
-        type: "lesson",
-        href: `/dashboard/belajar/${s.id}`,
-        xp: s.xpReward || 30,
-        offset: offsets[idx % offsets.length],
-        status: "active",
-      }));
-      setCuratorNodes(dynamic);
-    } catch (err) {
-      console.error("Gagal membaca sesi kurator:", err);
-    }
+    const onProgressUpdated = () => {
+      if (activeEmail) {
+        setProgress(readProgress(activeEmail));
+      }
+    };
+    window.addEventListener("laras-progress-updated", onProgressUpdated);
+
+    const updateNodes = () => {
+      try {
+        const stored = getStoredSessions();
+        const custom = stored.filter((s) => !BUILTIN_SESSION_IDS.has(s.id));
+        const offsets: ("right" | "center" | "left")[] = ["right", "center", "left"];
+        const dynamic: PathNode[] = custom.map((s, idx) => ({
+          id: `curator-${s.id}`,
+          title: s.title || "Sesi Kurator",
+          subtitle: "Sesi Kurator • Game Engine",
+          href: `/dashboard/belajar/${s.id}`,
+          type: "lesson",
+          xp: s.xpReward || 30,
+          offset: offsets[idx % offsets.length],
+          status: "active",
+        }));
+        setCuratorNodes(dynamic);
+      } catch (err) {
+        console.error("Gagal membaca sesi kurator:", err);
+      }
+    };
+
+    updateNodes();
+    window.addEventListener("laras-sessions-updated", updateNodes);
+    syncSessionsFromServer().catch(() => {});
+    return () => {
+      window.removeEventListener("laras-progress-updated", onProgressUpdated);
+      window.removeEventListener("laras-sessions-updated", updateNodes);
+    };
   }, []);
 
   useEffect(() => {

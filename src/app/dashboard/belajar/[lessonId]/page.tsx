@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import CulturalGameEngine from "../../../components/game-engine/CulturalGameEngine";
-import { getStoredSessions } from "../../../components/game-engine/sessionStore";
+import { getStoredSessions, syncSessionsFromServer } from "../../../components/game-engine/sessionStore";
 import { sampleKailiLesson } from "../../../components/game-engine/mockData";
 import { GameSession } from "../../../components/game-engine/types";
 import { getSession } from "../../../auth/authClient";
@@ -28,6 +28,13 @@ export default function DynamicLessonPage({
     const found = sessions.find((s) => s.id === resolvedParams.lessonId);
     if (found) {
       setSession(found);
+    } else {
+      syncSessionsFromServer().then((updated) => {
+        const serverFound = updated.find((s) => s.id === resolvedParams.lessonId);
+        if (serverFound) {
+          setSession(serverFound);
+        }
+      }).catch(() => {});
     }
   }, [resolvedParams.lessonId]);
 

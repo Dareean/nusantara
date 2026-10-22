@@ -28,6 +28,7 @@ create policy "Users can modify their own progress"
 create index if not exists user_progress_updated_at_idx
   on public.user_progress (updated_at desc);
 
+<<<<<<< HEAD
 
 -- 2. Tabel Soal Arcade (Arcade Quiz Questions)
 create table if not exists public.arcade_questions (
@@ -96,3 +97,40 @@ alter table public.lessons enable row level security;
 create policy "Public read access for lessons"
   on public.lessons for select
   using (true);
+=======
+-- Tabel content_sessions (Fix 13: Konten Server)
+create table if not exists public.content_sessions (
+  id text primary key,
+  title text not null,
+  payload jsonb not null,
+  status text not null default 'published' check (status in ('draft', 'published')),
+  version int not null default 1,
+  created_by text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists content_sessions_status_idx
+  on public.content_sessions (status);
+
+create index if not exists content_sessions_updated_at_idx
+  on public.content_sessions (updated_at desc);
+
+alter table public.content_sessions enable row level security;
+revoke all on table public.content_sessions from anon, authenticated;
+
+-- Tabel content_entries (Fix 13: Korpus CMS)
+create table if not exists public.content_entries (
+  id text primary key,
+  kind text not null,
+  payload jsonb not null,
+  status text not null default 'published' check (status in ('draft', 'published')),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists content_entries_status_idx
+  on public.content_entries (status);
+
+alter table public.content_entries enable row level security;
+revoke all on table public.content_entries from anon, authenticated;
+>>>>>>> ac84647d292b697a026af467d408cf34675fa563

@@ -20,7 +20,13 @@ export async function POST(req: NextRequest) {
     const sessionId = createSessionForUser({ name: user.name, email: user.email });
     const isUserAdmin = isAdminEmail(user.email);
     const res = NextResponse.json({ ok: true, email: user.email, name: user.name, isAdmin: isUserAdmin });
-    res.cookies.set('laras_session', sessionId, { httpOnly: true, path: '/', sameSite: 'lax' });
+    res.cookies.set('laras_session', sessionId, {
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60,
+    });
     return res;
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
