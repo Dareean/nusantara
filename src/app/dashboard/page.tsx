@@ -431,20 +431,6 @@ export default function DashboardPage() {
             <div className="w-full max-w-[560px]">
 
 
-              {/* Strip Keadaan Siswa (Ramping, Teratur di Puncak) */}
-              <div className="mb-3 px-1 flex items-center justify-between text-xs font-bold text-on-surface-variant flex-wrap gap-2">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-on-surface font-extrabold">Halo, {userName || "Sahabat Budaya"}</span>
-                  <span className="text-outline/40">·</span>
-                  <span>Level {Math.floor((progress?.xp || 0) / 100) + 1}</span>
-                  <span className="text-outline/40">·</span>
-                  <span>{progress?.xp || 0} XP (poin pengalaman)</span>
-                  <span className="text-outline/40">·</span>
-                  <span>Hari beruntun: {progress?.streak || 0}</span>
-                  <span className="text-outline/40">·</span>
-                  <span>Target hari ini: {completedBaseCount > 0 ? 1 : 0} dari 1 pelajaran</span>
-                </div>
-              </div>
 
               {/* Unit Header Banner Ala Duolingo (Persis Gambar 2, Warna Berganti Tiap Unit) */}
               <div
