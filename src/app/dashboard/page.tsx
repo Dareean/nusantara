@@ -393,8 +393,51 @@ export default function DashboardPage() {
             <div className="w-full max-w-[560px]">
 
 
-              {/* 1. STRIP KEADAAN (Selalu Terlihat, Termasuk Saat Nilainya 0) */}
-              <div className="mb-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 border-l-4 border-l-primary shadow-xs p-3 transition hover:border-primary/40">
+              {/* 1. KARTU HEADER & STATUS UNIT TERPADU (Identitas Bab + Strip Keadaan) */}
+              <div className="mb-5 rounded-2xl bg-surface-container-lowest p-4 sm:p-5 border-2 border-outline-variant/30 shadow-[0_4px_0_0_#e8ded8]">
+                {/* Header Unit & Panduan */}
+                <div className="flex items-start justify-between gap-3 mb-3.5">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[11px] font-black uppercase tracking-[0.16em] text-primary truncate">
+                        Unit 1 • Sulawesi Tengah
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-md shrink-0">
+                        <MapPin className="h-3 w-3 text-primary" />
+                        Kaili
+                      </span>
+                    </div>
+                    <h1 className="text-xl sm:text-2xl font-black tracking-tight text-on-surface truncate">
+                      Salam, Sapaan &amp; Busana Kaili
+                    </h1>
+                    <p className="text-xs text-on-surface-variant font-medium mt-0.5 truncate hidden sm:block">
+                      Satu misi kecil setiap hari. Pelajari bahasanya, rasakan konteksnya.
+                    </p>
+                  </div>
+                  <div className="shrink-0 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTourStep(1)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold transition shadow-xs cursor-pointer"
+                      title="Buka Panduan Belajar"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5 text-primary" />
+                      <span className="hidden sm:inline">Panduan</span>
+                    </button>
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black shadow-xs min-h-[28px]">
+                      {isLoaded ? (
+                        `${completedBaseCount}/3 selesai`
+                      ) : (
+                        <span className="inline-block w-10 h-3 rounded bg-primary/20 animate-pulse" />
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Garis Pemisah Halus */}
+                <div className="h-px w-full bg-outline-variant/20 mb-3" />
+
+                {/* Strip Keadaan Siswa (Micro-Chips Terpadu) */}
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   {/* Sapaan Pengguna */}
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-primary/10 text-primary font-black shrink-0">
