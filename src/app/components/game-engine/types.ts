@@ -6,7 +6,11 @@ export type QuestionType =
   | "matching"
   | "roleplay"
   | "hotspot"
-  | "multiple_choice";
+  | "multiple_choice"
+  | "true_false"
+  | "match"
+  | "order"
+  | "scenario";
 
 export interface QuestionOption {
   id: string;
@@ -33,6 +37,23 @@ export interface MatchingPair {
   right: string;
 }
 
+export interface MatchPairItem {
+  left: string;
+  right: string;
+}
+
+export interface ScenarioChoice {
+  id?: string;
+  label: string;
+  score: number;
+  feedback?: string;
+}
+
+export interface ScenarioStep {
+  prompt: string;
+  choices: ScenarioChoice[];
+}
+
 export interface GameQuestion {
   id: string;
   type: QuestionType;
@@ -51,15 +72,24 @@ export interface GameQuestion {
   imageCaption?: string;
   options?: QuestionOption[];
   hotspots?: HotspotItem[];
-  // For Layar 4 (Word Builder)
-  wordTiles?: string[];
-  targetSentence?: string[];
-  // For Layar 5 (Matching)
-  matchingPairs?: MatchingPair[];
-  // For Layar 6 (Connect / Roleplay)
-  scenarioContext?: string;
-  npcDialogue?: string;
+  // For match
+  pairs?: MatchPairItem[];
+  matchingPairs?: MatchingPair[]; // legacy
+  // For order
+  items?: string[];
+  wordTiles?: string[]; // legacy
+  targetSentence?: string[]; // legacy
+  // For true_false
+  statement?: string;
+  answerBoolean?: boolean;
+  // For scenario
+  steps?: ScenarioStep[];
+  passingScore?: number;
+  scenarioContext?: string; // legacy
+  npcDialogue?: string; // legacy
   curatorNote: string;
+  why?: string;
+  xp?: number;
 }
 
 export interface CulturalSourceCard {
@@ -78,6 +108,8 @@ export interface GameSession {
   subEthnic: string;
   streakDays: number;
   xpReward: number;
+  status?: "draft" | "published";
   culturalSourceCard?: CulturalSourceCard;
   questions: GameQuestion[];
 }
+

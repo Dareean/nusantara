@@ -35,7 +35,7 @@ type PathNode = {
   status?: NodeStatus;
 };
 
-const BUILTIN_SESSION_IDS = new Set(["SES-KL-MASTER-001", "SES-LALOVE-002"]);
+const BUILTIN_SESSION_IDS = new Set(["SES-KL-MASTER-001", "SES-LALOVE-002", "1", "2", "3"]);
 
 type NodeStatus = "completed" | "active" | "locked";
 
@@ -103,6 +103,7 @@ export default function DashboardPage() {
   const [curatorNodes, setCuratorNodes] = useState<PathNode[]>([]);
   const [hoveredNodeId, setHoveredNodeId] = useState<number | string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [sessionTitles, setSessionTitles] = useState<Record<string, { title: string; xp: number }>>({});
 
   useEffect(() => {
     const checkMobile = () => {
@@ -148,7 +149,8 @@ export default function DashboardPage() {
     const updateNodes = () => {
       try {
         const stored = getStoredSessions();
-        const custom = stored.filter((s) => !BUILTIN_SESSION_IDS.has(s.id));
+        // Hide draft sessions from student roadmap
+        const custom = stored.filter((s) => !BUILTIN_SESSION_IDS.has(s.id) && s.status !== "draft");
         const offsets: ("right" | "center" | "left")[] = ["right", "center", "left"];
         const dynamic: PathNode[] = custom.map((s, idx) => ({
           id: `curator-${s.id}`,
@@ -161,6 +163,15 @@ export default function DashboardPage() {
           status: "active",
         }));
         setCuratorNodes(dynamic);
+
+        // Track title & xp updates for migrated sessions 1, 2, 3
+        const titleMap: Record<string, { title: string; xp: number }> = {};
+        stored.forEach((s) => {
+          if (["1", "2", "3"].includes(s.id)) {
+            titleMap[s.id] = { title: s.title, xp: s.xpReward || 30 };
+          }
+        });
+        setSessionTitles(titleMap);
       } catch (err) {
         console.error("Gagal membaca sesi kurator:", err);
       }
@@ -168,6 +179,7 @@ export default function DashboardPage() {
 
     updateNodes();
     window.addEventListener("laras-sessions-updated", updateNodes);
+
     syncSessionsFromServer().catch(() => {});
     return () => {
       window.removeEventListener("laras-progress-updated", onProgressUpdated);
@@ -182,9 +194,29 @@ export default function DashboardPage() {
     return () => window.removeEventListener("laras-progress-updated", refresh);
   }, [email]);
 
-  const baseNodes = pathNodes.map((node) => ({ ...node, status: getNodeStatus(node, progress) }));
+  const baseNodes = pathNodes.map((node) => {
+    let title = node.title;
+    let xp = node.xp;
+    if (node.id === 1 && sessionTitles["1"]) {
+      title = sessionTitles["1"].title;
+      xp = sessionTitles["1"].xp;
+    } else if (node.id === 2 && sessionTitles["2"]) {
+      title = sessionTitles["2"].title;
+      xp = sessionTitles["2"].xp;
+    } else if (node.id === 4 && sessionTitles["3"]) {
+      title = sessionTitles["3"].title;
+      xp = sessionTitles["3"].xp;
+    }
+    return {
+      ...node,
+      title,
+      xp,
+      status: getNodeStatus(node, progress),
+    };
+  });
   const dynamicNodes = curatorNodes.map((node) => ({ ...node, status: "active" as NodeStatus }));
   const nodes = [...baseNodes, ...dynamicNodes];
+
   const activeNode = nodes.find((node) => node.status === "active") ?? nodes[nodes.length - 1];
   const dailyXp = Math.min(progress.xp, 50);
 

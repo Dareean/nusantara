@@ -234,3 +234,177 @@ export function lessonToGameSession(lesson: Lesson): GameSession {
     questions,
   };
 }
+
+export function gameSessionToLesson(session: GameSession): Lesson {
+  const numericId = parseInt(session.id.replace("lesson-", ""), 10) || 1;
+  const questions: Question[] = (session.questions || []).map((q, idx) => {
+    const why = q.curatorNote || q.why || "";
+    const xp = q.xp || 5;
+
+    if (q.type === "match" || q.type === "matching") {
+      const pairs =
+        q.pairs ||
+        q.matchingPairs?.map((p) => ({ left: p.left, right: p.right })) ||
+        [];
+      return {
+        id: q.id || `q-match-${idx}`,
+        type: "match",
+        prompt: q.prompt,
+        why,
+        xp,
+        audioUrl: q.audioUrl,
+        data: {
+          pairs,
+        },
+      };
+    }
+
+    if (q.type === "order" || q.type === "word_builder") {
+      const items = q.items || q.targetSentence || [];
+      return {
+        id: q.id || `q-order-${idx}`,
+        type: "order",
+        prompt: q.prompt,
+        why,
+        xp,
+        audioUrl: q.audioUrl,
+        data: {
+          items,
+          answer: items,
+        },
+      };
+    }
+
+    if (q.type === "true_false") {
+      return {
+        id: q.id || `q-tf-${idx}`,
+        type: "truefalse",
+        prompt: q.prompt,
+        why,
+        xp,
+        audioUrl: q.audioUrl,
+        data: {
+          statement: q.statement || q.prompt,
+          answer: Boolean(q.answerBoolean),
+        },
+      };
+    }
+
+    if (q.type === "scenario" || q.type === "roleplay") {
+      if (q.steps && q.steps.length > 0) {
+        return {
+          id: q.id || `q-sc-${idx}`,
+          type: "scenario",
+          prompt: q.prompt,
+          why,
+          xp,
+          audioUrl: q.audioUrl,
+          data: {
+            steps: q.steps.map((s) => ({
+              prompt: s.prompt,
+              choices: s.choices.map((c, i) => ({
+                id: c.id || String(i),
+                label: c.label,
+                score: c.score,
+              })),
+            })),
+            passingScore: q.passingScore || Math.ceil(q.steps.length * 1.5),
+          },
+        };
+      }
+      const options = q.options || [];
+      return {
+        id: q.id || `q-sc-${idx}`,
+        type: "scenario",
+        prompt: q.prompt,
+        why,
+        xp,
+        audioUrl: q.audioUrl,
+        data: {
+          steps: [
+            {
+              prompt: q.npcDialogue || q.prompt,
+              choices: options.map((opt, i) => ({
+                id: opt.id || String(i),
+                label: opt.title,
+                score: opt.isCorrect ? 2 : 1,
+              })),
+            },
+          ],
+          passingScore: 2,
+        },
+      };
+    }
+
+    if (q.type === "hotspot" || q.type === "visual") {
+      const hotspots = (q.hotspots || []).map((h) => ({
+        id: String(h.id),
+        label: h.name || h.title,
+        description: h.description,
+        top: h.top,
+        left: h.left,
+      }));
+      const correctOpt = q.options?.find((o) => o.isCorrect);
+      const answer = correctOpt?.id || (hotspots[0]?.id ?? "1");
+      return {
+        id: q.id || `q-hotspot-${idx}`,
+        type: "hotspot",
+        prompt: q.prompt,
+        why,
+        xp,
+        audioUrl: q.audioUrl,
+        data: {
+          imageUrl: q.imageUrl,
+          imageCaption: q.imageCaption,
+          hotspots,
+          answer,
+        },
+      };
+    }
+
+    // Default: multiple_choice / choice / audio
+    const options = (q.options || []).map((opt) => ({
+      id: opt.id,
+      label: opt.title,
+    }));
+    const answer = q.options?.find((o) => o.isCorrect)?.id || options[0]?.id || "";
+    return {
+      id: q.id || `q-choice-${idx}`,
+      type: "choice",
+      prompt: q.prompt,
+      why,
+      xp,
+      audioUrl: q.audioUrl,
+      data: {
+        options,
+        answer,
+      },
+    };
+  });
+
+  return {
+    id: numericId,
+    slug: session.id,
+    title: session.title,
+    subtitle: session.chapter,
+    region: session.subEthnic,
+    intro:
+      session.culturalSourceCard?.summary ||
+      session.questions[0]?.curatorNote ||
+      session.title,
+    rewardXp: session.xpReward || 30,
+    badge: session.title,
+    source: session.culturalSourceCard
+      ? {
+          institution: session.culturalSourceCard.institution,
+          informant: session.culturalSourceCard.informant,
+          registrationCode: session.culturalSourceCard.registrationCode,
+          verifiedDate: session.culturalSourceCard.verifiedDate,
+          summary: session.culturalSourceCard.summary,
+          status: session.culturalSourceCard.status,
+        }
+      : undefined,
+    questions,
+  };
+}
+

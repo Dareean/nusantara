@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   X,
@@ -12,6 +12,8 @@ import {
   CheckCircle2,
   XCircle,
   ArrowRight,
+  ArrowUp,
+  ArrowDown,
   RotateCcw,
   Trophy,
   Zap,
@@ -22,21 +24,56 @@ import {
   MessageSquare,
   HelpCircle,
   Undo2,
+  Compass,
+  Sparkles,
 } from "lucide-react";
-import { GameSession, GameQuestion, QuestionOption, MatchingPair } from "./types";
+import {
+  GameSession,
+  GameQuestion,
+  QuestionOption,
+  MatchingPair,
+  MatchPairItem,
+  ScenarioStep,
+} from "./types";
 
 interface CulturalGameEngineProps {
   session: GameSession;
-  onComplete?: (result: { xp: number; accuracy: number }) => void;
+  onComplete?: (result: { xp: number; accuracy: number; heartsRemaining: number }) => void;
   onExitHref?: string;
+  onExit?: () => void;
+  isPreview?: boolean;
+  initialQuestionIndex?: number;
+}
+
+function shuffleArray<T>(items: readonly T[]): T[] {
+  const array = [...items];
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
 export default function CulturalGameEngine({
   session,
   onComplete,
   onExitHref = "/dashboard",
+  onExit,
+  isPreview = false,
+  initialQuestionIndex = 0,
 }: CulturalGameEngineProps) {
-  const [currentIdx, setCurrentIdx] = useState(0);
+  const [currentIdx, setCurrentIdx] = useState(() => {
+    const maxIdx = Math.max(0, (session.questions?.length || 1) - 1);
+    return Math.min(Math.max(0, initialQuestionIndex || 0), maxIdx);
+  });
+
+  useEffect(() => {
+    if (initialQuestionIndex !== undefined) {
+      const maxIdx = Math.max(0, (session.questions?.length || 1) - 1);
+      setCurrentIdx(Math.min(Math.max(0, initialQuestionIndex), maxIdx));
+    }
+  }, [initialQuestionIndex, session.questions?.length]);
+
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [activeHotspotId, setActiveHotspotId] = useState<number>(1);
   const [feedbackState, setFeedbackState] = useState<"idle" | "correct" | "wrong">("idle");
@@ -45,15 +82,77 @@ export default function CulturalGameEngine({
   const [isFinished, setIsFinished] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
-  // States for Word Builder (Layar 4)
-  const [chosenWordTiles, setChosenWordTiles] = useState<string[]>([]);
+  // MATCH states (Ronde 4 interaction)
+  const [matchSelectedLeft, setMatchSelectedLeft] = useState<string | null>(null);
+  const [matchSelectedRight, setMatchSelectedRight] = useState<string | null>(null);
+  const [matchedPairs, setMatchedPairs] = useState<MatchPairItem[]>([]);
 
-  // States for Matching (Layar 5)
+  // ORDER states (Ronde 4 interaction)
+  const [orderedItems, setOrderedItems] = useState<string[]>([]);
+
+  // SCENARIO states
+  const [scenarioStepIdx, setScenarioStepIdx] = useState<number>(0);
+  const [scenarioTotalScore, setScenarioTotalScore] = useState<number>(0);
+  const [selectedScenarioChoiceIdx, setSelectedScenarioChoiceIdx] = useState<number | null>(null);
+
+  // Legacy Word Builder states
+  const [chosenWordTiles, setChosenWordTiles] = useState<string[]>([]);
+  // Legacy Matching states
   const [selectedLeftMatch, setSelectedLeftMatch] = useState<string | null>(null);
   const [completedMatches, setCompletedMatches] = useState<string[]>([]);
 
-  const totalQuestions = session.questions.length;
-  const currentQ: GameQuestion = session.questions[currentIdx];
+  const totalQuestions = session.questions.length || 1;
+  const currentQ: GameQuestion = session.questions[currentIdx] || {
+    id: "empty",
+    type: "multiple_choice",
+    prompt: "Belum ada soal",
+    curatorNote: "",
+  };
+
+  // Memoized shuffled items for current question
+  const currentPairs: MatchPairItem[] = useMemo(() => {
+    if (currentQ.type === "match" && currentQ.pairs && currentQ.pairs.length > 0) {
+      return currentQ.pairs;
+    }
+    if (currentQ.type === "matching" && currentQ.matchingPairs && currentQ.matchingPairs.length > 0) {
+      return currentQ.matchingPairs.map((p) => ({ left: p.left, right: p.right }));
+    }
+    return [];
+  }, [currentQ]);
+
+  const shuffledMatchRight = useMemo(() => {
+    if (currentPairs.length === 0) return [];
+    return shuffleArray(currentPairs.map((p) => p.right));
+  }, [currentPairs, currentIdx]);
+
+  // Reset state on step / question change
+  useEffect(() => {
+    setSelectedOptionId(null);
+    setFeedbackState("idle");
+    setMatchSelectedLeft(null);
+    setMatchSelectedRight(null);
+    setMatchedPairs([]);
+    setSelectedLeftMatch(null);
+    setCompletedMatches([]);
+    setScenarioStepIdx(0);
+    setScenarioTotalScore(0);
+    setSelectedScenarioChoiceIdx(null);
+    setChosenWordTiles([]);
+
+    // Initialize ORDER items initially reversed or shuffled
+    if (currentQ.type === "order" && currentQ.items && currentQ.items.length > 0) {
+      const itemsCopy = [...currentQ.items];
+      if (itemsCopy.length > 1) {
+        const reversed = [...itemsCopy].reverse();
+        setOrderedItems(reversed);
+      } else {
+        setOrderedItems(itemsCopy);
+      }
+    } else if (currentQ.type === "word_builder" && currentQ.targetSentence) {
+      setOrderedItems([...currentQ.targetSentence].reverse());
+    }
+  }, [currentIdx, currentQ.id]);
+
   const progressPercent = Math.round(
     ((currentIdx + (feedbackState !== "idle" ? 1 : 0)) / totalQuestions) * 100
   );
@@ -75,31 +174,89 @@ export default function CulturalGameEngine({
     }
   };
 
-  // Submit Answer
+  // ── MATCH INTERACTION HANDLERS ──
+  const handleMatchLeftClick = (left: string) => {
+    if (feedbackState !== "idle") return;
+    if (matchedPairs.some((p) => p.left === left)) return;
+
+    if (matchSelectedRight) {
+      const isValid = currentPairs.some(
+        (p) => p.left === left && p.right === matchSelectedRight
+      );
+      if (isValid) {
+        const next = [...matchedPairs, { left, right: matchSelectedRight }];
+        setMatchedPairs(next);
+        setMatchSelectedLeft(null);
+        setMatchSelectedRight(null);
+      } else {
+        setMatchSelectedLeft(left);
+        setMatchSelectedRight(null);
+      }
+    } else {
+      setMatchSelectedLeft(matchSelectedLeft === left ? null : left);
+    }
+  };
+
+  const handleMatchRightClick = (right: string) => {
+    if (feedbackState !== "idle") return;
+    if (matchedPairs.some((p) => p.right === right)) return;
+
+    if (matchSelectedLeft) {
+      const isValid = currentPairs.some(
+        (p) => p.left === matchSelectedLeft && p.right === right
+      );
+      if (isValid) {
+        const next = [...matchedPairs, { left: matchSelectedLeft, right }];
+        setMatchedPairs(next);
+        setMatchSelectedLeft(null);
+        setMatchSelectedRight(null);
+      } else {
+        setMatchSelectedRight(right);
+        setMatchSelectedLeft(null);
+      }
+    } else {
+      setMatchSelectedRight(matchSelectedRight === right ? null : right);
+    }
+  };
+
+  // ── ORDER INTERACTION HANDLER ──
+  const moveOrderItem = (fromIndex: number, toIndex: number) => {
+    if (feedbackState !== "idle") return;
+    const next = [...orderedItems];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    setOrderedItems(next);
+  };
+
+  // ── CHECK BUTTON READINESS DETERMINATION ──
+  let isCheckActive = false;
+  if (currentQ.type === "match") {
+    isCheckActive =
+      currentPairs.length > 0 && matchedPairs.length === currentPairs.length;
+  } else if (currentQ.type === "order") {
+    isCheckActive = orderedItems.length > 0;
+  } else if (currentQ.type === "true_false") {
+    isCheckActive = selectedOptionId !== null;
+  } else if (currentQ.type === "scenario") {
+    isCheckActive = selectedScenarioChoiceIdx !== null;
+  } else if (currentQ.type === "word_builder") {
+    isCheckActive = chosenWordTiles.length > 0;
+  } else if (currentQ.type === "matching") {
+    isCheckActive =
+      Boolean(currentQ.matchingPairs) &&
+      completedMatches.length === (currentQ.matchingPairs?.length || 0);
+  } else {
+    isCheckActive = Boolean(selectedOptionId);
+  }
+
+  // ── CHECK ANSWER LOGIC ──
   const handleCheckAnswer = () => {
     if (feedbackState !== "idle") return;
 
-    // Handle Word Builder
-    if (currentQ.type === "word_builder") {
-      const targetStr = (currentQ.targetSentence || []).join(" ");
-      const userStr = chosenWordTiles.join(" ");
-      const isCorrect = targetStr.toLowerCase() === userStr.toLowerCase();
-
-      if (isCorrect) {
-        setFeedbackState("correct");
-        setCorrectAnswersCount((prev) => prev + 1);
-      } else {
-        setFeedbackState("wrong");
-        setHearts((prev) => Math.max(0, prev - 1));
-      }
-      return;
-    }
-
-    // Handle Matching
-    if (currentQ.type === "matching") {
+    // MATCH Check
+    if (currentQ.type === "match") {
       const allMatched =
-        currentQ.matchingPairs &&
-        completedMatches.length === currentQ.matchingPairs.length;
+        currentPairs.length > 0 && matchedPairs.length === currentPairs.length;
       if (allMatched) {
         setFeedbackState("correct");
         setCorrectAnswersCount((prev) => prev + 1);
@@ -110,7 +267,86 @@ export default function CulturalGameEngine({
       return;
     }
 
-    // Handle Standard Options (visual, audio, roleplay)
+    // ORDER Check
+    if (currentQ.type === "order") {
+      const expected = (currentQ.items || []).join("|");
+      const actual = orderedItems.join("|");
+      const isCorrect = expected === actual;
+      if (isCorrect) {
+        setFeedbackState("correct");
+        setCorrectAnswersCount((prev) => prev + 1);
+      } else {
+        setFeedbackState("wrong");
+        setHearts((prev) => Math.max(0, prev - 1));
+      }
+      return;
+    }
+
+    // TRUE_FALSE Check
+    if (currentQ.type === "true_false") {
+      const userAns = selectedOptionId === "true";
+      const correctAns = Boolean(currentQ.answerBoolean);
+      const isCorrect = userAns === correctAns;
+      if (isCorrect) {
+        setFeedbackState("correct");
+        setCorrectAnswersCount((prev) => prev + 1);
+      } else {
+        setFeedbackState("wrong");
+        setHearts((prev) => Math.max(0, prev - 1));
+      }
+      return;
+    }
+
+    // SCENARIO Check
+    if (currentQ.type === "scenario") {
+      const steps = currentQ.steps || [];
+      const currentStep = steps[scenarioStepIdx];
+      if (!currentStep || selectedScenarioChoiceIdx === null) return;
+      const choice = currentStep.choices[selectedScenarioChoiceIdx];
+      const stepScore = choice?.score ?? 0;
+      const nextTotalScore = scenarioTotalScore + stepScore;
+      setScenarioTotalScore(nextTotalScore);
+
+      const isLastStep = scenarioStepIdx >= steps.length - 1;
+      if (isLastStep) {
+        const passing =
+          currentQ.passingScore ?? Math.ceil(steps.length * 1.5);
+        const passed = nextTotalScore >= passing;
+        if (passed) {
+          setFeedbackState("correct");
+          setCorrectAnswersCount((prev) => prev + 1);
+        } else {
+          setFeedbackState("wrong");
+          setHearts((prev) => Math.max(0, prev - 1));
+        }
+      } else {
+        // Intermediary step: reward good score
+        if (stepScore > 0) {
+          setFeedbackState("correct");
+        } else {
+          setFeedbackState("wrong");
+          setHearts((prev) => Math.max(0, prev - 1));
+        }
+      }
+      return;
+    }
+
+    // Word Builder (legacy)
+    if (currentQ.type === "word_builder") {
+      const targetStr = (currentQ.targetSentence || []).join(" ");
+      const userStr = chosenWordTiles.join(" ");
+      const isCorrect = targetStr.toLowerCase() === userStr.toLowerCase();
+      if (isCorrect) {
+        setFeedbackState("correct");
+        setCorrectAnswersCount((prev) => prev + 1);
+      } else {
+        setFeedbackState("wrong");
+        setHearts((prev) => Math.max(0, prev - 1));
+      }
+      return;
+    }
+
+    // Standard Options (multiple_choice, visual, hotspot, audio, roleplay)
     if (!selectedOptionId) return;
     const chosenOption = currentQ.options?.find((o) => o.id === selectedOptionId);
     const isCorrect = chosenOption?.isCorrect ?? false;
@@ -124,85 +360,45 @@ export default function CulturalGameEngine({
     }
   };
 
-  // Advance to Next Question
+  // ── ADVANCE TO NEXT QUESTION / STEP ──
   const handleNextQuestion = () => {
+    if (currentQ.type === "scenario") {
+      const steps = currentQ.steps || [];
+      if (scenarioStepIdx < steps.length - 1) {
+        setScenarioStepIdx((prev) => prev + 1);
+        setSelectedScenarioChoiceIdx(null);
+        setFeedbackState("idle");
+        return;
+      }
+    }
+
     if (hearts <= 0) return;
 
     if (currentIdx + 1 < totalQuestions) {
       setCurrentIdx((prev) => prev + 1);
-      setSelectedOptionId(null);
-      setFeedbackState("idle");
-      setActiveHotspotId(1);
-      setChosenWordTiles([]);
-      setSelectedLeftMatch(null);
-      setCompletedMatches([]);
     } else {
       setIsFinished(true);
       const accuracy = Math.round((correctAnswersCount / totalQuestions) * 100);
-      onComplete?.({ xp: session.xpReward, accuracy });
+      onComplete?.({
+        xp: session.xpReward || 30,
+        accuracy,
+        heartsRemaining: hearts,
+      });
     }
   };
 
-  // Handle Learn Skip/Next (Layar 1 has no score deduction)
-  const handleLearnContinue = () => {
-    handleNextQuestion();
-  };
-
-  // Reset
+  // Retry
   const handleRetry = () => {
     setCurrentIdx(0);
-    setSelectedOptionId(null);
-    setFeedbackState("idle");
     setHearts(3);
     setCorrectAnswersCount(0);
     setIsFinished(false);
-    setActiveHotspotId(1);
-    setChosenWordTiles([]);
-    setSelectedLeftMatch(null);
-    setCompletedMatches([]);
+    setSelectedOptionId(null);
+    setFeedbackState("idle");
   };
-
-  // Matching logic
-  const handleMatchSelect = (type: "left" | "right", id: string) => {
-    if (feedbackState !== "idle") return;
-
-    if (type === "left") {
-      setSelectedLeftMatch(id);
-    } else if (type === "right" && selectedLeftMatch) {
-      if (selectedLeftMatch === id) {
-        // Matched correctly!
-        setCompletedMatches((prev) => [...prev, id]);
-        setSelectedLeftMatch(null);
-      } else {
-        // Mismatched
-        setHearts((prev) => Math.max(0, prev - 1));
-        setSelectedLeftMatch(null);
-      }
-    }
-  };
-
-  const isVisualMode =
-    currentQ.type === "visual" ||
-    currentQ.type === "hotspot" ||
-    Boolean(currentQ.imageUrl && currentQ.type !== "learn");
-
-  const selectedHotspot = currentQ.hotspots?.find((h) => h.id === activeHotspotId);
-  const correctOption = currentQ.options?.find((o) => o.isCorrect);
-
-  // Determine if check button should be active
-  let isCheckActive = false;
-  if (currentQ.type === "word_builder") {
-    isCheckActive = chosenWordTiles.length > 0;
-  } else if (currentQ.type === "matching") {
-    isCheckActive =
-      Boolean(currentQ.matchingPairs) &&
-      completedMatches.length === (currentQ.matchingPairs?.length || 0);
-  } else {
-    isCheckActive = Boolean(selectedOptionId);
-  }
 
   // -------------------------------------------------------------
-  // VIEW: GAME OVER (Hearts = 0)
+  // VIEW: GAME OVER
   // -------------------------------------------------------------
   if (hearts <= 0) {
     return (
@@ -216,7 +412,9 @@ export default function CulturalGameEngine({
             Nyawa Kamu Habis!
           </h2>
           <p className="text-body-md text-on-surface-variant leading-relaxed">
-            Tetap semangat! Pelajari kembali materi ini dan coba lagi dari awal.
+            {isPreview
+              ? "Pratinjau sesi selesai karena nyawa habis. Coba lagi untuk meninjau alur jawaban yang benar."
+              : "Tetap semangat! Pelajari kembali materi ini dan coba lagi dari awal."}
           </p>
 
           <div className="w-full pt-4 flex flex-col gap-3">
@@ -227,12 +425,22 @@ export default function CulturalGameEngine({
               <RotateCcw className="w-5 h-5" />
               <span>Coba Lagi</span>
             </button>
-            <Link
-              href={onExitHref}
-              className="w-full py-3 rounded-2xl bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-center transition-colors text-sm"
-            >
-              Kembali
-            </Link>
+            {onExit ? (
+              <button
+                type="button"
+                onClick={onExit}
+                className="w-full py-3 rounded-2xl bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-center transition-colors text-sm cursor-pointer"
+              >
+                Tutup Pratinjau
+              </button>
+            ) : (
+              <Link
+                href={onExitHref}
+                className="w-full py-3 rounded-2xl bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-center transition-colors text-sm"
+              >
+                Kembali
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -240,10 +448,12 @@ export default function CulturalGameEngine({
   }
 
   // -------------------------------------------------------------
-  // VIEW: VICTORY / LESSON COMPLETE + CULTURAL SOURCE CARD
+  // VIEW: VICTORY / LESSON COMPLETE
   // -------------------------------------------------------------
   if (isFinished) {
-    const accuracy = Math.round((correctAnswersCount / (totalQuestions - 1 || 1)) * 100);
+    const accuracy = Math.round(
+      (correctAnswersCount / Math.max(1, totalQuestions)) * 100
+    );
     const sourceCard = session.culturalSourceCard || {
       institution: "Dewan Adat Kaili (LAK) & Balai Pelestarian Kebudayaan XVIII",
       informant: "Pemangku Adat Kaili Ledo (Lembah Palu)",
@@ -257,6 +467,12 @@ export default function CulturalGameEngine({
     return (
       <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-4 lg:p-8 text-on-surface antialiased">
         <div className="w-full max-w-xl bg-surface-container-lowest p-6 sm:p-8 rounded-3xl shadow-xl border-2 border-outline-variant/30 text-center flex flex-col items-center gap-6 relative overflow-hidden">
+          {isPreview && (
+            <div className="w-full bg-secondary-fixed/50 border border-secondary text-on-secondary-fixed px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider">
+              Pratinjau Selesai • Progres tidak ditulis ke akun
+            </div>
+          )}
+
           <div className="relative my-2">
             <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-secondary-container to-secondary-fixed flex items-center justify-center shadow-lg ring-4 ring-secondary-fixed-dim">
               <Trophy className="w-10 h-10 text-surface-container-lowest" />
@@ -271,7 +487,7 @@ export default function CulturalGameEngine({
               Pelajaran Tuntas!
             </h1>
             <p className="text-body-sm sm:text-body-md text-on-surface-variant mt-1">
-              Kamu telah menyelesaikan 6 tahapan alur belajar <strong>{session.title}</strong>.
+              Kamu telah menyelesaikan sesi <strong>{session.title}</strong> ({totalQuestions} tantangan).
             </p>
           </div>
 
@@ -286,22 +502,17 @@ export default function CulturalGameEngine({
               <span className="text-xl font-black text-secondary mt-0.5">{accuracy}%</span>
             </div>
             <div className="p-3 rounded-2xl bg-surface-container flex flex-col items-center border border-outline-variant/20">
-              <span className="text-[10px] uppercase font-extrabold text-on-surface-variant">Streak</span>
-              <span className="text-xl font-black text-tertiary mt-0.5">{session.streakDays + 1} Hari</span>
+              <span className="text-[10px] uppercase font-extrabold text-on-surface-variant">Sisa Nyawa</span>
+              <span className="text-xl font-black text-error mt-0.5">{hearts}/3</span>
             </div>
           </div>
 
-          {/* CULTURAL SOURCE CARD (Validasi Keaslian Materi) */}
+          {/* CULTURAL SOURCE CARD */}
           <div className="w-full text-left p-4 rounded-2xl bg-surface-container-low border border-outline-variant/30 space-y-2.5">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-1.5 text-secondary font-black text-xs uppercase tracking-wider">
                 <ShieldCheck className="w-4 h-4 text-secondary" />
                 <span>Cultural Source Card</span>
-                {sourceCard.status && (
-                  <span className="ml-1 px-1.5 py-0.5 rounded bg-tertiary-container text-on-tertiary-container text-[9px] font-black tracking-widest">
-                    DATA DEMO
-                  </span>
-                )}
               </div>
               <span className="text-[10px] font-mono text-outline font-bold">
                 {sourceCard.registrationCode}
@@ -313,31 +524,30 @@ export default function CulturalGameEngine({
             </p>
 
             <div className="pt-2 border-t border-outline-variant/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[11px] text-on-surface-variant">
-              <span>Lembaga / Narahubung: <strong>{sourceCard.institution}</strong>{sourceCard.informant ? ` • ${sourceCard.informant}` : ""}</span>
+              <span>Lembaga: <strong>{sourceCard.institution}</strong></span>
               <span className="text-secondary font-bold">
                 {sourceCard.status || "Draft — dalam proses validasi"}
               </span>
             </div>
-            {sourceCard.status && (
-              <p className="text-[10px] text-outline italic">
-                {sourceCard.status}
-              </p>
-            )}
           </div>
 
           <div className="w-full pt-1 flex flex-col sm:flex-row gap-3">
-            <Link
-              href="/dashboard/paspor"
-              className="flex-1 py-3.5 rounded-2xl bg-secondary text-on-secondary font-black uppercase tracking-wider shadow-[0_4px_0_0_#653e00] hover:bg-secondary-container active:translate-y-0.5 text-center text-sm"
-            >
-              Buka Paspor Budaya
-            </Link>
-            <Link
-              href={onExitHref}
-              className="flex-1 py-3.5 rounded-2xl bg-primary text-on-primary font-black uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 text-center text-sm"
-            >
-              Lanjut Belajar
-            </Link>
+            {onExit ? (
+              <button
+                type="button"
+                onClick={onExit}
+                className="w-full py-3.5 rounded-2xl bg-primary text-on-primary font-black uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 text-center text-sm cursor-pointer"
+              >
+                Tutup Pratinjau
+              </button>
+            ) : (
+              <Link
+                href={onExitHref}
+                className="flex-1 py-3.5 rounded-2xl bg-primary text-on-primary font-black uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 text-center text-sm"
+              >
+                Selesai &amp; Lanjut
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -349,19 +559,70 @@ export default function CulturalGameEngine({
   // -------------------------------------------------------------
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col antialiased font-sans select-none">
-      {/* ── TOP HUD (HEADER) ── */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-surface/90 backdrop-blur-md z-40 flex items-center justify-between px-4 lg:px-8 border-b border-outline-variant/20">
-        <Link
-          href={onExitHref}
-          className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
-          title="Keluar"
-        >
-          <X className="w-6 h-6" />
-        </Link>
+      {/* ── PREVIEW MODE TOP BANNER ── */}
+      {isPreview && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-[#e7c4a0] border-b border-[#db9964] text-[#3d2419] px-4 py-1.5 text-center text-xs font-black flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2 mx-auto">
+            <span className="px-2 py-0.5 rounded bg-[#3d2419] text-[#fffaf5] text-[10px] font-black uppercase tracking-wider">
+              Mode Pratinjau
+            </span>
+            <span>
+              Soal #{currentIdx + 1} dari {totalQuestions} • Transisi &amp; Penilaian Nyata (Simulasi, Progres Tidak Disimpan)
+            </span>
+          </div>
+          {onExit ? (
+            <button
+              type="button"
+              onClick={onExit}
+              className="px-2.5 py-0.5 rounded bg-[#3d2419] text-[#fffaf5] text-[11px] font-bold hover:opacity-90 cursor-pointer shrink-0"
+            >
+              Tutup Pratinjau
+            </button>
+          ) : (
+            <Link
+              href={onExitHref}
+              className="px-2.5 py-0.5 rounded bg-[#3d2419] text-[#fffaf5] text-[11px] font-bold hover:opacity-90 shrink-0"
+            >
+              Kembali ke Builder
+            </Link>
+          )}
+        </div>
+      )}
 
-        {/* Progress Bar */}
+      {/* ── TOP HUD (HEADER) ── */}
+      <header className={`fixed ${isPreview ? "top-8" : "top-0"} left-0 right-0 h-16 bg-surface/90 backdrop-blur-md z-40 flex items-center justify-between px-4 lg:px-8 border-b border-outline-variant/20 transition-all`}>
+        {onExit ? (
+          <button
+            type="button"
+            onClick={onExit}
+            className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
+            title="Keluar"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        ) : (
+          <Link
+            href={onExitHref}
+            className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
+            title="Keluar"
+          >
+            <X className="w-6 h-6" />
+          </Link>
+        )}
+
+        {/* Progress Bar & Question Counter */}
         <div className="flex-1 max-w-xl mx-4 sm:mx-8">
-          <div className="w-full bg-surface-container-high h-3 rounded-full overflow-hidden">
+          <div className="flex items-center justify-between mb-1 text-[11px] font-bold text-on-surface-variant">
+            <span>
+              Soal {Math.min(currentIdx + 1, totalQuestions)} dari {totalQuestions}
+            </span>
+            {isPreview && (
+              <span className="text-[10px] uppercase font-black tracking-wider text-secondary">
+                Simulasi Permainan
+              </span>
+            )}
+          </div>
+          <div className="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden">
             <div
               className="bg-primary h-full rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
@@ -373,7 +634,7 @@ export default function CulturalGameEngine({
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-1.5 bg-surface-container px-3 py-1 rounded-full text-sm font-bold text-on-surface">
             <Flame className="w-4 h-4 text-primary fill-current" />
-            <span>{session.streakDays}</span>
+            <span>{session.streakDays || 3}</span>
           </div>
           <div className="flex items-center gap-1 bg-error-container/40 px-3.5 py-1 rounded-full border border-error/20">
             <Heart className="w-5 h-5 text-error fill-current" />
@@ -382,15 +643,500 @@ export default function CulturalGameEngine({
         </div>
       </header>
 
-      {/* ── MAIN VIEWPORT (MENDUKUNG 6 TAHAP ALUR PEDAGOGIS) ── */}
-      <main className="pt-20 pb-36 flex-1 flex flex-col items-center justify-center p-4">
+      {/* ── MAIN VIEWPORT ── */}
+      <main className={`${isPreview ? "pt-28" : "pt-20"} pb-36 flex-1 flex flex-col items-center justify-center p-4`}>
         {/* ======================================================== */}
-        {/* TAHAP 1: LAYAR 1 (LEARN - PENGENALAN TANPA BEBAN)        */}
+        {/* 1. MATCH (JODOHKAN PASANGAN DUA KOLOM - RONDE 4)          */}
+        {/* ======================================================== */}
+        {currentQ.type === "match" && (
+          <div className="w-full max-w-2xl mx-auto space-y-4">
+            <div className="text-center">
+              <span className="text-xs font-black uppercase tracking-wider text-secondary bg-secondary-fixed/50 px-3 py-1 rounded-full border border-secondary/30">
+                Jodohkan Pasangan
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight mt-2.5">
+                {currentQ.prompt}
+              </h2>
+              <p className="text-xs text-on-surface-variant font-medium mt-1">
+                Ketuk satu ungkapan di kolom kiri, lalu ketuk konteks/artinya di kolom kanan.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              {/* Kolom Kiri */}
+              <div className="space-y-3">
+                <span className="text-xs font-black uppercase tracking-wider text-primary block text-center">
+                  Ungkapan
+                </span>
+                {currentPairs.map((p) => {
+                  const isMatched = matchedPairs.some((m) => m.left === p.left);
+                  const isSelected = matchSelectedLeft === p.left;
+
+                  let style =
+                    "border-outline-variant/30 bg-surface-container-low hover:bg-surface-container text-on-surface";
+                  if (isMatched) {
+                    style =
+                      "border-secondary bg-secondary-fixed/40 text-on-surface ring-1 ring-secondary";
+                  } else if (isSelected) {
+                    style =
+                      "border-primary bg-primary-fixed/30 ring-2 ring-primary text-primary font-black";
+                  }
+
+                  return (
+                    <button
+                      key={p.left}
+                      type="button"
+                      disabled={feedbackState !== "idle" || isMatched}
+                      onClick={() => handleMatchLeftClick(p.left)}
+                      className={`w-full p-4 rounded-2xl border text-left font-bold text-sm transition flex items-center justify-between cursor-pointer disabled:cursor-default ${style}`}
+                    >
+                      <span>{p.left}</span>
+                      {isMatched && <Check className="h-4 w-4 text-secondary stroke-[3]" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Kolom Kanan */}
+              <div className="space-y-3">
+                <span className="text-xs font-black uppercase tracking-wider text-secondary block text-center">
+                  Konteks / Arti
+                </span>
+                {shuffledMatchRight.map((rightText) => {
+                  const isMatched = matchedPairs.some((m) => m.right === rightText);
+                  const isSelected = matchSelectedRight === rightText;
+
+                  let style =
+                    "border-outline-variant/30 bg-surface-container-low hover:bg-surface-container text-on-surface";
+                  if (isMatched) {
+                    style =
+                      "border-secondary bg-secondary-fixed/40 text-on-surface ring-1 ring-secondary";
+                  } else if (isSelected) {
+                    style =
+                      "border-primary bg-primary-fixed/30 ring-2 ring-primary text-primary font-black";
+                  }
+
+                  return (
+                    <button
+                      key={rightText}
+                      type="button"
+                      disabled={feedbackState !== "idle" || isMatched}
+                      onClick={() => handleMatchRightClick(rightText)}
+                      className={`w-full p-4 rounded-2xl border text-left font-bold text-sm transition flex items-center justify-between cursor-pointer disabled:cursor-default ${style}`}
+                    >
+                      <span className="text-xs sm:text-sm">{rightText}</span>
+                      {isMatched && <Check className="h-4 w-4 text-secondary stroke-[3]" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {matchedPairs.length === currentPairs.length && feedbackState === "idle" && (
+              <div className="p-3 bg-secondary-fixed/30 border border-secondary/30 rounded-xl flex items-center gap-2 text-xs font-bold text-secondary">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Semua pasangan telah terhubung! Tekan tombol Periksa di bawah.</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 2. ORDER (SUSUN URUTAN NAIK/TURUN - RONDE 4)              */}
+        {/* ======================================================== */}
+        {currentQ.type === "order" && (
+          <div className="w-full max-w-xl mx-auto space-y-4">
+            <div className="text-center">
+              <span className="text-xs font-black uppercase tracking-wider text-secondary bg-secondary-fixed/50 px-3 py-1 rounded-full border border-secondary/30">
+                Susun Urutan
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight mt-2.5">
+                {currentQ.prompt}
+              </h2>
+              <p className="text-xs text-on-surface-variant font-medium mt-1">
+                Susun urutan yang tepat dengan menekan tombol naik (↑) atau turun (↓).
+              </p>
+            </div>
+
+            <div className="space-y-2.5 mt-4">
+              {orderedItems.map((item, index) => {
+                const targetItems = currentQ.items || [];
+                const isTargetCorrect =
+                  feedbackState === "correct" && targetItems[index] === item;
+
+                let borderStyle = "border-outline-variant/30 bg-surface-container-low";
+                if (feedbackState === "correct") {
+                  borderStyle = "border-secondary bg-secondary-fixed/30 ring-1 ring-secondary";
+                } else if (feedbackState === "wrong") {
+                  borderStyle = isTargetCorrect
+                    ? "border-secondary bg-secondary-fixed/30 ring-1 ring-secondary"
+                    : "border-error bg-error-container/30 ring-1 ring-error";
+                }
+
+                return (
+                  <div
+                    key={`${item}-${index}`}
+                    className={`flex items-center justify-between rounded-2xl border p-4 transition ${borderStyle}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-fixed text-xs font-black text-primary">
+                        {index + 1}
+                      </span>
+                      <span className="font-bold text-on-surface text-sm sm:text-base">
+                        {item}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        disabled={feedbackState !== "idle" || index === 0}
+                        onClick={() => moveOrderItem(index, index - 1)}
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high hover:bg-surface-container-highest disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                        aria-label="Geser ke atas"
+                      >
+                        <ArrowUp className="h-4 w-4 text-on-surface" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={
+                          feedbackState !== "idle" || index === orderedItems.length - 1
+                        }
+                        onClick={() => moveOrderItem(index, index + 1)}
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high hover:bg-surface-container-highest disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                        aria-label="Geser ke bawah"
+                      >
+                        <ArrowDown className="h-4 w-4 text-on-surface" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {feedbackState === "wrong" && currentQ.items && (
+              <div className="mt-3 p-3 bg-surface-container-high rounded-xl text-xs font-semibold text-on-surface">
+                <span className="font-black text-secondary">Urutan yang tepat: </span>
+                {currentQ.items.map((ans, i) => `${i + 1}. ${ans}`).join(" → ")}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 3. TRUE / FALSE (BENAR / SALAH TOGGLE)                   */}
+        {/* ======================================================== */}
+        {currentQ.type === "true_false" && (
+          <div className="w-full max-w-xl mx-auto space-y-5">
+            <div className="text-center">
+              <span className="text-xs font-black uppercase tracking-wider text-secondary bg-secondary-fixed/50 px-3 py-1 rounded-full border border-secondary/30">
+                Benar / Salah
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight mt-2.5">
+                {currentQ.prompt}
+              </h2>
+              {currentQ.statement && currentQ.statement !== currentQ.prompt && (
+                <div className="mt-3 p-4 bg-surface-container-low rounded-2xl border border-outline-variant/30 text-sm font-semibold text-on-surface italic">
+                  &ldquo;{currentQ.statement}&rdquo;
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-6">
+              {[
+                { id: "true", label: "Fakta / Benar" },
+                { id: "false", label: "Mitos / Salah" },
+              ].map((opt) => {
+                const isSelected = selectedOptionId === opt.id;
+                const isLocked = feedbackState !== "idle";
+                const isThisCorrect =
+                  String(Boolean(currentQ.answerBoolean)) === opt.id;
+                const showAsCorrect = isLocked && isThisCorrect;
+                const showAsWrong = isLocked && isSelected && !isThisCorrect;
+
+                let btnStyle =
+                  "border-outline-variant/30 bg-surface-container-lowest hover:border-primary/60";
+                if (showAsCorrect) {
+                  btnStyle =
+                    "border-secondary bg-secondary-fixed/30 ring-2 ring-secondary text-on-surface";
+                } else if (showAsWrong) {
+                  btnStyle =
+                    "border-error bg-error-container/40 ring-2 ring-error text-on-error-container";
+                } else if (isSelected) {
+                  btnStyle =
+                    "border-primary bg-primary-fixed/30 ring-2 ring-primary text-primary font-black";
+                }
+
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={isLocked}
+                    onClick={() => setSelectedOptionId(opt.id)}
+                    className={`p-6 rounded-3xl border-2 text-center font-black text-base sm:text-lg transition-all shadow-[0_3px_0_0_#e0bfb7] cursor-pointer ${btnStyle}`}
+                  >
+                    <span>{opt.label}</span>
+                    {showAsCorrect && (
+                      <CheckCircle2 className="w-5 h-5 text-secondary mx-auto mt-2" />
+                    )}
+                    {showAsWrong && (
+                      <XCircle className="w-5 h-5 text-error mx-auto mt-2" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 4. SCENARIO (SKENARIO BERCABANG BERTINGKAT)               */}
+        {/* ======================================================== */}
+        {currentQ.type === "scenario" && (
+          <div className="w-full max-w-2xl mx-auto space-y-4">
+            <div className="text-center">
+              <span className="text-xs font-black uppercase tracking-wider text-secondary bg-secondary-fixed/50 px-3 py-1 rounded-full border border-secondary/30">
+                Skenario Sikap &amp; Adab
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight mt-2.5">
+                {currentQ.prompt}
+              </h2>
+            </div>
+
+            {(() => {
+              const steps = currentQ.steps || [];
+              const step = steps[scenarioStepIdx] || {
+                prompt: currentQ.prompt,
+                choices: [],
+              };
+
+              return (
+                <div className="space-y-4 mt-2">
+                  <div className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/30 flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary-fixed text-primary flex items-center justify-center font-black text-xs shrink-0">
+                      {scenarioStepIdx + 1}/{steps.length}
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary">
+                        Langkah {scenarioStepIdx + 1}
+                      </span>
+                      <p className="text-sm sm:text-base font-bold text-on-surface mt-0.5">
+                        {step.prompt}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {step.choices.map((choice, cIdx) => {
+                      const isSelected = selectedScenarioChoiceIdx === cIdx;
+                      const isLocked = feedbackState !== "idle";
+
+                      let style =
+                        "border-outline-variant/30 bg-surface-container-lowest hover:border-primary/60";
+                      if (isSelected) {
+                        style =
+                          "border-primary bg-primary-fixed/30 ring-2 ring-primary text-primary font-black";
+                      }
+
+                      return (
+                        <button
+                          key={cIdx}
+                          type="button"
+                          disabled={isLocked}
+                          onClick={() => setSelectedScenarioChoiceIdx(cIdx)}
+                          className={`w-full p-4 rounded-2xl border-2 text-left transition flex items-center justify-between cursor-pointer ${style}`}
+                        >
+                          <span className="text-sm sm:text-base font-bold">
+                            {choice.label}
+                          </span>
+                          {choice.feedback && feedbackState !== "idle" && (
+                            <span className="text-xs text-on-surface-variant font-medium ml-2">
+                              (+{choice.score} skor)
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 5. HOTSPOT VISUAL                                        */}
+        {/* ======================================================== */}
+        {currentQ.type === "hotspot" && (
+          <div className="w-full max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-stretch gap-6">
+            <div className="w-full md:w-7/12 bg-surface-container-lowest rounded-3xl p-5 border-2 border-outline-variant/30 shadow-sm flex flex-col justify-between">
+              <div>
+                <h2 className="text-lg sm:text-xl font-black text-on-surface text-center tracking-tight mb-3">
+                  {currentQ.prompt}
+                </h2>
+
+                <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden bg-surface-container-high/40 flex items-center justify-center border border-outline-variant/20">
+                  {currentQ.imageUrl ? (
+                    <img
+                      src={currentQ.imageUrl}
+                      alt={currentQ.prompt}
+                      className="w-full h-full object-contain p-2"
+                    />
+                  ) : (
+                    <div className="text-on-surface-variant font-bold text-sm">[Gambar Objek]</div>
+                  )}
+
+                  {currentQ.hotspots?.map((spot) => {
+                    const isSelected =
+                      selectedOptionId === String(spot.id) ||
+                      selectedOptionId === spot.name;
+
+                    return (
+                      <button
+                        key={spot.id}
+                        type="button"
+                        disabled={feedbackState !== "idle"}
+                        onClick={() => {
+                          setActiveHotspotId(spot.id);
+                          setSelectedOptionId(String(spot.id));
+                        }}
+                        style={{ top: spot.top, left: spot.left }}
+                        className={`absolute -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center font-black text-xs transition-transform cursor-pointer ${
+                          isSelected || activeHotspotId === spot.id
+                            ? "bg-primary text-on-primary ring-4 ring-primary-fixed scale-110 shadow-lg z-20"
+                            : "bg-surface-container-lowest text-on-surface ring-2 ring-outline-variant hover:scale-105 z-10"
+                        }`}
+                      >
+                        {spot.id}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {currentQ.imageCaption && (
+                  <p className="text-center text-[11px] text-on-surface-variant font-medium mt-2">
+                    {currentQ.imageCaption}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Hotspot Option Buttons */}
+            <div className="w-full md:w-5/12 flex flex-col justify-center">
+              <div className="space-y-3 w-full">
+                {currentQ.options?.map((opt) => {
+                  const isSelected = selectedOptionId === opt.id;
+                  const isLocked = feedbackState !== "idle";
+
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      disabled={isLocked}
+                      onClick={() => {
+                        setSelectedOptionId(opt.id);
+                        const numeric = Number(opt.id);
+                        if (!isNaN(numeric)) setActiveHotspotId(numeric);
+                      }}
+                      className={`w-full py-3.5 px-4 rounded-2xl text-left font-black text-sm sm:text-base transition-all border-2 cursor-pointer shadow-[0_3px_0_0_#e0bfb7] ${
+                        isSelected
+                          ? "border-primary bg-primary-fixed/30 text-primary shadow-[0_3px_0_0_#ca4a28] ring-2 ring-primary"
+                          : "border-outline-variant/30 bg-surface-container-lowest text-on-surface hover:border-primary/60"
+                      }`}
+                    >
+                      <span>{opt.title}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 6. MULTIPLE CHOICE (STANDARD PILIHAN GANDA)              */}
+        {/* ======================================================== */}
+        {(currentQ.type === "multiple_choice" || currentQ.type === "audio") && (
+          <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
+            <div className="w-full bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border-2 border-outline-variant/30 shadow-sm mb-6 text-center">
+              <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">
+                {currentQ.prompt}
+              </h2>
+              {currentQ.subPrompt && (
+                <p className="text-sm text-on-surface-variant font-medium mt-2">
+                  {currentQ.subPrompt}
+                </p>
+              )}
+
+              {/* Audio button if audioUrl present */}
+              {currentQ.audioUrl && (
+                <button
+                  type="button"
+                  onClick={handlePlayAudio}
+                  className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary text-xs font-black uppercase tracking-wider transition-all cursor-pointer border border-primary/20"
+                >
+                  <Volume2 className="h-4 w-4" />
+                  <span>{isPlayingAudio ? "Memutar..." : "Putar Audio Rekaman"}</span>
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-3.5 w-full">
+              {currentQ.options?.map((opt) => {
+                const isSelected = selectedOptionId === opt.id;
+                const isLocked = feedbackState !== "idle";
+                const isThisCorrect = isLocked && opt.isCorrect;
+                const isThisWrong = isLocked && isSelected && !opt.isCorrect;
+
+                let btnStyle =
+                  "border-outline-variant/30 bg-surface-container-lowest text-on-surface hover:border-primary/60";
+                if (isThisCorrect) {
+                  btnStyle =
+                    "border-secondary bg-secondary-fixed/30 ring-2 ring-secondary text-on-surface";
+                } else if (isThisWrong) {
+                  btnStyle =
+                    "border-error bg-error-container/40 ring-2 ring-error text-on-error-container";
+                } else if (isSelected) {
+                  btnStyle =
+                    "border-primary bg-primary-fixed/30 text-primary ring-2 ring-primary";
+                }
+
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={isLocked}
+                    onClick={() => setSelectedOptionId(opt.id)}
+                    className={`w-full py-4 px-6 rounded-2xl text-left font-black text-base sm:text-lg transition-all border-2 cursor-pointer shadow-[0_3px_0_0_#e0bfb7] ${btnStyle}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {opt.label && (
+                          <span className="text-primary mr-1">{opt.label}.</span>
+                        )}
+                        <span>{opt.title}</span>
+                      </div>
+                      {isThisCorrect && (
+                        <CheckCircle2 className="h-5 w-5 text-secondary shrink-0" />
+                      )}
+                      {isThisWrong && (
+                        <XCircle className="h-5 w-5 text-error shrink-0" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 7. LEGACY TYPES (LEARN, VISUAL, ROLEPLAY)                */}
         {/* ======================================================== */}
         {currentQ.type === "learn" && (
           <div className="w-full max-w-lg mx-auto bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border-2 border-outline-variant/30 shadow-sm text-center flex flex-col items-center gap-5">
             <span className="text-xs font-black uppercase tracking-wider text-secondary bg-secondary-fixed px-3 py-1 rounded-full">
-              Tahap 1: Pengenalan Tanpa Beban
+              Pengenalan Materi
             </span>
 
             {currentQ.imageUrl && (
@@ -405,7 +1151,7 @@ export default function CulturalGameEngine({
 
             <div>
               <span className="text-3xl font-black text-primary tracking-tight">
-                {currentQ.term || "Tabe"}
+                {currentQ.term || currentQ.prompt}
               </span>
               {currentQ.ipa && (
                 <span className="text-sm font-normal text-on-surface-variant ml-2">
@@ -419,22 +1165,6 @@ export default function CulturalGameEngine({
               )}
             </div>
 
-            {/* Audio Tap Button (hanya tampil jika audioUrl ada) */}
-            {currentQ.audioUrl && (
-              <button
-                type="button"
-                onClick={handlePlayAudio}
-                className="flex items-center gap-3 px-6 py-3 rounded-full bg-primary text-on-primary font-bold shadow-md hover:bg-primary-container active:scale-95 transition-all cursor-pointer"
-              >
-                {isPlayingAudio ? (
-                  <AudioWaveform className="w-6 h-6 animate-pulse" />
-                ) : (
-                  <Volume2 className="w-6 h-6" />
-                )}
-                <span>{isPlayingAudio ? "Memutar Suara..." : "Dengarkan Pelafalan Asli"}</span>
-              </button>
-            )}
-
             {currentQ.curatorNote && (
               <p className="text-xs text-on-surface-variant leading-relaxed max-w-md bg-surface-container-low p-3 rounded-xl border border-outline-variant/20">
                 {currentQ.curatorNote}
@@ -443,413 +1173,16 @@ export default function CulturalGameEngine({
 
             <button
               type="button"
-              onClick={handleLearnContinue}
-              className="w-full py-4 rounded-2xl bg-secondary text-on-secondary font-black uppercase tracking-wider shadow-[0_4px_0_0_#653e00] hover:bg-secondary-container active:translate-y-0.5 transition-all text-sm mt-2"
+              onClick={handleNextQuestion}
+              className="w-full py-4 rounded-2xl bg-secondary text-on-secondary font-black uppercase tracking-wider shadow-[0_4px_0_0_#653e00] hover:bg-secondary-container active:translate-y-0.5 transition-all text-sm mt-2 cursor-pointer"
             >
               Paham, Lanjut ke Latihan
             </button>
           </div>
         )}
-
-        {/* ======================================================== */}
-        {/* TAHAP 2: LAYAR 2 (PRACTICE VISUAL - GAMBAR / HOTSPOT)     */}
-        {/* ======================================================== */}
-        {isVisualMode && currentQ.type !== "learn" && (
-          <div className="w-full max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-stretch gap-6 lg:gap-10">
-            {/* Visual Card */}
-            <div className="w-full md:w-7/12 bg-surface-container-lowest rounded-3xl p-5 sm:p-6 border-2 border-outline-variant/30 shadow-sm flex flex-col justify-between">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black text-on-surface text-center tracking-tight mb-4">
-                  {currentQ.prompt || "Baju Adat Apakah Ini?"}
-                </h2>
-
-                <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden bg-surface-container-high/40 flex items-center justify-center border border-outline-variant/20">
-                  {currentQ.imageUrl ? (
-                    <img
-                      src={currentQ.imageUrl}
-                      alt={currentQ.prompt}
-                      className="w-full h-full object-contain p-2"
-                    />
-                  ) : (
-                    <div className="text-on-surface-variant font-bold text-sm">[Gambar Objek]</div>
-                  )}
-
-                  {currentQ.hotspots?.map((spot) => (
-                    <button
-                      key={spot.id}
-                      type="button"
-                      onClick={() => setActiveHotspotId(spot.id)}
-                      style={{ top: spot.top, left: spot.left }}
-                      className={`absolute -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center font-black text-xs transition-transform cursor-pointer ${
-                        activeHotspotId === spot.id
-                          ? "bg-primary text-on-primary ring-4 ring-primary-fixed scale-110 shadow-lg z-20"
-                          : "bg-surface-container-lowest text-on-surface ring-2 ring-outline-variant hover:scale-105 z-10"
-                      }`}
-                    >
-                      {spot.id}
-                    </button>
-                  ))}
-                </div>
-
-                {selectedHotspot && currentQ.hotspots && currentQ.hotspots.length > 0 && (
-                  <p className="text-center text-xs text-on-surface-variant font-semibold mt-2.5">
-                    Titik {selectedHotspot.id}: <span className="text-primary font-bold">{selectedHotspot.name}</span> — {selectedHotspot.description}
-                  </p>
-                )}
-              </div>
-
-              <div className="w-32 h-1 bg-outline-variant/50 rounded-full mx-auto mt-4" />
-            </div>
-
-            {/* Options List */}
-            <div className="w-full md:w-5/12 flex flex-col justify-center">
-              <div className="grid grid-cols-2 md:grid-cols-1 gap-3.5 w-full">
-                {currentQ.options?.map((opt) => {
-                  const isSelected = selectedOptionId === opt.id;
-                  const isLocked = feedbackState !== "idle";
-
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      disabled={isLocked}
-                      onClick={() => setSelectedOptionId(opt.id)}
-                      className={`w-full py-4 px-4 sm:px-6 rounded-2xl text-center md:text-left font-black text-base sm:text-lg transition-all border-2 cursor-pointer shadow-[0_3px_0_0_#e0bfb7] active:translate-y-0.5 ${
-                        isSelected
-                          ? "border-primary bg-primary-fixed/30 text-primary shadow-[0_3px_0_0_#ca4a28] ring-2 ring-primary"
-                          : "border-outline-variant/30 bg-surface-container-lowest text-on-surface hover:border-primary/60 hover:bg-surface-container-low"
-                      } ${isLocked ? "cursor-default" : ""}`}
-                    >
-                      <span className="block truncate">{opt.title}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ======================================================== */}
-        {/* PILIHAN GANDA UMUM (MULTIPLE CHOICE TANPA GAMBAR)        */}
-        {/* ======================================================== */}
-        {currentQ.type === "multiple_choice" && !isVisualMode && (
-          <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
-            <div className="w-full bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border-2 border-outline-variant/30 shadow-sm mb-6">
-              <h2 className="text-xl sm:text-2xl font-black text-on-surface text-center tracking-tight">
-                {currentQ.prompt}
-              </h2>
-              {currentQ.subPrompt && (
-                <p className="text-center text-sm text-on-surface-variant font-medium mt-2">
-                  {currentQ.subPrompt}
-                </p>
-              )}
-            </div>
-            <div className="grid grid-cols-1 gap-3.5 w-full">
-              {currentQ.options?.map((opt) => {
-                const isSelected = selectedOptionId === opt.id;
-                const isLocked = feedbackState !== "idle";
-
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    disabled={isLocked}
-                    onClick={() => setSelectedOptionId(opt.id)}
-                    className={`w-full py-4 px-6 rounded-2xl text-left font-black text-base sm:text-lg transition-all border-2 cursor-pointer shadow-[0_3px_0_0_#e0bfb7] active:translate-y-0.5 ${
-                      isSelected
-                        ? "border-primary bg-primary-fixed/30 text-primary shadow-[0_3px_0_0_#ca4a28] ring-2 ring-primary"
-                        : "border-outline-variant/30 bg-surface-container-lowest text-on-surface hover:border-primary/60 hover:bg-surface-container-low"
-                    } ${isLocked ? "cursor-default" : ""}`}
-                  >
-                    <span className="block">{opt.title}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ======================================================== */}
-        {/* TAHAP 3: LAYAR 3 (PRACTICE AUDIO - GELOMBANG SUARA)       */}
-        {/* ======================================================== */}
-        {currentQ.type === "audio" && (
-          <div className="w-full max-w-3xl mx-auto flex flex-col items-center">
-            <h2 className="text-xl sm:text-2xl font-black text-on-surface text-center tracking-tight mb-6 max-w-xl">
-              {currentQ.prompt || "Dengarkan audio berikut dan pilih arti yang tepat:"}
-            </h2>
-
-            {/* Kotak Gelombang Suara (hanya tampil jika audioUrl ada) */}
-            {currentQ.audioUrl && (
-              <>
-                <div className="w-full max-w-md bg-surface-container-lowest rounded-3xl p-6 sm:p-7 border-2 border-outline-variant/30 shadow-sm flex items-center justify-between gap-4">
-                  <div className="flex flex-col gap-2">
-                    <span className="text-lg sm:text-xl font-black text-on-surface">
-                      Gelombang Suara
-                    </span>
-
-                    <div className="flex items-center gap-1.5 h-6">
-                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-6 animate-pulse" : "h-3"}`} />
-                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-8" : "h-4"}`} />
-                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-4" : "h-2"}`} />
-                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-7 animate-pulse" : "h-5"}`} />
-                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-5" : "h-3"}`} />
-                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-7" : "h-6"}`} />
-                      <span className={`w-1.5 bg-primary rounded-full transition-all duration-300 ${isPlayingAudio ? "h-4" : "h-3"}`} />
-                      <span className="w-1.5 h-2 rounded-full bg-outline-variant" />
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handlePlayAudio}
-                    className="w-14 h-14 rounded-2xl bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container active:scale-95 transition-all shadow-md cursor-pointer shrink-0"
-                    title="Putar Suara"
-                  >
-                    {isPlayingAudio ? (
-                      <AudioWaveform className="w-7 h-7 animate-pulse" />
-                    ) : (
-                      <Play className="w-7 h-7 fill-current ml-0.5" />
-                    )}
-                  </button>
-                </div>
-                <div className="w-56 h-1 bg-outline-variant/50 rounded-full my-8" />
-              </>
-            )}
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-              {currentQ.options?.map((opt) => {
-                const isSelected = selectedOptionId === opt.id;
-                const isLocked = feedbackState !== "idle";
-
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    disabled={isLocked}
-                    onClick={() => setSelectedOptionId(opt.id)}
-                    className={`py-4 px-4 rounded-2xl text-center font-black text-base sm:text-lg transition-all border-2 cursor-pointer shadow-[0_3px_0_0_#e0bfb7] active:translate-y-0.5 ${
-                      isSelected
-                        ? "border-primary bg-primary-fixed/30 text-primary shadow-[0_3px_0_0_#ca4a28] ring-2 ring-primary"
-                        : "border-outline-variant/30 bg-surface-container-lowest text-on-surface hover:border-primary/60 hover:bg-surface-container-low"
-                    } ${isLocked ? "cursor-default" : ""}`}
-                  >
-                    <span className="block truncate">{opt.title}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ======================================================== */}
-        {/* TAHAP 4: LAYAR 4 (WORD BUILDER - SUSUN KEPINGAN KATA)     */}
-        {/* ======================================================== */}
-        {currentQ.type === "word_builder" && (
-          <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-6">
-            <div className="text-center">
-              <span className="text-xs font-black uppercase tracking-wider text-secondary bg-secondary-fixed px-3 py-1 rounded-full">
-                Tahap 4: Susun Kepingan Kata
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight mt-3">
-                {currentQ.prompt}
-              </h2>
-            </div>
-
-            {/* Target Slot Area */}
-            <div className="w-full min-h-[72px] p-4 rounded-2xl bg-surface-container-lowest border-2 border-dashed border-outline-variant/60 flex items-center justify-center gap-2 flex-wrap shadow-inner">
-              {chosenWordTiles.length === 0 ? (
-                <span className="text-body-sm text-on-surface-variant font-medium">
-                  Tap kepingan kata di bawah untuk menyusun kalimat...
-                </span>
-              ) : (
-                chosenWordTiles.map((word, wIdx) => (
-                  <button
-                    key={`${word}-${wIdx}`}
-                    type="button"
-                    onClick={() => {
-                      if (feedbackState !== "idle") return;
-                      setChosenWordTiles((prev) => prev.filter((_, i) => i !== wIdx));
-                    }}
-                    className="px-4 py-2 rounded-xl bg-primary-fixed text-on-primary-fixed font-black text-base shadow-sm hover:bg-error-container hover:text-error transition-colors flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>{word}</span>
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                ))
-              )}
-            </div>
-
-            {/* Source Pool of Word Tiles */}
-            <div className="flex items-center justify-center gap-3 flex-wrap w-full">
-              {currentQ.wordTiles?.map((tile, tIdx) => {
-                const isUsed = chosenWordTiles.includes(tile);
-                return (
-                  <button
-                    key={`${tile}-${tIdx}`}
-                    type="button"
-                    disabled={isUsed || feedbackState !== "idle"}
-                    onClick={() => {
-                      if (isUsed || feedbackState !== "idle") return;
-                      setChosenWordTiles((prev) => [...prev, tile]);
-                    }}
-                    className={`px-5 py-3 rounded-2xl font-black text-lg transition-all border-2 shadow-[0_3px_0_0_#e0bfb7] ${
-                      isUsed
-                        ? "bg-surface-container text-on-surface-variant/30 border-transparent shadow-none cursor-not-allowed"
-                        : "bg-surface-container-lowest text-on-surface border-outline-variant/30 hover:border-primary active:translate-y-0.5 cursor-pointer"
-                    }`}
-                  >
-                    {tile}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ======================================================== */}
-        {/* TAHAP 5: LAYAR 5 (MATCHING - PASANG ATRIBUT BUDAYA)      */}
-        {/* ======================================================== */}
-        {currentQ.type === "matching" && (
-          <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-6">
-            <div className="text-center">
-              <span className="text-xs font-black uppercase tracking-wider text-secondary bg-secondary-fixed px-3 py-1 rounded-full">
-                Tahap 5: Jodohkan Pasangan Atribut
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight mt-3">
-                {currentQ.prompt}
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 w-full">
-              {/* Left Column */}
-              <div className="space-y-3">
-                <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block text-center mb-1">
-                  Istilah Adat
-                </span>
-                {currentQ.matchingPairs?.map((pair) => {
-                  const isMatched = completedMatches.includes(pair.id);
-                  const isSelected = selectedLeftMatch === pair.id;
-
-                  return (
-                    <button
-                      key={`left-${pair.id}`}
-                      type="button"
-                      disabled={isMatched || feedbackState !== "idle"}
-                      onClick={() => handleMatchSelect("left", pair.id)}
-                      className={`w-full p-4 rounded-2xl font-bold text-center border-2 transition-all shadow-sm ${
-                        isMatched
-                          ? "bg-[#d7f7c2] border-[#58a700] text-[#1b5e20] shadow-none cursor-default"
-                          : isSelected
-                          ? "bg-primary-fixed border-primary text-primary ring-2 ring-primary"
-                          : "bg-surface-container-lowest border-outline-variant/30 text-on-surface hover:border-primary cursor-pointer"
-                      }`}
-                    >
-                      {pair.left}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-3">
-                <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider block text-center mb-1">
-                  Makna / Fungsi
-                </span>
-                {currentQ.matchingPairs?.map((pair) => {
-                  const isMatched = completedMatches.includes(pair.id);
-
-                  return (
-                    <button
-                      key={`right-${pair.id}`}
-                      type="button"
-                      disabled={isMatched || feedbackState !== "idle"}
-                      onClick={() => handleMatchSelect("right", pair.id)}
-                      className={`w-full p-4 rounded-2xl font-bold text-center border-2 transition-all shadow-sm ${
-                        isMatched
-                          ? "bg-[#d7f7c2] border-[#58a700] text-[#1b5e20] shadow-none cursor-default"
-                          : selectedLeftMatch
-                          ? "bg-surface-container-lowest border-primary/50 text-on-surface hover:bg-primary-fixed/20 cursor-pointer"
-                          : "bg-surface-container-lowest border-outline-variant/30 text-on-surface hover:border-primary cursor-pointer"
-                      }`}
-                    >
-                      {pair.right}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ======================================================== */}
-        {/* TAHAP 6: LAYAR 6 (ROLEPLAY - SIMULASI PERISTIWA NYATA)    */}
-        {/* ======================================================== */}
-        {currentQ.type === "roleplay" && (
-          <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-6">
-            <div className="text-center">
-              <span className="text-xs font-black uppercase tracking-wider text-secondary bg-secondary-fixed px-3 py-1 rounded-full">
-                Tahap 6: Tantangan Skenario Nyata
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight mt-2">
-                {currentQ.prompt || "Simulasi Adat di Souraja"}
-              </h2>
-            </div>
-
-            {/* Context & NPC Chat Bubble */}
-            <div className="w-full p-5 rounded-3xl bg-surface-container-lowest border-2 border-outline-variant/30 shadow-sm space-y-4">
-              {currentQ.scenarioContext && (
-                <p className="text-xs text-on-surface-variant italic border-b border-outline-variant/20 pb-2">
-                  📍 {currentQ.scenarioContext}
-                </p>
-              )}
-
-              {/* NPC Bubble */}
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-secondary-fixed text-on-secondary-fixed font-black text-sm flex items-center justify-center shrink-0 shadow-sm">
-                  <Landmark className="w-5 h-5" />
-                </div>
-                <div className="p-3.5 rounded-2xl rounded-tl-none bg-surface-container-low border border-outline-variant/20 max-w-md">
-                  <span className="text-[10px] font-bold text-secondary uppercase block mb-0.5">
-                    Tetua Adat Kaili (Magau)
-                  </span>
-                  <p className="text-sm font-semibold text-on-surface leading-snug">
-                    &ldquo;{currentQ.npcDialogue || "Nalompa mai kami, ananda..."}&rdquo;
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* User Dialogue Choices */}
-            <div className="w-full space-y-3">
-              <span className="text-xs font-bold text-on-surface-variant block text-center">
-                Pilih respon santun yang paling sesuai:
-              </span>
-              {currentQ.options?.map((opt) => {
-                const isSelected = selectedOptionId === opt.id;
-                const isLocked = feedbackState !== "idle";
-
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    disabled={isLocked}
-                    onClick={() => setSelectedOptionId(opt.id)}
-                    className={`w-full p-4 rounded-2xl text-left font-bold text-sm sm:text-base transition-all border-2 cursor-pointer shadow-[0_3px_0_0_#e0bfb7] active:translate-y-0.5 ${
-                      isSelected
-                        ? "border-primary bg-primary-fixed/30 text-primary shadow-[0_3px_0_0_#ca4a28] ring-2 ring-primary"
-                        : "border-outline-variant/30 bg-surface-container-lowest text-on-surface hover:border-primary/60 hover:bg-surface-container-low"
-                    } ${isLocked ? "cursor-default" : ""}`}
-                  >
-                    <span className="block">{opt.title}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </main>
 
-      {/* ── BOTTOM DRAWER / ACTION BAR (HANYA MUNCUL DI TAHAP PRACTICE) ── */}
+      {/* ── BOTTOM DRAWER / ACTION BAR ── */}
       {currentQ.type !== "learn" && (
         <footer
           className={`fixed bottom-0 left-0 right-0 p-4 lg:px-8 border-t transition-all duration-300 z-50 ${
@@ -925,7 +1258,15 @@ export default function CulturalGameEngine({
                       : "bg-[#ea2b2b] text-white shadow-[0_4px_0_0_#9f1a1a]"
                   }`}
                 >
-                  <span>{currentIdx + 1 === totalQuestions ? "Selesai & Lihat Reward" : "Lanjut"}</span>
+                  <span>
+                    {currentQ.type === "scenario" &&
+                    (currentQ.steps?.length || 0) > 1 &&
+                    scenarioStepIdx < (currentQ.steps?.length || 0) - 1
+                      ? "Lanjut ke Langkah Berikutnya"
+                      : currentIdx + 1 === totalQuestions
+                      ? "Selesai & Lihat Reward"
+                      : "Lanjut"}
+                  </span>
                 </button>
               )}
             </div>

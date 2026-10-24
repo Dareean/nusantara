@@ -3,6 +3,7 @@ import path from "path";
 import { GameSession } from "@/app/components/game-engine/types";
 import { sampleKailiLesson } from "@/app/components/game-engine/mockData";
 import { laloveMusicLesson } from "@/app/components/game-engine/sessionStore";
+import { MIGRATED_BUILTIN_SESSIONS } from "@/app/components/game-engine/migratedLessons";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ContentSessionRecord = {
@@ -81,6 +82,22 @@ function saveLocalStore() {
 function seedInitialMemory() {
   const now = new Date().toISOString();
 
+  // Seed MIGRATED_BUILTIN_SESSIONS: 1, 2, 3 (idempotent, never overwrite if existing)
+  MIGRATED_BUILTIN_SESSIONS.forEach((session) => {
+    if (!memorySessions.has(session.id)) {
+      memorySessions.set(session.id, {
+        id: session.id,
+        title: session.title,
+        payload: session,
+        status: "published",
+        version: 1,
+        created_by: "system@laras.id",
+        created_at: now,
+        updated_at: now,
+      });
+    }
+  });
+
   // Seed DEFAULT_SESSIONS: SES-KL-MASTER-001 & SES-LALOVE-002
   if (!memorySessions.has(sampleKailiLesson.id)) {
     memorySessions.set(sampleKailiLesson.id, {
@@ -108,6 +125,7 @@ function seedInitialMemory() {
     });
   }
 }
+
 
 // Initialize on module load
 loadLocalStore();

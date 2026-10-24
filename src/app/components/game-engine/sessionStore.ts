@@ -1,5 +1,6 @@
 import { GameSession } from "./types";
 import { sampleKailiLesson } from "./mockData";
+import { MIGRATED_BUILTIN_SESSIONS } from "./migratedLessons";
 
 export const laloveMusicLesson: GameSession = {
   id: "SES-LALOVE-002",
@@ -72,7 +73,12 @@ export const laloveMusicLesson: GameSession = {
   ],
 };
 
-export const DEFAULT_SESSIONS: GameSession[] = [sampleKailiLesson, laloveMusicLesson];
+export const DEFAULT_SESSIONS: GameSession[] = [
+  ...MIGRATED_BUILTIN_SESSIONS,
+  laloveMusicLesson,
+  sampleKailiLesson,
+];
+
 
 const STORAGE_KEY = "laras_game_sessions_v2";
 const SERVER_CACHE_KEY = "laras_server_sessions_cache";

@@ -30,6 +30,8 @@ import {
   type ScenarioQuestionData,
   type TrueFalseQuestionData,
 } from "../../../../lib/lessons";
+import { getStoredSessions, syncSessionsFromServer } from "../../../components/game-engine/sessionStore";
+import { gameSessionToLesson } from "../../../components/game-engine/lessonAdapter";
 
 type SessionScreen = "loading" | "intro" | "exercise" | "feedback" | "gameover";
 
@@ -86,29 +88,65 @@ export default function LessonSessionPage() {
   const [orderedItems, setOrderedItems] = useState<string[]>([]);
 
   useEffect(() => {
-    const lessonId = Number(params.lessonId);
-    const currentLesson = getLessonById(lessonId);
-    if (!currentLesson) {
+    const lessonIdStr = String(params.lessonId);
+    const lessonIdNum = Number(params.lessonId);
+
+    const loadSessionLesson = (): Lesson | null => {
+      const stored = getStoredSessions();
+      const foundSession = stored.find(
+        (s) =>
+          s.id === lessonIdStr ||
+          s.id === `lesson-${lessonIdStr}` ||
+          (lessonIdNum > 0 && Number(s.id) === lessonIdNum)
+      );
+      if (foundSession) {
+        return gameSessionToLesson(foundSession);
+      }
+      if (!isNaN(lessonIdNum) && lessonIdNum > 0) {
+        return getLessonById(lessonIdNum);
+      }
+      return null;
+    };
+
+    const initialLesson = loadSessionLesson();
+    if (!initialLesson) {
       router.replace("/dashboard");
       return;
     }
 
     getSession().then(async (session) => {
       if (!session) {
-        router.replace(`/auth?redirect=/dashboard/latihan/${lessonId}`);
+        router.replace(`/auth?redirect=/dashboard/latihan/${lessonIdStr}`);
         return;
       }
       const currentProgress = await loadProgress(session.email);
-      if (!currentProgress.unlockedLessons.includes(lessonId)) {
+      if (
+        !currentProgress.unlockedLessons.includes(initialLesson.id) &&
+        initialLesson.id !== 1
+      ) {
         router.replace("/dashboard");
         return;
       }
       setSessionEmail(session.email);
       setHearts(currentProgress.hearts > 0 ? currentProgress.hearts : 3);
-      setLesson(currentLesson);
+      setLesson(initialLesson);
       setScreen("intro");
+
+      // Background sync from server (if published updates exist)
+      syncSessionsFromServer().then((updatedList) => {
+        const serverSession = updatedList.find(
+          (s) =>
+            s.id === lessonIdStr ||
+            s.id === `lesson-${lessonIdStr}` ||
+            (lessonIdNum > 0 && Number(s.id) === lessonIdNum)
+        );
+        if (serverSession) {
+          setLesson(gameSessionToLesson(serverSession));
+        }
+      }).catch(() => {});
     });
   }, [params.lessonId, router]);
+
 
   const questionMap = useMemo(
     () => new Map(lesson?.questions.map((question) => [question.id, question]) ?? []),

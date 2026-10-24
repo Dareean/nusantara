@@ -60,9 +60,9 @@ export default function JalurBelajarPage() {
 
     const updateSessions = () => {
       try {
-        const builtinIds = new Set(["SES-KL-MASTER-001", "SES-LALOVE-002"]);
+        const builtinIds = new Set(["SES-KL-MASTER-001", "SES-LALOVE-002", "1", "2", "3"]);
         const stored = getStoredSessions();
-        const custom = stored.filter((s) => !builtinIds.has(s.id));
+        const custom = stored.filter((s) => !builtinIds.has(s.id) && s.status !== "draft");
         setCuratorSessions(custom);
       } catch (err) {
         console.error("Gagal membaca sesi kurator:", err);
