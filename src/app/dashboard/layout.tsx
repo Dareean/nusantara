@@ -7,7 +7,6 @@ import PageTransition from "../components/PageTransition";
 import TopBar from "../components/TopBar";
 
 const immersiveRoutes = [
-  "/dashboard/latihan",
   "/dashboard/culture-connection",
   "/dashboard/evaluasi",
   "/dashboard/selesai",
@@ -41,10 +40,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isLessonPlayer =
-    pathname.startsWith("/dashboard/belajar/") && pathname !== "/dashboard/belajar";
+  const isLessonOrPractice =
+    (pathname.startsWith("/dashboard/belajar/") && pathname !== "/dashboard/belajar") ||
+    pathname.startsWith("/dashboard/latihan");
 
-  if (isLessonPlayer) {
+  if (isLessonOrPractice) {
     return <div className="min-h-screen bg-background text-on-surface antialiased">{children}</div>;
   }
 

@@ -743,8 +743,8 @@ export default function LessonSessionPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-on-surface px-4 py-6 sm:px-6">
-      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-3xl flex-col">
+    <main className="min-h-screen bg-background text-on-surface px-4 pt-6 pb-28 sm:px-6 sm:pb-32">
+      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-3xl flex-col [@media(orientation:landscape)_and_(max-height:450px)]:pl-14">
         <header className="flex items-center justify-between gap-4">
           <Link
             href="/dashboard"
