@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
+  ArrowUp,
   Award,
   BookOpen,
   Check,
@@ -175,6 +176,20 @@ export default function DashboardPage() {
   const [hoveredNodeId, setHoveredNodeId] = useState<number | string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [sessionTitles, setSessionTitles] = useState<Record<string, { title: string; xp: number }>>({});
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 240);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -435,11 +450,16 @@ export default function DashboardPage() {
               {/* Unit Header Banner Ala Duolingo (Sticky Saat Scroll) */}
               <div className="sticky top-20 z-20 pt-2 pb-4 bg-surface/95 backdrop-blur-sm -mt-2">
                 <div
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest("button")) return;
+                    scrollToTop();
+                  }}
                   style={{
                     backgroundColor: currentUnitTheme.bgColor,
                     boxShadow: `0 4px 0 0 ${currentUnitTheme.shadowColor}`,
                   }}
-                  className="rounded-2xl px-5 py-4 text-white flex items-center justify-between gap-4 transition-all duration-300"
+                  className="rounded-2xl px-5 py-4 text-white flex items-center justify-between gap-4 transition-all duration-300 cursor-pointer select-none"
+                  title="Klik untuk kembali ke atas"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-white/90">
@@ -452,7 +472,10 @@ export default function DashboardPage() {
 
                   <button
                     type="button"
-                    onClick={() => setTourStep(1)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTourStep(1);
+                    }}
                     style={{
                       backgroundColor: "rgba(255, 255, 255, 0.2)",
                       boxShadow: `0 3px 0 0 ${currentUnitTheme.shadowColor}`,
@@ -1009,6 +1032,24 @@ export default function DashboardPage() {
             )}
           </div>
         </>
+      )}
+
+      {/* Tombol Balik ke Atas (Floating Tactile Back-to-Top Button) */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="fixed bottom-20 md:bottom-8 right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-surface-container-lowest border-2 border-outline-variant/60 text-on-surface font-black text-xs uppercase tracking-wider shadow-[0_4px_0_0_#d1d5db] dark:shadow-[0_4px_0_0_#374151] hover:bg-surface-container hover:border-primary/50 hover:text-primary active:translate-y-1 active:shadow-none transition-all cursor-pointer group animate-in fade-in zoom-in-95 duration-200"
+          aria-label="Kembali ke atas"
+          title="Kembali ke atas"
+        >
+          <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-colors">
+            <ArrowUp className="w-4 h-4 stroke-[3]" />
+          </div>
+          <span className="hidden sm:inline font-bold text-xs text-on-surface group-hover:text-primary transition-colors">
+            Ke Atas
+          </span>
+        </button>
       )}
     </main>
   );
