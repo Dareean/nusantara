@@ -16,6 +16,7 @@ export type StoredProgress = {
   lastLesson: unknown;
   lastStudyDate: string | null;
   cultureConnectionClaimed?: boolean;
+  dailyXpLog?: Record<string, number>;
 };
 
 export const INITIAL_EMPTY_PROGRESS: StoredProgress = {
@@ -28,6 +29,7 @@ export const INITIAL_EMPTY_PROGRESS: StoredProgress = {
   lastLesson: null,
   lastStudyDate: null,
   cultureConnectionClaimed: false,
+  dailyXpLog: {},
 };
 
 type ProgressPayload = {
@@ -143,6 +145,13 @@ export function mergeProgressAntiRegression(
 
   const cultureConnectionClaimed = Boolean(serverData?.cultureConnectionClaimed || incoming.cultureConnectionClaimed);
 
+  const serverDaily = (serverData as { dailyXpLog?: Record<string, number> })?.dailyXpLog || {};
+  const incomingDaily = (incoming as { dailyXpLog?: Record<string, number> })?.dailyXpLog || {};
+  const mergedDailyLog: Record<string, number> = { ...serverDaily };
+  for (const [d, val] of Object.entries(incomingDaily)) {
+    mergedDailyLog[d] = Math.max(mergedDailyLog[d] || 0, Number(val) || 0);
+  }
+
   return {
     xp,
     streak,
@@ -153,6 +162,7 @@ export function mergeProgressAntiRegression(
     lastLesson,
     lastStudyDate,
     cultureConnectionClaimed,
+    dailyXpLog: mergedDailyLog,
   };
 }
 

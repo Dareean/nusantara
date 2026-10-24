@@ -26,6 +26,8 @@ import {
   Filter,
   FileText,
   LogOut,
+  Trash2,
+  Eye,
 } from "lucide-react";
 import GameFlowBuilder from "./GameFlowBuilder";
 import { getStoredSessions } from "../components/game-engine/sessionStore";
@@ -154,9 +156,10 @@ export default function AdminPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [adminTab, setAdminTab] = useState<"summary" | "builder" | "corpus">("summary");
   const [sessionCount, setSessionCount] = useState<number>(4);
-  const [adminUser, setAdminUser] = useState<{ name: string; role: string }>({
+  const [adminUser, setAdminUser] = useState<{ name: string; role: string; isJury?: boolean }>({
     name: "Admin LARAS",
     role: "Administrator",
+    isJury: false,
   });
 
   const handleLogout = async () => {
@@ -175,9 +178,11 @@ export default function AdminPage() {
       .then((r) => (r.ok ? r.json() : null))
       .then((res) => {
         if (res?.ok && res.session?.name) {
+          const isJury = Boolean(res.session.isJury);
           setAdminUser({
             name: res.session.name,
-            role: res.session.isAdmin ? "Administrator" : "Pengelola Konten",
+            role: isJury ? "Mode Juri" : res.session.isAdmin ? "Administrator" : "Pengelola Konten",
+            isJury,
           });
         }
       })
@@ -330,31 +335,59 @@ export default function AdminPage() {
     newStatus: "verified" | "pending" | "disputed" | "draft",
     newGating: "published" | "blocked" | "educational_note"
   ) => {
-    let updatedPayload: CulturalEntry | null = null;
-    setEntries((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          const mod = { ...item, status: newStatus, gating: newGating };
-          updatedPayload = mod;
-          return mod;
-        }
-        return item;
-      })
-    );
+    const target = entries.find((item) => item.id === id);
+    if (!target) return;
+    const mod: CulturalEntry = { ...target, status: newStatus, gating: newGating };
+    const nextEntries = entries.map((item) => (item.id === id ? mod : item));
+
+    setEntries(nextEntries);
     if (selectedEntry && selectedEntry.id === id) {
-      setSelectedEntry({ ...selectedEntry, status: newStatus, gating: newGating });
+      setSelectedEntry(mod);
     }
 
-    if (updatedPayload) {
-      fetch(`/api/content/entries/${encodeURIComponent(id)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+    try {
+      localStorage.setItem(CMS_STORAGE_KEY, JSON.stringify(nextEntries));
+    } catch (err) {
+      console.warn("Gagal simpan laras_cms_entries:", err);
+    }
+
+    fetch(`/api/content/entries/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        payload: mod,
+        status: newGating === "published" ? "published" : "draft",
+      }),
+    }).catch((err) => {
+      console.error("Gagal sinkron status entri ke server:", err);
+    });
+  };
+
+  const handleDeleteEntry = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm("Yakin ingin menghapus entri korpus ini? Tindakan ini tidak dapat dibatalkan.")) {
+      return;
+    }
+    const nextEntries = entries.filter((item) => item.id !== id);
+    setEntries(nextEntries);
+    if (selectedEntry?.id === id) {
+      setSelectedEntry(null);
+    }
+
+    try {
+      localStorage.setItem(CMS_STORAGE_KEY, JSON.stringify(nextEntries));
+    } catch (err) {
+      console.warn("Gagal simpan laras_cms_entries:", err);
+    }
+
+    try {
+      await fetch(`/api/content/entries/${encodeURIComponent(id)}`, {
+        method: "DELETE",
         credentials: "include",
-        body: JSON.stringify({
-          payload: updatedPayload,
-          status: newGating === "published" ? "published" : "draft",
-        }),
-      }).catch(() => {});
+      });
+    } catch (err) {
+      console.error("Gagal menghapus entri di server:", err);
     }
   };
 
@@ -532,6 +565,13 @@ export default function AdminPage() {
 
         {/* Kanan: Aksi Global + Chip Profil Admin */}
         <div className="flex items-center gap-3 shrink-0">
+            {adminUser.isJury && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-black shadow-xs">
+                <Eye className="w-3.5 h-3.5 text-amber-800" />
+                <span>Mode Juri — Hanya Lihat</span>
+              </span>
+            )}
+
             {adminTab === "corpus" && (
               <button
                 type="button"
@@ -1080,16 +1120,26 @@ export default function AdminPage() {
 
                           {/* Column 6: Aksi */}
                           <td className="py-2.5 px-3 lg:px-4 text-right">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedEntry(entry);
-                              }}
-                              className="px-2.5 py-1 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface text-[11px] font-bold transition-colors cursor-pointer"
-                            >
-                              Tinjau
-                            </button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedEntry(entry);
+                                }}
+                                className="px-2.5 py-1 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface text-[11px] font-bold transition-colors cursor-pointer"
+                              >
+                                Tinjau
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => handleDeleteEntry(entry.id, e)}
+                                className="p-1 rounded-md hover:bg-red-50 text-outline hover:text-red-700 transition-colors cursor-pointer"
+                                title="Hapus entri korpus"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1327,25 +1377,47 @@ export default function AdminPage() {
             {/* Quick Actions Decision */}
             <div>
               <span className="text-[11px] uppercase font-bold text-on-surface-variant mb-2 block">
-                Ubah Status Konten
+                Ubah Status Konten &amp; Transisi
               </span>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
                   type="button"
                   onClick={() =>
-                    handleUpdateStatus(selectedEntry.id, "verified", "published")
+                    handleUpdateStatus(selectedEntry.id, "draft", "blocked")
                   }
-                  className="py-2 px-2.5 rounded-lg bg-secondary-fixed text-on-secondary-fixed font-bold text-[11px] hover:bg-secondary hover:text-on-secondary transition-all flex items-center justify-center gap-1 cursor-pointer"
+                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                    selectedEntry.status === "draft"
+                      ? "bg-surface-container-highest text-on-surface ring-2 ring-primary"
+                      : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+                  }`}
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Terbitkan (Verified)</span>
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Draf</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleUpdateStatus(selectedEntry.id, "pending", "blocked")
+                  }
+                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                    selectedEntry.status === "pending"
+                      ? "bg-primary text-on-primary ring-2 ring-primary/40 shadow-xs"
+                      : "bg-primary-fixed/50 text-on-primary-fixed hover:bg-primary-fixed"
+                  }`}
+                >
+                  <Timer className="w-3.5 h-3.5" />
+                  <span>Menunggu</span>
                 </button>
                 <button
                   type="button"
                   onClick={() =>
                     handleUpdateStatus(selectedEntry.id, "disputed", "educational_note")
                   }
-                  className="py-2 px-2.5 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed font-bold text-[11px] hover:bg-tertiary hover:text-on-tertiary transition-all flex items-center justify-center gap-1 cursor-pointer"
+                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                    selectedEntry.status === "disputed"
+                      ? "bg-tertiary text-on-tertiary ring-2 ring-tertiary/40 shadow-xs"
+                      : "bg-tertiary-fixed/50 text-on-tertiary-fixed hover:bg-tertiary-fixed"
+                  }`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>Catatan Varian</span>
@@ -1353,17 +1425,29 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    handleUpdateStatus(selectedEntry.id, "draft", "blocked")
+                    handleUpdateStatus(selectedEntry.id, "verified", "published")
                   }
-                  className="py-2 px-2.5 rounded-lg bg-error-container text-on-error-container font-bold text-[11px] hover:bg-error hover:text-on-error transition-all flex items-center justify-center gap-1 cursor-pointer"
+                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                    selectedEntry.status === "verified"
+                      ? "bg-secondary text-on-secondary ring-2 ring-secondary/40 shadow-xs"
+                      : "bg-secondary-fixed/50 text-on-secondary-fixed hover:bg-secondary-fixed"
+                  }`}
                 >
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>Jadikan Draf</span>
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Terverifikasi</span>
                 </button>
               </div>
             </div>
 
-            <div className="flex justify-end pt-1">
+            <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+              <button
+                type="button"
+                onClick={() => handleDeleteEntry(selectedEntry.id)}
+                className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Hapus Entri</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setSelectedEntry(null)}

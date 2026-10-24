@@ -132,6 +132,28 @@ function AuthPageContent() {
     setErrorMessage("");
   };
 
+  const handleFillJury = async () => {
+    setAuthMode("login");
+    setErrorMessage("");
+    const clientEmail = process.env.NEXT_PUBLIC_JURY_ADMIN_EMAIL;
+    const clientPass = process.env.NEXT_PUBLIC_JURY_ADMIN_PASSWORD;
+    if (clientEmail && clientPass) {
+      setEmail(clientEmail);
+      setPassword(clientPass);
+      return;
+    }
+    try {
+      const res = await fetch("/api/auth/jury-credentials");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.email) setEmail(data.email);
+        if (data.password) setPassword(data.password);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <main className="relative min-h-screen w-full flex flex-col justify-between overflow-x-hidden bg-gradient-to-br from-[#6f1700] via-[#942b0e] to-[#450e00] text-on-surface antialiased">
       {/* ── TABIR LATAR (Motif Tenun Kaili & Siluet Budaya) ── */}
@@ -366,20 +388,30 @@ function AuthPageContent() {
             </button>
           </form>
 
-          {/* Chip Demo Juri / Tamu (Kompak) */}
+          {/* Chip Demo & Juri (Kompak) */}
           {authMode === "login" && (
-            <div className="mt-3 pt-2.5 border-t border-outline-variant/30 flex items-center justify-between gap-2">
+            <div className="mt-3 pt-2.5 border-t border-outline-variant/30 flex flex-col gap-2">
               <span className="text-[10px] font-bold text-on-surface-variant">
                 Untuk penilai &amp; tamu:
               </span>
-              <button
-                type="button"
-                onClick={handleFillDemo}
-                className="h-7 px-2.5 rounded-lg bg-secondary-fixed text-on-secondary-fixed text-[11px] font-black shadow-[0_2px_0_0_#653e00] hover:brightness-95 active:translate-y-[1px] active:shadow-[0_1px_0_0_#653e00] transition-all cursor-pointer flex items-center gap-1 select-none"
-              >
-                <Zap className="w-3 h-3" />
-                <span>Isi akun demo</span>
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleFillDemo}
+                  className="h-7 px-2.5 rounded-lg bg-secondary-fixed text-on-secondary-fixed text-[11px] font-black shadow-[0_2px_0_0_#653e00] hover:brightness-95 active:translate-y-[1px] active:shadow-[0_1px_0_0_#653e00] transition-all cursor-pointer flex items-center gap-1 select-none"
+                >
+                  <Zap className="w-3 h-3" />
+                  <span>Isi akun demo</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFillJury}
+                  className="h-7 px-2.5 rounded-lg bg-surface-container-high text-primary border border-primary/30 text-[11px] font-black shadow-[0_2px_0_0_#881f00] hover:bg-surface-container-highest active:translate-y-[1px] active:shadow-[0_1px_0_0_#881f00] transition-all cursor-pointer flex items-center gap-1 select-none"
+                >
+                  <Lock className="w-3 h-3" />
+                  <span>Isi akun admin juri</span>
+                </button>
+              </div>
             </div>
           )}
 

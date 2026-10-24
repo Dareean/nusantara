@@ -10,11 +10,12 @@ import { createAdminClient } from '@/lib/supabase/admin';
 
 export { DEFAULT_SESSION_TTL };
 
-type User = {
+export type User = {
   name: string;
   email: string;
   passwordHash: string;
   isAdmin?: boolean;
+  isJury?: boolean;
   avatarUrl?: string;
 };
 
@@ -22,6 +23,7 @@ export type SessionEntry = {
   email: string;
   name: string;
   isAdmin: boolean;
+  isJury?: boolean;
   avatarUrl?: string;
   createdAt: number;
   expiresAt: number;
@@ -29,35 +31,140 @@ export type SessionEntry = {
 
 const STORE_FILENAME = path.join(process.cwd(), 'laras_auth_store.json');
 
-export const ADMIN_EMAILS = [
-  'admin@laras.id',
-  ...(process.env.LARAS_ADMIN_EMAIL ? [process.env.LARAS_ADMIN_EMAIL.toLowerCase().trim()] : []),
-];
+export function getEnvVar(key: string): string | undefined {
+  if (process.env[key]) return process.env[key];
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      const match = content.match(new RegExp(`^${key}=(.*)$`, 'm'));
+      if (match) {
+        const val = match[1].trim().replace(/^['"](.*)['"]$/, '$1');
+        process.env[key] = val;
+        return val;
+      }
+    }
+  } catch {}
+  return undefined;
+}
+
+export function getAdminEmails(): string[] {
+  const adminEnv = getEnvVar('LARAS_ADMIN_EMAIL');
+  const juryEnv = getEnvVar('JURY_ADMIN_EMAIL');
+  return [
+    'admin@laras.id',
+    ...(adminEnv ? [adminEnv.toLowerCase().trim()] : []),
+    ...(juryEnv ? [juryEnv.toLowerCase().trim()] : ['juri@laras.id']),
+  ];
+}
 
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;
-  return ADMIN_EMAILS.includes(email.toLowerCase().trim());
+  return getAdminEmails().includes(email.toLowerCase().trim());
 }
 
-export function hashPassword(password: string) {
-  return crypto.createHash('sha256').update(password).digest('hex');
+export function isJuryEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const juryEmail = (getEnvVar('JURY_ADMIN_EMAIL') || 'juri@laras.id').toLowerCase().trim();
+  return email.toLowerCase().trim() === juryEmail;
 }
 
-// Seed accounts are deterministic fallbacks across serverless instances, with env override support
-export const SEED_USERS: Record<string, User> = {
-  'demo@gmail.com': {
-    name: 'Demo User',
-    email: 'demo@gmail.com',
-    passwordHash: hashPassword(process.env.LARAS_DEMO_PASSWORD || 'demo123'),
-    isAdmin: false,
-  },
-  'admin@laras.id': {
-    name: 'Admin LARAS',
-    email: 'admin@laras.id',
-    passwordHash: hashPassword(process.env.LARAS_ADMIN_PASSWORD || 'admin123'),
-    isAdmin: true,
-  },
-};
+export function isJuryReadOnly(session: SessionEntry | null | undefined): boolean {
+  if (!session) return false;
+  return Boolean(session.isJury || isJuryEmail(session.email));
+}
+
+/**
+ * Hash kata sandi dengan format salted modern: s1$<salt>$<hash>
+ */
+export function hashPassword(password: string, customSalt?: string): string {
+  const salt = customSalt || crypto.randomBytes(16).toString('hex');
+  const hash = crypto.createHash('sha256').update(salt + ':' + password).digest('hex');
+  return `s1$${salt}$${hash}`;
+}
+
+/**
+ * Verifikasi kata sandi dengan dukungan migrasi transparan dari SHA-256 polos ke salted hash
+ */
+export function verifyPassword(
+  password: string,
+  storedHash: string
+): { valid: boolean; needsMigration: boolean } {
+  if (!storedHash || typeof storedHash !== 'string') {
+    return { valid: false, needsMigration: false };
+  }
+
+  // Format baru: s1$<salt>$<hash>
+  if (storedHash.startsWith('s1$')) {
+    const parts = storedHash.split('$');
+    if (parts.length === 3) {
+      const [, salt, expectedHash] = parts;
+      const actualHash = crypto.createHash('sha256').update(salt + ':' + password).digest('hex');
+      return { valid: actualHash === expectedHash, needsMigration: false };
+    }
+    return { valid: false, needsMigration: false };
+  }
+
+  // Format lama: SHA-256 polos tanpa salt (64 hex characters)
+  if (/^[0-9a-f]{64}$/i.test(storedHash)) {
+    const legacyHash = crypto.createHash('sha256').update(password).digest('hex');
+    if (legacyHash.toLowerCase() === storedHash.toLowerCase()) {
+      return { valid: true, needsMigration: true };
+    }
+  }
+
+  return { valid: false, needsMigration: false };
+}
+
+/**
+ * Seed accounts are generated purely from environment variables.
+ * Fallback literal credentials in code are strictly removed.
+ */
+export function getSeedUsers(): Record<string, User> {
+  const seeds: Record<string, User> = {};
+
+  const demoEmail = (getEnvVar('LARAS_DEMO_EMAIL') || 'demo@gmail.com').toLowerCase().trim();
+  const demoPass = getEnvVar('LARAS_DEMO_PASSWORD');
+  if (demoPass) {
+    seeds[demoEmail] = {
+      name: 'Demo User',
+      email: demoEmail,
+      passwordHash: hashPassword(demoPass),
+      isAdmin: false,
+    };
+  } else {
+    console.warn('[AUTH] LARAS_DEMO_PASSWORD tidak disetel di env. Login akun seed demo ditolak.');
+  }
+
+  const adminEmail = (getEnvVar('LARAS_ADMIN_EMAIL') || 'admin@laras.id').toLowerCase().trim();
+  const adminPass = getEnvVar('LARAS_ADMIN_PASSWORD');
+  if (adminPass) {
+    seeds[adminEmail] = {
+      name: 'Admin LARAS',
+      email: adminEmail,
+      passwordHash: hashPassword(adminPass),
+      isAdmin: true,
+    };
+  } else {
+    console.warn('[AUTH] LARAS_ADMIN_PASSWORD tidak disetel di env. Login akun seed admin ditolak.');
+  }
+
+  const juryEmail = (getEnvVar('JURY_ADMIN_EMAIL') || 'juri@laras.id').toLowerCase().trim();
+  const juryPass = getEnvVar('JURY_ADMIN_PASSWORD');
+  if (juryPass) {
+    seeds[juryEmail] = {
+      name: 'Admin Juri',
+      email: juryEmail,
+      passwordHash: hashPassword(juryPass),
+      isAdmin: true,
+      isJury: true,
+    };
+  } else {
+    console.warn('[AUTH] JURY_ADMIN_PASSWORD tidak disetel di env. Login akun seed juri ditolak.');
+  }
+
+  return seeds;
+}
 
 // In-memory map for dynamically registered users, backed by local file fallback
 export const users: Map<string, User> = new Map();
@@ -77,6 +184,7 @@ function loadStore() {
           passwordHash: u.passwordHash,
           avatarUrl: u.avatarUrl || '',
           isAdmin: isAdminEmail(email),
+          isJury: isJuryEmail(email),
         });
       });
     }
@@ -109,7 +217,13 @@ loadStore();
 export function addUser(name: string, email: string, password: string) {
   const normalized = email.toLowerCase().trim();
   const passwordHash = hashPassword(password);
-  users.set(normalized, { name, email: normalized, passwordHash, isAdmin: isAdminEmail(normalized) });
+  users.set(normalized, {
+    name,
+    email: normalized,
+    passwordHash,
+    isAdmin: isAdminEmail(normalized),
+    isJury: isJuryEmail(normalized),
+  });
   saveStore();
 }
 
@@ -123,6 +237,7 @@ export function ensureOAuthUser(user: { name: string; email: string }) {
       email: normalized,
       passwordHash: dummyHash,
       isAdmin: isAdminEmail(normalized),
+      isJury: isJuryEmail(normalized),
     });
     saveStore();
   } else if (!existing.name && user.name) {
@@ -134,26 +249,47 @@ export function ensureOAuthUser(user: { name: string; email: string }) {
 export function getUserByEmail(email: string | null | undefined): User | undefined {
   if (!email) return undefined;
   const normalized = email.toLowerCase().trim();
-  // Check dynamic store first so user password & profile updates take effect
+  // Check dynamic store first so user password & profile updates take precedence
   if (users.has(normalized)) {
     return users.get(normalized);
   }
-  if (SEED_USERS[normalized]) {
-    return SEED_USERS[normalized];
+  const seeds = getSeedUsers();
+  if (seeds[normalized]) {
+    return seeds[normalized];
   }
   return undefined;
 }
 
 /**
+ * Verifikasi kata sandi dan migrasikan secara transparan jika masih format lama
+ */
+export function verifyAndMigratePassword(user: User, password: string): boolean {
+  const verification = verifyPassword(password, user.passwordHash);
+  if (!verification.valid) {
+    return false;
+  }
+
+  if (verification.needsMigration) {
+    const newHash = hashPassword(password);
+    user.passwordHash = newHash;
+    users.set(user.email.toLowerCase(), user);
+    saveStore();
+  }
+
+  return true;
+}
+
+/**
  * Creates a stateless signed session token (HMAC-SHA256).
- * Contains { email, name, isAdmin, avatarUrl, exp, iat }.
+ * Contains { email, name, isAdmin, isJury, avatarUrl, exp, iat }.
  */
 export function createSessionForUser(
   user: { name: string; email: string; avatarUrl?: string },
   ttlMs: number = DEFAULT_SESSION_TTL
 ): string {
   const normalizedEmail = user.email.toLowerCase().trim();
-  const isUserAdmin = isAdminEmail(normalizedEmail);
+  const isJury = isJuryEmail(normalizedEmail);
+  const isUserAdmin = isAdminEmail(normalizedEmail) || isJury;
   const existing = getUserByEmail(normalizedEmail);
   const avatarUrl = user.avatarUrl !== undefined ? user.avatarUrl : (existing?.avatarUrl || '');
 
@@ -162,6 +298,7 @@ export function createSessionForUser(
       email: normalizedEmail,
       name: user.name,
       isAdmin: isUserAdmin,
+      isJury,
       avatarUrl,
     },
     ttlMs
@@ -177,13 +314,17 @@ export function getSession(sessionId: string | null | undefined): SessionEntry |
   const payload = verifySessionTokenSync(sessionId);
   if (!payload) return null;
 
-  const existing = getUserByEmail(payload.email);
+  const normalized = payload.email.toLowerCase().trim();
+  const existing = getUserByEmail(normalized);
   const avatarUrl = payload.avatarUrl || existing?.avatarUrl || '';
+  const isJury = Boolean(payload.isJury || isJuryEmail(normalized));
+  const isUserAdmin = Boolean(payload.isAdmin || isAdminEmail(normalized) || isJury);
 
   return {
     email: payload.email,
     name: existing?.name || payload.name,
-    isAdmin: Boolean(payload.isAdmin || isAdminEmail(payload.email)),
+    isAdmin: isUserAdmin,
+    isJury,
     avatarUrl,
     createdAt: payload.iat,
     expiresAt: payload.exp,
@@ -218,8 +359,8 @@ export async function updateUserProfile(
       if (!updates.currentPassword) {
         return { success: false, error: 'Kata sandi saat ini wajib diisi untuk mengubah kata sandi.' };
       }
-      const hashedCurrent = hashPassword(updates.currentPassword);
-      if (hashedCurrent !== existing.passwordHash) {
+      const check = verifyPassword(updates.currentPassword, existing.passwordHash);
+      if (!check.valid) {
         return { success: false, error: 'Kata sandi saat ini keliru.' };
       }
     }
@@ -235,6 +376,7 @@ export async function updateUserProfile(
     email: normalized,
     passwordHash: updatedPasswordHash,
     isAdmin: isAdminEmail(normalized),
+    isJury: isJuryEmail(normalized),
     avatarUrl: updatedAvatar,
   });
   saveStore();
@@ -300,5 +442,6 @@ export async function getUserProfile(email: string) {
     avatarUrl,
     hasPassword,
     isAdmin: isAdminEmail(normalized),
+    isJury: isJuryEmail(normalized),
   };
 }

@@ -82,13 +82,14 @@ export const DEFAULT_SESSIONS: GameSession[] = [
 
 const STORAGE_KEY = "laras_game_sessions_v2";
 const SERVER_CACHE_KEY = "laras_server_sessions_cache";
+const DELETED_KEY = "laras_deleted_session_ids";
 
 /**
  * Membaca daftar sesi aktif dengan pola gabungan:
  * - Sumber utama: server (published) dari cache server
- * - Sumber cadangan/offline: localStorage user
- * - Dedupe berdasarkan id; bila id sama, versi server menang.
- * Callers lama (roadmap & halaman belajar) tetap memanggil getStoredSessions() secara sinkron.
+ * - Sumber lokal/offline: localStorage user
+ * - Prioritas lokal untuk draft aktif agar perubahan status langsung tercermin
+ * - Memfilter sesi yang telah dihapus
  */
 export function getStoredSessions(): GameSession[] {
   if (typeof window === "undefined") {
@@ -96,6 +97,15 @@ export function getStoredSessions(): GameSession[] {
   }
 
   try {
+    let deletedSet = new Set<string>();
+    try {
+      const rawDeleted = localStorage.getItem(DELETED_KEY);
+      if (rawDeleted) {
+        const parsed = JSON.parse(rawDeleted);
+        if (Array.isArray(parsed)) deletedSet = new Set(parsed);
+      }
+    } catch {}
+
     // 1. Baca sesi lokal (draft/offline)
     let localSessions: GameSession[] = [];
     const rawLocal = localStorage.getItem(STORAGE_KEY);
@@ -128,15 +138,15 @@ export function getStoredSessions(): GameSession[] {
     }
 
     // 3. Gabungkan dan deduplikasi berdasarkan id.
-    // Urutan prioritas: Default -> Local -> Server (server menang jika id sama)
+    // Urutan prioritas: Default -> Server -> Local (perubahan lokal/draft terbaru menang)
     const map = new Map<string, GameSession>();
 
     DEFAULT_SESSIONS.forEach((s) => map.set(s.id, s));
-    localSessions.forEach((s) => map.set(s.id, s));
     serverSessions.forEach((s) => map.set(s.id, s));
+    localSessions.forEach((s) => map.set(s.id, s));
 
-    const merged = Array.from(map.values());
-    return merged.length > 0 ? merged : DEFAULT_SESSIONS;
+    const merged = Array.from(map.values()).filter((s) => !deletedSet.has(s.id));
+    return merged.length > 0 ? merged : DEFAULT_SESSIONS.filter((s) => !deletedSet.has(s.id));
   } catch {
     return DEFAULT_SESSIONS;
   }
@@ -158,6 +168,30 @@ export function saveStoredSessions(sessions: GameSession[]): void {
  * Menyimpan satu sesi secara lokal dan memicu sinkronisasi latar belakang jika memungkinkan
  */
 export function saveSingleSession(session: GameSession): GameSession[] {
+  // Jika sebelumnya ada di deleted list, hapus dari blacklist
+  try {
+    const rawDeleted = localStorage.getItem(DELETED_KEY);
+    if (rawDeleted) {
+      const parsed = JSON.parse(rawDeleted);
+      if (Array.isArray(parsed) && parsed.includes(session.id)) {
+        localStorage.setItem(DELETED_KEY, JSON.stringify(parsed.filter((id) => id !== session.id)));
+      }
+    }
+  } catch {}
+
+  // Jika disimpan sebagai draft, pastikan dihapus dari SERVER_CACHE_KEY agar murid tidak melihatnya
+  if (session.status === "draft") {
+    try {
+      const rawServer = localStorage.getItem(SERVER_CACHE_KEY);
+      if (rawServer) {
+        const list = JSON.parse(rawServer);
+        if (Array.isArray(list)) {
+          localStorage.setItem(SERVER_CACHE_KEY, JSON.stringify(list.filter((s: GameSession) => s.id !== session.id)));
+        }
+      }
+    } catch {}
+  }
+
   const current = getStoredSessions();
   const exists = current.some((s) => s.id === session.id);
   const updated = exists
@@ -303,6 +337,16 @@ export async function setSessionPublishStatusOnServer(
  * Menghapus sesi dari server dan lokal
  */
 export async function deleteSessionFromServer(id: string): Promise<boolean> {
+  // Tandai di blacklist penghapusan
+  try {
+    const rawDeleted = localStorage.getItem(DELETED_KEY);
+    const deletedList: string[] = rawDeleted ? JSON.parse(rawDeleted) : [];
+    if (!deletedList.includes(id)) {
+      deletedList.push(id);
+      localStorage.setItem(DELETED_KEY, JSON.stringify(deletedList));
+    }
+  } catch {}
+
   // Hapus lokal
   const current = getStoredSessions().filter((s) => s.id !== id);
   saveStoredSessions(current);

@@ -427,7 +427,63 @@ export default function DashboardPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [visibleUnitId, setVisibleUnitId] = useState<number>(1);
   const [guidebookUnit, setGuidebookUnit] = useState<number | null>(null);
-  const [guidebookTab, setGuidebookTab] = useState<"frasa" | "dialog" | "tips">("frasa");
+  const [guidebookTab, setGuidebookTab] = useState<"frasa" | "dialog" | "tips" | "korpus">("frasa");
+  const [corpusEntries, setCorpusEntries] = useState<Array<{
+    id: string;
+    term: string;
+    type: string;
+    category: string;
+    ipa?: string;
+    chapter: string;
+    module: string;
+    source: string;
+    informant?: string;
+    status: "verified" | "pending" | "disputed" | "draft";
+  }>>([]);
+
+  const reloadCorpusEntries = () => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem("laras_cms_entries");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCorpusEntries(parsed);
+          return;
+        }
+      }
+    } catch {}
+
+    fetch("/api/content/entries", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (Array.isArray(data)) setCorpusEntries(data);
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    reloadCorpusEntries();
+    window.addEventListener("storage", reloadCorpusEntries);
+    return () => window.removeEventListener("storage", reloadCorpusEntries);
+  }, []);
+
+  useEffect(() => {
+    if (guidebookUnit !== null) {
+      reloadCorpusEntries();
+    }
+  }, [guidebookUnit]);
+
+  const unitVerifiedEntries = useMemo(() => {
+    if (guidebookUnit === null) return [];
+    const unitNum = guidebookUnit;
+    return corpusEntries.filter((entry) => {
+      if (entry.status !== "verified") return false;
+      const ch = (entry.chapter || "").toLowerCase();
+      const mod = (entry.module || "").toLowerCase();
+      return ch.includes(`bab ${unitNum}`) || mod.includes(`modul ${unitNum}`);
+    });
+  }, [corpusEntries, guidebookUnit]);
   const [playingTerm, setPlayingTerm] = useState<string | null>(null);
   const [playingNativeAudio, setPlayingNativeAudio] = useState<string | null>(null);
   const nativeAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -746,8 +802,8 @@ export default function DashboardPage() {
   const activeUnitTheme = UNIT_THEMES[activeUnitId] || UNIT_THEMES[1];
 
   const todayStr = new Date().toISOString().slice(0, 10);
-  const isStudiedToday = progress.lastStudyDate === todayStr;
-  const dailyXp = isStudiedToday ? Math.min((progress.lastLesson?.xp ?? 0) + (progress.lastLesson?.bonusXp ?? 0) || progress.xp, 50) : 0;
+  const dailyXpToday = progress.dailyXpLog?.[todayStr] || 0;
+  const dailyXp = Math.min(dailyXpToday, 50);
   const all15Completed = progress.completedLessons.length >= 15;
   const activeUnitProgress = getUnitProgress(activeUnitId, progress.completedLessons);
 
@@ -1645,7 +1701,7 @@ export default function DashboardPage() {
 
             {/* Tab Navigasi Segmen */}
             <div className="px-6 pt-3.5 pb-2 bg-surface shrink-0">
-              <div className="grid grid-cols-3 p-1 rounded-2xl bg-surface-container-high text-xs font-bold gap-1">
+              <div className="grid grid-cols-2 sm:grid-cols-4 p-1 rounded-2xl bg-surface-container-high text-xs font-bold gap-1">
                 <button
                   type="button"
                   onClick={() => setGuidebookTab("frasa")}
@@ -1683,6 +1739,24 @@ export default function DashboardPage() {
                 >
                   <Lightbulb className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>Tips Budaya</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setGuidebookTab("korpus")}
+                  className={`py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    guidebookTab === "korpus"
+                      ? "bg-surface text-primary shadow-xs font-black"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  <BookOpen className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Korpus Adat</span>
+                  {unitVerifiedEntries.length > 0 && (
+                    <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-primary/10 text-primary text-[10px] font-black">
+                      {unitVerifiedEntries.length}
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
@@ -1841,6 +1915,86 @@ export default function DashboardPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {guidebookTab === "korpus" && (
+                <div className="space-y-3 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between text-xs font-bold text-on-surface-variant mb-1">
+                    <span>Entri korpus budaya terverifikasi untuk unit ini:</span>
+                    <span className="font-extrabold text-primary">
+                      {unitVerifiedEntries.length} Entri Terverifikasi
+                    </span>
+                  </div>
+
+                  {unitVerifiedEntries.length === 0 ? (
+                    <div className="p-8 text-center rounded-2xl bg-surface-container-lowest border border-outline-variant/30 space-y-2">
+                      <BookOpen className="w-8 h-8 text-on-surface-variant/40 mx-auto" />
+                      <p className="text-sm font-bold text-on-surface">Belum Ada Entri Korpus Terverifikasi</p>
+                      <p className="text-xs text-on-surface-variant">
+                        Entri korpus adat untuk bab ini sedang dalam proses kurasi oleh dewan adat.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {unitVerifiedEntries.map((entry) => (
+                        <div
+                          key={entry.id}
+                          className="p-4 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-2xs hover:border-primary/40 transition-all space-y-3"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="text-base sm:text-lg font-black text-on-surface">
+                                  {entry.term}
+                                </h3>
+                                {entry.ipa && (
+                                  <span className="text-xs font-mono text-outline font-medium">
+                                    {entry.ipa}
+                                  </span>
+                                )}
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                                  <Check className="w-3 h-3 stroke-[3]" />
+                                  Terverifikasi
+                                </span>
+                              </div>
+                              <p className="text-xs font-bold text-primary mt-0.5">
+                                {entry.type} • {entry.category}
+                              </p>
+                            </div>
+
+                            {entry.term && (
+                              <button
+                                type="button"
+                                onClick={() => playAudio(entry.term)}
+                                className="w-9 h-9 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-on-primary flex items-center justify-center transition active:scale-90 shrink-0 cursor-pointer"
+                                title="Dengarkan Pelafalan (Suara Mesin Pembantu)"
+                              >
+                                <Volume2 className="w-4 h-4 stroke-[2.5]" />
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="text-xs text-on-surface-variant space-y-1 pt-2 border-t border-outline-variant/20">
+                            <div className="flex items-baseline gap-1.5 flex-wrap">
+                              <span className="font-bold text-on-surface">Target Bab &amp; Modul:</span>
+                              <span className="font-semibold text-primary">{entry.chapter} • {entry.module}</span>
+                            </div>
+                            <div className="flex items-baseline gap-1.5 flex-wrap">
+                              <span className="font-bold text-on-surface">Sumber Adat:</span>
+                              <span>{entry.source}</span>
+                            </div>
+                            {entry.informant && (
+                              <div className="flex items-baseline gap-1.5 flex-wrap">
+                                <span className="font-bold text-on-surface">Informan / Registrasi:</span>
+                                <span className="text-[11px] font-mono">{entry.informant}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

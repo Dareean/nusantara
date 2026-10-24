@@ -604,7 +604,7 @@ export default function OnboardingPage() {
                         Bonus Hari Beruntun Ke-1
                       </p>
                       <p className="text-body-sm text-on-surface-variant">
-                        +30 XP Pelajaran Pertama
+                        +20 XP Pelajaran Pertama
                       </p>
                     </div>
                   </div>

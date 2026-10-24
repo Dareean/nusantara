@@ -2,6 +2,7 @@ export type SessionPayload = {
   email: string;
   name: string;
   isAdmin: boolean;
+  isJury?: boolean;
   avatarUrl?: string;
   exp: number; // timestamp ms
   iat: number; // timestamp ms
@@ -10,12 +11,21 @@ export type SessionPayload = {
 export const DEFAULT_SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function getAuthSecret(): string {
-  return (
+  const secret =
     process.env.LARAS_SESSION_SECRET ||
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXTAUTH_SECRET ||
-    "laras-session-hmac-secret-munas-2026-salt"
-  );
+    process.env.NEXTAUTH_SECRET;
+
+  if (!secret) {
+    console.error(
+      "[CRITICAL AUTH ERROR] Secret sesi tidak disetel di variabel lingkungan (LARAS_SESSION_SECRET / SUPABASE_SERVICE_ROLE_KEY / NEXTAUTH_SECRET). Pembuatan & verifikasi sesi ditolak."
+    );
+    throw new Error(
+      "Secret sesi tidak disetel di env. Autentikasi ditolak demi keamanan."
+    );
+  }
+
+  return secret;
 }
 
 function base64UrlEncode(str: string): string {

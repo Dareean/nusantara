@@ -1661,9 +1661,9 @@ export const lessons: Lesson[] = [
             { id: "hotspot-gong", label: "Gong Perdamaian", description: "Simbol harmoni antarbangsa", top: "35%", left: "50%" },
             { id: "hotspot-ikatan", label: "Tali Persaudaraan", description: "Simbol ikatan Nosarara", top: "70%", left: "50%" },
           ],
-          answer: "hotspot-gong",
+          answer: "hotspot-ikatan",
         },
-        why: "Gong perdamaian di puncak monumen melambangkan persatuan dan tekad hidup rukun bersama.",
+        why: "Panel relief Tali Persaudaraan melambangkan ikatan erat dan komitmen hidup bersaudara dalam falsafah Nosarara Nosabatutu.",
         xp: 5,
       },
       {

@@ -40,6 +40,7 @@ export type UserProgress = {
   lastLesson: LessonResult | null;
   lastStudyDate: string | null;
   cultureConnectionClaimed?: boolean;
+  dailyXpLog?: Record<string, number>;
 };
 
 const PROGRESS_PREFIX = "laras.progress.";
@@ -55,6 +56,7 @@ export const DEFAULT_PROGRESS: UserProgress = {
   lastLesson: null,
   lastStudyDate: null,
   cultureConnectionClaimed: false,
+  dailyXpLog: {},
 };
 
 function progressKey(email: string) {
@@ -88,6 +90,7 @@ export function readProgress(email: string): UserProgress {
       lastLesson: parsed.lastLesson ?? null,
       lastStudyDate: parsed.lastStudyDate ?? null,
       cultureConnectionClaimed: Boolean(parsed.cultureConnectionClaimed),
+      dailyXpLog: parsed.dailyXpLog ?? {},
     };
   } catch {
     return DEFAULT_PROGRESS;
@@ -119,6 +122,13 @@ export function mergeClientProgress(
   const rawHearts = typeof remote.hearts === "number" ? remote.hearts : local.hearts;
   const hearts = rawHearts > 0 ? rawHearts : 3;
 
+  const dailyXpLog: Record<string, number> = { ...(local.dailyXpLog || {}) };
+  if (remote.dailyXpLog) {
+    for (const [d, val] of Object.entries(remote.dailyXpLog)) {
+      dailyXpLog[d] = Math.max(dailyXpLog[d] || 0, Number(val) || 0);
+    }
+  }
+
   let lastLesson = local.lastLesson || remote.lastLesson || null;
   if (local.lastLesson && remote.lastLesson) {
     const localTime = new Date(local.lastLesson.completedAt || 0).getTime();
@@ -144,6 +154,7 @@ export function mergeClientProgress(
     lastLesson,
     lastStudyDate,
     cultureConnectionClaimed,
+    dailyXpLog,
   };
 }
 
@@ -354,6 +365,12 @@ export function recordLessonResult(email: string, result: LessonResult) {
     ? (result.correct && !ccAlreadyClaimed ? result.xp : 0)
     : (result.correct && !alreadyCompleted ? result.xp : 0);
 
+  const curDailyXp = current.dailyXpLog?.[today] || 0;
+  const newDailyXpLog = {
+    ...(current.dailyXpLog || {}),
+    [today]: curDailyXp + xpToAdd,
+  };
+
   const next: UserProgress = {
     ...current,
     xp: current.xp + xpToAdd,
@@ -369,6 +386,7 @@ export function recordLessonResult(email: string, result: LessonResult) {
     lastLesson: result,
     lastStudyDate: today,
     cultureConnectionClaimed: Boolean(current.cultureConnectionClaimed || isCultureConnection),
+    dailyXpLog: newDailyXpLog,
   };
   saveProgress(email, next);
   return next;
@@ -419,9 +437,16 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
     badges = [...badges, badgeTitle];
   }
 
+  const xpEarnedInSession = alreadyCompleted ? 0 : result.xpEarned + result.bonusXp;
+  const curDailyXp = current.dailyXpLog?.[today] || 0;
+  const newDailyXpLog = {
+    ...(current.dailyXpLog || {}),
+    [today]: curDailyXp + xpEarnedInSession,
+  };
+
   const next: UserProgress = {
     ...current,
-    xp: alreadyCompleted ? current.xp : current.xp + result.xpEarned + result.bonusXp,
+    xp: alreadyCompleted ? current.xp : current.xp + xpEarnedInSession,
     streak,
     hearts: finalHearts,
     completedLessons: alreadyCompleted
@@ -433,6 +458,7 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
     badges,
     lastLesson: lessonResult,
     lastStudyDate: today,
+    dailyXpLog: newDailyXpLog,
   };
   saveProgress(email, next);
   return next;

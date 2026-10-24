@@ -58,6 +58,7 @@ import {
   getStoredSessions,
   saveSingleSession,
   saveSingleSessionToServer,
+  deleteSessionFromServer,
 } from "../components/game-engine/sessionStore";
 
 // =====================================================================
@@ -281,28 +282,21 @@ export default function GameFlowBuilder() {
   const [listFilter, setListFilter] = useState<"all" | "published" | "draft">("all");
   const [listSearch, setListSearch] = useState<string>("");
 
-  const isSessionDraft = (s: GameSession) =>
-    s.status === "draft" || Boolean(s.status && s.status.toLowerCase().includes("draft"));
-  const isSessionPublished = (s: GameSession) => !isSessionDraft(s);
-
   const publishedCount = useMemo(
-    () => sessions.filter(isSessionPublished).length,
+    () => sessions.filter((s) => s.status === "published").length,
     [sessions]
   );
   const draftCount = useMemo(
-    () => sessions.filter(isSessionDraft).length,
+    () => sessions.filter((s) => s.status === "draft").length,
     [sessions]
   );
 
   const filteredSessions = useMemo(() => {
     return sessions.filter((s) => {
-      const matchFilter =
-        listFilter === "all"
-          ? true
-          : listFilter === "published"
-          ? isSessionPublished(s)
-          : isSessionDraft(s);
-      if (!matchFilter) return false;
+      const isDraft = s.status === "draft";
+      const isPublished = s.status === "published";
+      if (listFilter === "published" && !isPublished) return false;
+      if (listFilter === "draft" && !isDraft) return false;
 
       if (!listSearch.trim()) return true;
       const q = listSearch.toLowerCase();
@@ -312,6 +306,18 @@ export default function GameFlowBuilder() {
       return titleMatch || chapterMatch || subMatch;
     });
   }, [sessions, listFilter, listSearch]);
+
+  const handleUpdateSessionStatus = async (newStatus: "draft" | "published") => {
+    if (!activeSession) return;
+    setSessionStatus(newStatus);
+    const updated: GameSession = { ...activeSession, status: newStatus };
+    setActiveSession(updated);
+    setSessions((prev) =>
+      prev.map((s) => (s.id === activeSession.id ? updated : s))
+    );
+    saveSingleSession(updated);
+    await saveSingleSessionToServer(updated, newStatus);
+  };
 
   // Question selection & Editor
   const [selectedQuestionIdx, setSelectedQuestionIdx] = useState<number>(0);
@@ -395,7 +401,10 @@ export default function GameFlowBuilder() {
       .then((serverData) => {
         if (Array.isArray(serverData) && serverData.length > 0) {
           const map = new Map<string, GameSession>();
-          list.forEach((s) => map.set(s.id, s));
+          list.forEach((s) => {
+            const normalizedStatus: "draft" | "published" = s.status === "draft" ? "draft" : "published";
+            map.set(s.id, { ...s, status: normalizedStatus });
+          });
           serverData.forEach(
             (row: {
               id: string;
@@ -404,11 +413,16 @@ export default function GameFlowBuilder() {
               status: "draft" | "published";
             }) => {
               if (row.payload && row.id) {
+                const existing = map.get(row.id);
+                const status = (existing && existing.status === "draft")
+                  ? "draft"
+                  : (row.status === "draft" ? "draft" : "published");
+
                 map.set(row.id, {
                   ...row.payload,
                   id: row.id,
                   title: row.title || row.payload.title,
-                  status: row.status || row.payload.status || "published",
+                  status,
                 });
               }
             }
@@ -564,7 +578,7 @@ export default function GameFlowBuilder() {
     handleSetStep(1);
   };
 
-  const handleDeleteSessionConfirmed = () => {
+  const handleDeleteSessionConfirmed = async () => {
     if (!deleteConfirmSession) return;
     if (sessions.length <= 1) {
       alert("Tidak dapat menghapus pelajaran terakhir.");
@@ -572,17 +586,20 @@ export default function GameFlowBuilder() {
       return;
     }
 
-    const remaining = sessions.filter((s) => s.id !== deleteConfirmSession.id);
+    const sessionToDeleteId = deleteConfirmSession.id;
+    const remaining = sessions.filter((s) => s.id !== sessionToDeleteId);
     setSessions(remaining);
+    setDeleteConfirmSession(null);
 
-    if (activeSessionId === deleteConfirmSession.id) {
+    await deleteSessionFromServer(sessionToDeleteId);
+
+    if (activeSessionId === sessionToDeleteId) {
       setActiveSessionId(remaining[0].id);
       setActiveSession(remaining[0]);
       setSessionStatus(remaining[0].status || "published");
       setSelectedQuestionIdx(0);
+      setViewMode("list");
     }
-
-    setDeleteConfirmSession(null);
   };
 
   const handleExportJson = (target?: GameSession) => {
@@ -1219,7 +1236,7 @@ export default function GameFlowBuilder() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredSessions.map((session) => {
               const validation = validateSessionForPublish(session);
-              const isPublished = isSessionPublished(session);
+              const isPublished = session.status === "published";
 
               return (
                 <div
@@ -1680,10 +1697,7 @@ export default function GameFlowBuilder() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      setSessionStatus("draft");
-                      setActiveSession({ ...activeSession, status: "draft" });
-                    }}
+                    onClick={() => handleUpdateSessionStatus("draft")}
                     className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 ${
                       sessionStatus === "draft"
                         ? "border-amber-500 bg-amber-50/70 shadow-xs"
@@ -1705,10 +1719,7 @@ export default function GameFlowBuilder() {
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setSessionStatus("published");
-                      setActiveSession({ ...activeSession, status: "published" });
-                    }}
+                    onClick={() => handleUpdateSessionStatus("published")}
                     className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 ${
                       sessionStatus === "published"
                         ? "border-emerald-600 bg-emerald-50/70 shadow-xs"

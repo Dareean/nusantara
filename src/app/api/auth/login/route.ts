@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByEmail, hashPassword, createSessionForUser, isAdminEmail } from '../../../auth/serverAuth';
+import { getUserByEmail, verifyAndMigratePassword, createSessionForUser, isAdminEmail, isJuryEmail } from '../../../auth/serverAuth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,14 +12,21 @@ export async function POST(req: NextRequest) {
     const user = getUserByEmail(email);
     if (!user) return NextResponse.json({ error: 'Pengguna tidak ditemukan' }, { status: 404 });
 
-    const hashed = hashPassword(password);
-    if (hashed !== user.passwordHash) {
+    const isValid = verifyAndMigratePassword(user, password);
+    if (!isValid) {
       return NextResponse.json({ error: 'Kata sandi salah' }, { status: 401 });
     }
 
     const sessionId = createSessionForUser({ name: user.name, email: user.email });
-    const isUserAdmin = isAdminEmail(user.email);
-    const res = NextResponse.json({ ok: true, email: user.email, name: user.name, isAdmin: isUserAdmin });
+    const isJury = isJuryEmail(user.email);
+    const isUserAdmin = isAdminEmail(user.email) || isJury;
+    const res = NextResponse.json({
+      ok: true,
+      email: user.email,
+      name: user.name,
+      isAdmin: isUserAdmin,
+      isJury,
+    });
     res.cookies.set('laras_session', sessionId, {
       httpOnly: true,
       path: '/',

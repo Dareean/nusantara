@@ -312,7 +312,7 @@ const presets = [
     filename: 'peragaan_nggembe.webp',
     svg: buildCanvas(
       'Perpaduan Busana Adat Kaili Lengkap',
-      'Anatomi busana adat wanita: atasan longgar Baju Nggembe dan sarung sutra tenun Buya Sabe',
+      'Atasan longgar Baju Nggembe &amp; sarung tenun Buya Sabe',
       `
       <!-- Full Mannequin Center Display -->
       <g transform="translate(420, 150)" filter="url(#shadow)">
@@ -350,7 +350,7 @@ const presets = [
     filename: 'busana_pria_kaili.webp',
     svg: buildCanvas(
       'Anatomi Busana Tradisional Pria Kaili',
-      'Kelengkapan busana pria: penutup kepala Siga dan baju kurung berkerah tegak Baju Koje',
+      'Penutup kepala Siga &amp; baju kurung tegak Baju Koje',
       `
       <!-- Center Display Panel -->
       <g transform="translate(420, 100)" filter="url(#shadow)">
@@ -423,7 +423,7 @@ const presets = [
     filename: 'denah_souraja.webp',
     svg: buildCanvas(
       'Denah Zonasi Tata Ruang Souraja (Banua Oge)',
-      'Pembagian ruang adat: serambi depan (Gandaria) untuk penyambutan dan ruang dalam keluarga',
+      'Tata ruang adat: serambi Gandaria dan bilik keluarga',
       `
       <!-- Blueprint Grid Canvas -->
       <g transform="translate(100, 140)" filter="url(#shadow)">
@@ -462,7 +462,7 @@ const presets = [
     filename: 'monumen_nosarara.webp',
     svg: buildCanvas(
       'Monumen Persaudaraan Nosarara Nosabatutu',
-      'Simbol persatuan dan perdamaian abadi masyarakat Palu di atas bukit Jabal Nur',
+      'Simbol persatuan dan perdamaian abadi masyarakat Palu',
       `
       <g transform="translate(350, 110)" filter="url(#shadow)">
         <rect width="500" height="560" rx="24" fill="url(#cardGrad)" stroke="#A83B10" stroke-width="2"/>
@@ -496,8 +496,8 @@ const presets = [
   {
     filename: 'perayaan_padungku.webp',
     svg: buildCanvas(
-      'Suasana Memasak Bersama dalam Tradisi Padungku',
-      'Semangat syukur panen raya: memasak nasi bambu di perapian dan jamuan makan bersama',
+      'Suasana Memasak Bersama Tradisi Padungku',
+      'Syukuran panen raya: memasak nasi bambu &amp; jamuan bersama',
       `
       <!-- Warm Festival Hearth & Gathering Display -->
       <!-- 1. Masakan Bambu at X: 480, Y: 440 (40%, 55%) - Target Answer -->
@@ -534,7 +534,7 @@ const presets = [
     filename: 'desa_kaili.webp',
     svg: buildCanvas(
       'Kehidupan Guyub Rukun di Desa Kaili',
-      'Pusat kegiatan gotong royong: pos ronda penjaga malam dan balai musyawarah desa',
+      'Pusat gotong royong: pos ronda malam &amp; balai musyawarah',
       `
       <!-- Mountain Skyline -->
       <path d="M60,350 L280,240 L520,310 L800,200 L1050,300 L1140,260 L1140,550 L60,550 Z" fill="#201815" opacity="0.6"/>

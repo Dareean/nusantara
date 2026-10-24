@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession, isAdminEmail, ensureOAuthUser, createSessionForUser } from '../../../auth/serverAuth';
+import { getSession, isAdminEmail, isJuryEmail, ensureOAuthUser, createSessionForUser } from '../../../auth/serverAuth';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/authOptions';
 
@@ -42,11 +42,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ ok: false, session: null });
     }
 
+    const isJury = isJuryEmail(data.email) || Boolean(data.isJury);
     return NextResponse.json({
       ok: true,
       session: {
         ...data,
-        isAdmin: isAdminEmail(data.email),
+        isJury,
+        isAdmin: isAdminEmail(data.email) || isJury,
       },
     });
   } catch (err) {

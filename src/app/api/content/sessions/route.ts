@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession, isAdminEmail } from "@/app/auth/serverAuth";
+import { getSession, isAdminEmail, isJuryReadOnly } from "@/app/auth/serverAuth";
 import {
   getContentSessions,
   upsertContentSession,
@@ -9,8 +9,9 @@ function getAuth(req: NextRequest) {
   const sessionId = req.cookies.get("laras_session")?.value;
   const session = getSession(sessionId);
   const email = session?.email ?? null;
-  const isAdmin = isAdminEmail(email);
-  return { session, email, isAdmin };
+  const isAdmin = isAdminEmail(email) || Boolean(session?.isAdmin);
+  const isJury = isJuryReadOnly(session);
+  return { session, email, isAdmin, isJury };
 }
 
 // GET /api/content/sessions
@@ -47,12 +48,18 @@ export async function GET(req: NextRequest) {
 // POST /api/content/sessions
 // Khusus admin: buat atau upsert sesi baru
 export async function POST(req: NextRequest) {
-  const { email, isAdmin } = getAuth(req);
+  const { email, isAdmin, isJury } = getAuth(req);
   if (!email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (!isAdmin) {
     return NextResponse.json({ error: "Forbidden: Hanya kurator/admin yang dapat menambah sesi" }, { status: 403 });
+  }
+  if (isJury) {
+    return NextResponse.json(
+      { error: "Mode Juri hanya memiliki akses baca (read-only)." },
+      { status: 403 }
+    );
   }
 
   try {

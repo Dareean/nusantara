@@ -867,7 +867,69 @@
       "created_by": "admin@laras.id",
       "created_at": "2026-10-23T01:23:11.55+00:00",
       "updated_at": "2026-10-23T01:23:11.55+00:00"
+    },
+    "SES-CUSTOM-5964": {
+      "id": "SES-CUSTOM-5964",
+      "title": "UJI AUDIT HAPUS",
+      "payload": {
+        "id": "SES-CUSTOM-5964",
+        "title": "UJI AUDIT HAPUS",
+        "status": "published",
+        "chapter": "Bab Baru: Eksplorasi Adat",
+        "xpReward": 30,
+        "questions": [
+          {
+            "id": "Q1-1792864285964",
+            "type": "multiple_choice",
+            "badge": "Tata Krama",
+            "title": "Pertanyaan 01",
+            "prompt": "Soal uji audit?",
+            "options": [
+              {
+                "id": "opt-1",
+                "label": "A",
+                "title": "Jawaban benar uji",
+                "isCorrect": true
+              },
+              {
+                "id": "opt-2",
+                "label": "B",
+                "title": "Jawaban pengecoh uji",
+                "isCorrect": false
+              }
+            ],
+            "curatorNote": "Ini penjelasan singkat soal uji audit."
+          }
+        ],
+        "subEthnic": "Kaili Ledo • Lembah Palu",
+        "streakDays": 5
+      },
+      "status": "published",
+      "version": 1,
+      "created_by": "admin@laras.id",
+      "created_at": "2026-10-24T17:51:58.833+00:00",
+      "updated_at": "2026-10-24T17:51:58.833+00:00"
     }
   },
-  "entries": {}
+  "entries": {
+    "ENT-007": {
+      "id": "ENT-007",
+      "kind": "Bahasa",
+      "payload": {
+        "id": "ENT-007",
+        "icon": "draft",
+        "term": "UJI AUDIT HAPUS",
+        "type": "Bahasa",
+        "gating": "blocked",
+        "module": "Modul Baru",
+        "source": "Pengajuan Admin",
+        "status": "draft",
+        "chapter": "Bab 1: Sapaan Harian",
+        "category": "Bahasa & Dialek (Ledo/Tara/Da'a)",
+        "informant": "Uji audit"
+      },
+      "status": "draft",
+      "updated_at": "2026-10-24T17:53:47.301+00:00"
+    }
+  }
 }

@@ -104,5 +104,19 @@
     },
     "lastStudyDate": "2026-10-24",
     "cultureConnectionClaimed": false
+  },
+  "juri@laras.id": {
+    "xp": 0,
+    "streak": 0,
+    "hearts": 3,
+    "completedLessons": [],
+    "unlockedLessons": [
+      1
+    ],
+    "badges": [],
+    "lastLesson": null,
+    "lastStudyDate": null,
+    "cultureConnectionClaimed": false,
+    "dailyXpLog": {}
   }
 }
