@@ -71,37 +71,37 @@ export const UNIT_THEMES: Record<
   }
 > = {
   1: {
-    label: "SECTION 1, UNIT 1",
+    label: "BAGIAN 1, UNIT 1",
     title: "Salam, Sapaan & Busana Kaili",
     bgColor: "#58cc02", // Duolingo vibrant green
     shadowColor: "#46a302",
   },
   2: {
-    label: "SECTION 1, UNIT 2",
+    label: "BAGIAN 1, UNIT 2",
     title: "Kosakata Sehari-hari",
     bgColor: "#1cb0f6", // Duolingo sky blue
     shadowColor: "#1899d6",
   },
   3: {
-    label: "SECTION 1, UNIT 3",
+    label: "BAGIAN 1, UNIT 3",
     title: "Sapaan Lanjutan",
     bgColor: "#ff9600", // Duolingo warm orange
     shadowColor: "#d97f00",
   },
   4: {
-    label: "SECTION 2, UNIT 4",
+    label: "BAGIAN 2, UNIT 4",
     title: "Busana Adat Lanjutan",
     bgColor: "#ce82ff", // Duolingo purple
     shadowColor: "#a855f7",
   },
   5: {
-    label: "SECTION 2, UNIT 5",
+    label: "BAGIAN 2, UNIT 5",
     title: "Etika Bertamu Lanjutan",
     bgColor: "#00cd9c", // Duolingo teal
     shadowColor: "#00a77f",
   },
   6: {
-    label: "SECTION 3, UNIT 6",
+    label: "BAGIAN 3, UNIT 6",
     title: "Nilai & Tradisi Komunal",
     bgColor: "#ff4b4b", // Duolingo red
     shadowColor: "#d93838",
@@ -181,7 +181,7 @@ export type UnitGuidebook = {
 
 export const UNIT_GUIDEBOOKS: Record<number, UnitGuidebook> = {
   1: {
-    label: "SECTION 1, UNIT 1",
+    label: "BAGIAN 1, UNIT 1",
     title: "Salam, Sapaan & Busana Kaili",
     subtitle: "Dengarkan pelafalan frasa santun dan intip obrolan sehari-hari warga lembah Palu!",
     keyPhrases: [
@@ -205,7 +205,7 @@ export const UNIT_GUIDEBOOKS: Record<number, UnitGuidebook> = {
     ],
   },
   2: {
-    label: "SECTION 1, UNIT 2",
+    label: "BAGIAN 1, UNIT 2",
     title: "Kosakata Sehari-hari",
     subtitle: "Kuasai bilangan satu sampai sepuluh, waktu, alam, dan sebutan transportasi harian.",
     keyPhrases: [
@@ -230,7 +230,7 @@ export const UNIT_GUIDEBOOKS: Record<number, UnitGuidebook> = {
     ],
   },
   3: {
-    label: "SECTION 1, UNIT 3",
+    label: "BAGIAN 1, UNIT 3",
     title: "Sapaan Lanjutan",
     subtitle: "Praktik menyapa dengan sebutan Pue, partikel Tabe, dan menanyakan kabar secara terhormat.",
     keyPhrases: [
@@ -249,7 +249,7 @@ export const UNIT_GUIDEBOOKS: Record<number, UnitGuidebook> = {
     ],
   },
   4: {
-    label: "SECTION 2, UNIT 4",
+    label: "BAGIAN 2, UNIT 4",
     title: "Busana Adat Lanjutan",
     subtitle: "Mengenal sarung tenun Buya Sabe Donggala, motif Buya Bomba, serta ikat kepala Siga.",
     keyPhrases: [
@@ -268,7 +268,7 @@ export const UNIT_GUIDEBOOKS: Record<number, UnitGuidebook> = {
     ],
   },
   5: {
-    label: "SECTION 2, UNIT 5",
+    label: "BAGIAN 2, UNIT 5",
     title: "Etika Bertamu Lanjutan",
     subtitle: "Tata gerak melintas di depan tetua dan etika zona ruang rumah panggung Souraja.",
     keyPhrases: [
@@ -286,7 +286,7 @@ export const UNIT_GUIDEBOOKS: Record<number, UnitGuidebook> = {
     ],
   },
   6: {
-    label: "SECTION 3, UNIT 6",
+    label: "BAGIAN 3, UNIT 6",
     title: "Nilai & Tradisi Komunal",
     subtitle: "Menghayati falsafah persaudaraan Nosarara Nosabatutu dan pesta syukur panen Padungku.",
     keyPhrases: [
