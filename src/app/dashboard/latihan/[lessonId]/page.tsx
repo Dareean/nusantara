@@ -804,14 +804,14 @@ export default function LessonSessionPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-on-surface px-4 pt-6 pb-28 sm:px-6 sm:pb-32">
-      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-3xl flex-col [@media(orientation:landscape)_and_(max-height:450px)]:pl-14">
-        {screen !== "summary" && (
-          <>
+    <main className="min-h-screen bg-background text-on-surface pb-28 sm:pb-32">
+      {screen !== "summary" && (
+        <div className="sticky top-0 z-30 w-full bg-background/95 backdrop-blur-md border-b border-outline-variant/15 px-4 py-3 sm:px-6 [@media(orientation:landscape)_and_(max-height:450px)]:pl-14 transition-all">
+          <div className="mx-auto max-w-3xl">
             <header className="flex items-center justify-between gap-4">
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 text-sm font-bold text-on-surface-variant hover:text-on-surface"
+                className="inline-flex items-center gap-2 text-sm font-bold text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Keluar</span>
@@ -829,7 +829,7 @@ export default function LessonSessionPage() {
             </header>
 
             {/* Progress Bar & Question Counter */}
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-3 flex items-center gap-3">
               <div className="h-3 flex-1 overflow-hidden rounded-full bg-surface-container-high">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-300"
@@ -840,9 +840,11 @@ export default function LessonSessionPage() {
                 {counterText}
               </span>
             </div>
-          </>
-        )}
+          </div>
+        </div>
+      )}
 
+      <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-3xl flex-col px-4 pt-6 sm:px-6 [@media(orientation:landscape)_and_(max-height:450px)]:pl-14">
         {(screen === "exercise" || screen === "feedback") && currentQuestion && (
           <section className="my-auto rounded-3xl bg-surface-container-lowest p-6 shadow-xl ring-1 ring-outline-variant/30 sm:p-10">
             {/* Objective Banner */}

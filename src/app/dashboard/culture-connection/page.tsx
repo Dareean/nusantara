@@ -177,7 +177,7 @@ export default function CultureConnectionPage() {
   const handleClaim = () => {
     if (decisionStep < decisions.length || !sessionEmail) return;
     recordLessonResult(sessionEmail, {
-      lessonId: 4,
+      lessonId: 3,
       answered: "culture-connection",
       correct: true,
       score: Math.max(60, harmony * 20),
