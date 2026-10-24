@@ -82,36 +82,31 @@
     "cultureConnectionClaimed": true
   },
   "admin@laras.id": {
-    "xp": 20,
+    "xp": 50,
     "streak": 1,
-    "hearts": 1,
+    "hearts": 2,
     "completedLessons": [
-      1
+      1,
+      4
     ],
     "unlockedLessons": [
       1,
-      2
+      2,
+      5
     ],
     "badges": [
-      "Pionir Salam"
+      "Pionir Salam",
+      "Tamu Sopan"
     ],
     "lastLesson": {
-      "lessonId": 1,
-      "answered": "lesson-session",
-      "correct": false,
-      "score": 80,
-      "xp": 20,
-      "bonusXp": 0,
-      "baseRewardXp": 20,
-      "totalExercises": 5,
-      "correctExercises": 4,
-      "firstAttemptCorrect": 4,
-      "heartsRemaining": 1,
-      "completed": true,
-      "completedAt": "2026-10-24T06:23:05.275Z",
-      "isRepeat": false
+      "lessonId": 4,
+      "answered": "culture-connection",
+      "correct": true,
+      "score": 120,
+      "xp": 30,
+      "completedAt": "2026-10-24T06:48:51.227Z"
     },
     "lastStudyDate": "2026-10-24",
-    "cultureConnectionClaimed": false
+    "cultureConnectionClaimed": true
   }
 }
