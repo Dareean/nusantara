@@ -91,6 +91,7 @@ export default function LessonSessionPage() {
   const [matchSelectedLeft, setMatchSelectedLeft] = useState<string | null>(null);
   const [matchSelectedRight, setMatchSelectedRight] = useState<string | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<Array<{ left: string; right: string }>>([]);
+  const [isPlayingNativeIntro, setIsPlayingNativeIntro] = useState(false);
 
   // ORDER state
   const [orderedItems, setOrderedItems] = useState<string[]>([]);
@@ -1011,6 +1012,59 @@ export default function LessonSessionPage() {
                 </p>
               </div>
             </div>
+
+            {/* Khusus Pelajaran 1: Elemen Dengar Pembuka Suara Asli Penutur (Bukan Soal) */}
+            {lesson.id === 1 && (
+              <div className="mb-5 rounded-2xl bg-surface-container-low border border-primary/25 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
+                      <Volume2 className="h-3 w-3 stroke-[2.5]" />
+                    </span>
+                    <span className="text-xs font-black uppercase tracking-wider text-primary">
+                      Dengarkan Suara Asli Penutur
+                    </span>
+                    <span className="rounded-full bg-secondary-fixed/50 px-2 py-0.5 text-[9px] font-black text-on-secondary-fixed border border-secondary/30">
+                      Rekaman Asli
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-semibold text-on-surface-variant mt-1">
+                    Rekaman penutur asli Kaili — Claudya (Tim Buras)
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <audio
+                    id="audio-native-intro-1"
+                    src="/audio/latihan-mendengar-1/yaku.mp3"
+                    preload="auto"
+                    onEnded={() => setIsPlayingNativeIntro(false)}
+                    onError={() => setIsPlayingNativeIntro(false)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const el = document.getElementById("audio-native-intro-1") as HTMLAudioElement | null;
+                      if (el) {
+                        el.currentTime = 0;
+                        setIsPlayingNativeIntro(true);
+                        el.play().catch((e) => {
+                          console.warn("Gagal memutar audio:", e);
+                          setIsPlayingNativeIntro(false);
+                        });
+                      }
+                    }}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider transition shadow-xs cursor-pointer ${
+                      isPlayingNativeIntro
+                        ? "bg-primary-container text-on-primary-container ring-2 ring-primary animate-pulse"
+                        : "bg-primary text-on-primary hover:bg-primary-container"
+                    }`}
+                  >
+                    <Volume2 className="h-4 w-4 stroke-[2.5]" />
+                    <span>{isPlayingNativeIntro ? "Memutar: Yaku..." : "Putar: Yaku"}</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">
               Soal {Math.min(questionIndex + 1, totalExercises)} dari {totalExercises}

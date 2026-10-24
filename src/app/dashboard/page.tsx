@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -429,6 +429,37 @@ export default function DashboardPage() {
   const [guidebookUnit, setGuidebookUnit] = useState<number | null>(null);
   const [guidebookTab, setGuidebookTab] = useState<"frasa" | "dialog" | "tips">("frasa");
   const [playingTerm, setPlayingTerm] = useState<string | null>(null);
+  const [playingNativeAudio, setPlayingNativeAudio] = useState<string | null>(null);
+  const nativeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playNativeAudio = (id: "yaku" | "sampesuvu", src: string) => {
+    if (typeof window === "undefined") return;
+    try {
+      if (nativeAudioRef.current) {
+        nativeAudioRef.current.pause();
+        nativeAudioRef.current.currentTime = 0;
+      }
+      if (playingNativeAudio === id) {
+        setPlayingNativeAudio(null);
+        return;
+      }
+      const audio = new Audio(src);
+      nativeAudioRef.current = audio;
+      setPlayingNativeAudio(id);
+      audio.onended = () => {
+        setPlayingNativeAudio(null);
+      };
+      audio.onerror = () => {
+        setPlayingNativeAudio(null);
+      };
+      audio.play().catch((err) => {
+        console.warn("Gagal memutar rekaman asli:", err);
+        setPlayingNativeAudio(null);
+      });
+    } catch {
+      setPlayingNativeAudio(null);
+    }
+  };
 
   const playAudio = (text: string) => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -947,6 +978,99 @@ export default function DashboardPage() {
                       id={`unit-section-${unitId}`}
                       className="w-full scroll-mt-28"
                     >
+                      {/* Showcase Suara Asli Penutur di bagian paling atas Unit 1 */}
+                      {unitId === 1 && (
+                        <div className="mb-6 rounded-3xl bg-surface-container-lowest border-2 border-primary/20 p-4 sm:p-5 shadow-xs">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-outline-variant/20">
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                  <Volume2 className="h-3.5 w-3.5 stroke-[2.5]" />
+                                </span>
+                                <h3 className="text-base font-black tracking-tight text-on-surface">
+                                  Suara Asli Penutur
+                                </h3>
+                                <span className="rounded-full bg-secondary-fixed/50 px-2 py-0.5 text-[10px] font-black text-on-secondary-fixed border border-secondary/30">
+                                  Rekaman Asli
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs font-semibold text-primary">
+                                Rekaman penutur asli Kaili — Claudya (Tim Buras)
+                              </p>
+                              <p className="text-[11px] text-on-surface-variant font-medium mt-0.5">
+                                Kata-kata ini kamu latih lebih lanjut di Latihan Mendengar, Unit 2.
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-3.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {/* Tombol Yaku */}
+                            <button
+                              type="button"
+                              onClick={() => playNativeAudio("yaku", "/audio/latihan-mendengar-1/yaku.mp3")}
+                              className={`flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer ${
+                                playingNativeAudio === "yaku"
+                                  ? "bg-primary/10 border-primary ring-2 ring-primary/30"
+                                  : "bg-surface-container-low hover:bg-surface-container border-outline-variant/30 hover:border-primary/40"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
+                                  playingNativeAudio === "yaku"
+                                    ? "bg-primary text-on-primary animate-pulse"
+                                    : "bg-primary/10 text-primary"
+                                }`}>
+                                  <Volume2 className="h-4 w-4 stroke-[2.5]" />
+                                </span>
+                                <div className="text-left">
+                                  <span className="text-sm font-black text-on-surface block">
+                                    &ldquo;Yaku&rdquo;
+                                  </span>
+                                  <span className="text-[10px] font-medium text-on-surface-variant">
+                                    Rekaman Asli • ±2 dtk
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="text-xs font-black text-primary uppercase tracking-wider">
+                                {playingNativeAudio === "yaku" ? "Memutar..." : "Putar"}
+                              </span>
+                            </button>
+
+                            {/* Tombol Sampesuvu */}
+                            <button
+                              type="button"
+                              onClick={() => playNativeAudio("sampesuvu", "/audio/latihan-mendengar-2/sampesuvu.mp3")}
+                              className={`flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer ${
+                                playingNativeAudio === "sampesuvu"
+                                  ? "bg-primary/10 border-primary ring-2 ring-primary/30"
+                                  : "bg-surface-container-low hover:bg-surface-container border-outline-variant/30 hover:border-primary/40"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
+                                  playingNativeAudio === "sampesuvu"
+                                    ? "bg-primary text-on-primary animate-pulse"
+                                    : "bg-primary/10 text-primary"
+                                }`}>
+                                  <Volume2 className="h-4 w-4 stroke-[2.5]" />
+                                </span>
+                                <div className="text-left">
+                                  <span className="text-sm font-black text-on-surface block">
+                                    &ldquo;Sampesuvu&rdquo;
+                                  </span>
+                                  <span className="text-[10px] font-medium text-on-surface-variant">
+                                    Rekaman Asli • ±2 dtk
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="text-xs font-black text-primary uppercase tracking-wider">
+                                {playingNativeAudio === "sampesuvu" ? "Memutar..." : "Putar"}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Banner Pemisah Unit hanya untuk Unit 2-6 (Unit 1 sudah memiliki Banner di atas) */}
                       {unitId > 1 && (
                         <div
@@ -1565,10 +1689,20 @@ export default function DashboardPage() {
 
             {/* Konten Panduan Unit */}
             <div className="overflow-y-auto px-6 py-4 space-y-4 text-on-surface">
+              {/* Keterangan Pembeda Suara Mesin Pembantu */}
+              <div className="p-3 rounded-2xl bg-surface-container-high/60 border border-outline-variant/30 flex items-start gap-2.5 text-xs text-on-surface-variant">
+                <span className="px-2 py-0.5 rounded-md bg-surface-container-highest text-[10px] font-black uppercase tracking-wider text-outline shrink-0 mt-0.5">
+                  Suara Mesin Pembantu
+                </span>
+                <p className="text-[11px] leading-relaxed">
+                  Pelafalan di panduan ini disimulasikan oleh <strong>suara mesin pembantu</strong> (TTS browser). Rekaman suara penutur asli manusia tersedia di kartu <strong>Suara Asli Penutur</strong> (Unit 1) dan modul <strong>Latihan Mendengar (Unit 2)</strong>.
+                </p>
+              </div>
+
               {guidebookTab === "frasa" && (
                 <div className="space-y-3 animate-in fade-in duration-150">
                   <div className="flex items-center justify-between text-xs font-bold text-on-surface-variant mb-1">
-                    <span>Tekan tombol audio atau baris untuk mendengarkan pelafalan:</span>
+                    <span>Tekan tombol audio atau baris untuk mendengarkan pelafalan (suara mesin pembantu):</span>
                     <span className="font-extrabold text-primary">
                       {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).keyPhrases.length} Frasa
                     </span>
@@ -1598,7 +1732,7 @@ export default function DashboardPage() {
                                 ? "bg-primary text-on-primary animate-pulse"
                                 : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-on-primary"
                             }`}
-                            title="Dengarkan Suara"
+                            title="Dengarkan Suara (Suara Mesin Pembantu)"
                           >
                             <Volume2 className="w-5 h-5 stroke-[2.5]" />
                           </button>
@@ -1631,7 +1765,7 @@ export default function DashboardPage() {
               {guidebookTab === "dialog" && (
                 <div className="space-y-4 animate-in fade-in duration-150">
                   <div className="text-xs font-bold text-on-surface-variant">
-                    Simulasi percakapan nyata dalam budaya Kaili:
+                    Simulasi percakapan nyata dalam budaya Kaili (suara mesin pembantu):
                   </div>
 
                   <div className="space-y-3 p-4 rounded-2xl bg-surface-container-lowest border border-outline-variant/30">
@@ -1662,7 +1796,7 @@ export default function DashboardPage() {
                                 type="button"
                                 onClick={() => playAudio(line.kaili)}
                                 className="p-1 rounded-full text-primary hover:bg-primary/10 transition active:scale-90 cursor-pointer"
-                                title="Putar dialog"
+                                title="Putar dialog (Suara Mesin Pembantu)"
                               >
                                 <Volume2 className={`w-3.5 h-3.5 stroke-[2.5] ${isPlaying ? "animate-pulse text-secondary" : ""}`} />
                               </button>
