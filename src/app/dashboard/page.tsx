@@ -393,99 +393,74 @@ export default function DashboardPage() {
             <div className="w-full max-w-[560px]">
 
 
-              {/* 1. KARTU HEADER & STATUS UNIT TERPADU (Identitas Bab + Strip Keadaan) */}
-              <div className="mb-5 rounded-2xl bg-surface-container-lowest p-4 sm:p-5 border-2 border-outline-variant/30 shadow-[0_4px_0_0_#e8ded8]">
-                {/* Header Unit & Panduan */}
-                <div className="flex items-start justify-between gap-3 mb-3.5">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[11px] font-black uppercase tracking-[0.16em] text-primary truncate">
-                        Unit 1 • Sulawesi Tengah
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-md shrink-0">
-                        <MapPin className="h-3 w-3 text-primary" />
-                        Kaili
-                      </span>
-                    </div>
-                    <h1 className="text-xl sm:text-2xl font-black tracking-tight text-on-surface truncate">
-                      Salam, Sapaan &amp; Busana Kaili
-                    </h1>
-                    <p className="text-xs text-on-surface-variant font-medium mt-0.5 truncate hidden sm:block">
-                      Satu misi kecil setiap hari. Pelajari bahasanya, rasakan konteksnya.
-                    </p>
+              {/* 1. KARTU HEADER & STATUS UNIT TERPADU (Gaya Duolingo: Bersih, Manusiawi, Gamified) */}
+              <div className="mb-6 rounded-3xl bg-surface-container-lowest p-5 border-2 border-outline-variant/30 shadow-[0_4px_0_0_#e8ded8]">
+                {/* Baris Atas: Identitas Bab & Aksi */}
+                <div className="flex items-center justify-between gap-3 mb-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+                      Unit 1 • Sulawesi Tengah
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-md">
+                      <MapPin className="h-3 w-3 text-primary" />
+                      Kaili
+                    </span>
                   </div>
+
                   <div className="shrink-0 flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setTourStep(1)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold transition shadow-xs cursor-pointer"
-                      title="Buka Panduan Belajar"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold transition cursor-pointer"
+                      title="Buku Panduan Unit"
                     >
-                      <HelpCircle className="w-3.5 h-3.5 text-primary" />
-                      <span className="hidden sm:inline">Panduan</span>
+                      <BookOpen className="w-3.5 h-3.5 text-primary" />
+                      <span>Panduan</span>
                     </button>
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black shadow-xs min-h-[28px]">
-                      {isLoaded ? (
-                        `${completedBaseCount}/3 selesai`
-                      ) : (
-                        <span className="inline-block w-10 h-3 rounded bg-primary/20 animate-pulse" />
-                      )}
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-surface-container-high text-on-surface font-extrabold text-xs">
+                      {isLoaded ? `${completedBaseCount}/3 selesai` : "--"}
                     </span>
                   </div>
                 </div>
 
+                {/* Judul Bab Utama */}
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-on-surface">
+                  Salam, Sapaan &amp; Busana Kaili
+                </h1>
+
                 {/* Garis Pemisah Halus */}
-                <div className="h-px w-full bg-outline-variant/20 mb-3" />
+                <div className="my-3.5 h-px w-full bg-outline-variant/15" />
 
-                {/* Strip Keadaan Siswa (Micro-Chips Terpadu) */}
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  {/* Sapaan Pengguna */}
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-primary/10 text-primary font-black shrink-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    <span>Halo, {userName || "Sahabat Budaya"}</span>
+                {/* Baris Bawah: Status Belajar (Game HUD Bersih: Ikon + Angka yang Intuitif) */}
+                <div className="flex items-center gap-4 sm:gap-6 flex-wrap text-xs font-extrabold text-on-surface">
+                  {/* Hari Beruntun */}
+                  <div className="inline-flex items-center gap-1.5 text-orange-600 dark:text-orange-400" title="Hari beruntun">
+                    <Flame className="w-4 h-4 fill-orange-500 text-orange-500" />
+                    <span>{progress?.streak || 0} hari beruntun</span>
                   </div>
 
-                  {/* Level */}
-                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-surface-container-high text-on-surface font-bold shrink-0">
-                    <Sparkles className="w-3.5 h-3.5 text-secondary" />
-                    <span>Level {Math.floor((progress?.xp || 0) / 100) + 1}</span>
-                  </div>
+                  <span className="text-outline/30 hidden sm:inline">•</span>
 
                   {/* XP */}
-                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-800 dark:text-amber-200 font-bold shrink-0">
-                    <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                    <span>
-                      {progress?.xp || 0} XP{" "}
-                      <span className="text-[10px] font-semibold text-on-surface-variant">
-                        (poin pengalaman)
-                      </span>
-                    </span>
+                  <div className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400" title="XP">
+                    <Zap className="w-4 h-4 fill-amber-500 text-amber-500" />
+                    <span>{progress?.xp || 0} XP</span>
                   </div>
 
-                  {/* Hari Beruntun */}
-                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-orange-500/10 text-orange-800 dark:text-orange-200 font-bold shrink-0">
-                    <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
-                    <span>Hari beruntun: {progress?.streak || 0}</span>
-                  </div>
+                  <span className="text-outline/30 hidden sm:inline">•</span>
 
                   {/* Target Hari Ini */}
-                  <div
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl font-bold shrink-0 ${
-                      completedBaseCount > 0
-                        ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-200"
-                        : "bg-surface-container-high text-on-surface-variant"
-                    }`}
-                  >
-                    <Check
-                      className={`w-3.5 h-3.5 ${
-                        completedBaseCount > 0
-                          ? "text-emerald-600 stroke-[3]"
-                          : "text-outline"
-                      }`}
-                    />
-                    <span>
-                      Target hari ini: {completedBaseCount > 0 ? 1 : 0} dari 1 pelajaran
-                    </span>
+                  <div className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400" title="Target harian">
+                    <Check className="w-4 h-4 stroke-[3]" />
+                    <span>{completedBaseCount > 0 ? 1 : 0}/1 target hari ini</span>
+                  </div>
+
+                  <span className="text-outline/30 hidden sm:inline">•</span>
+
+                  {/* Level */}
+                  <div className="inline-flex items-center gap-1.5 text-secondary" title="Level">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Level {Math.floor((progress?.xp || 0) / 100) + 1}</span>
                   </div>
                 </div>
               </div>
