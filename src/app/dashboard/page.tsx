@@ -21,7 +21,10 @@ import {
   Trophy,
   Zap,
   HelpCircle,
+  Lightbulb,
+  MessageSquare,
   Sparkles,
+  Volume2,
   X,
 } from "lucide-react";
 import { getCachedSessionSync, getSession } from "../auth/authClient";
@@ -87,133 +90,188 @@ export const UNIT_THEMES: Record<
   },
 };
 
+export type DialogueLine = {
+  speaker: string;
+  avatar: string;
+  role: string;
+  kaili: string;
+  indonesia: string;
+};
+
 export type UnitGuidebook = {
   label: string;
   title: string;
   subtitle: string;
-  keyPhrases: { term: string; meaning: string; phonetic?: string; usage?: string }[];
-  culturalNotes: { heading: string; body: string }[];
-  attireGuide: { name: string; target: string; desc: string }[];
+  keyPhrases: {
+    term: string;
+    meaning: string;
+    context: string;
+    phonetic?: string;
+  }[];
+  dialogue: DialogueLine[];
+  quickTips: {
+    icon: string;
+    title: string;
+    tip: string;
+  }[];
 };
 
 export const UNIT_GUIDEBOOKS: Record<number, UnitGuidebook> = {
   1: {
     label: "SECTION 1, UNIT 1",
     title: "Salam, Sapaan & Busana Kaili",
-    subtitle: "Kamus frasa pembuka, etika tutur Tabe, dan pengenalan busana adat lembah Palu.",
+    subtitle: "Dengarkan pelafalan frasa santun dan intip obrolan sehari-hari warga lembah Palu!",
     keyPhrases: [
       {
         term: "Tabe",
-        meaning: "Permisi / Maaf / Mohon izin",
+        meaning: "Permisi / Maaf ya",
+        context: "Kunci utama kesopanan saat melintas atau menyapa.",
         phonetic: "ta-be",
-        usage: "Kata santun mutlak saat melintas di depan orang lain, memotong pembicaraan, atau menyapa tetua.",
       },
       {
         term: "Ndokona",
-        meaning: "Selamat pagi",
+        meaning: "Selamat pagi!",
+        context: "Dipakai sejak fajar terbit hingga menjelang tengah hari.",
         phonetic: "ndo-ko-na",
-        usage: "Sapaan pembuka hari sejak terbit fajar hingga menjelang tengah hari.",
       },
       {
         term: "Nempa",
-        meaning: "Selamat siang",
+        meaning: "Selamat siang!",
+        context: "Sapaan hangat saat matahari sedang terik di atas kepala.",
         phonetic: "nem-pa",
-        usage: "Sapaan santun di tengah hari saat matahari berada di puncak.",
       },
       {
         term: "Kareba?",
-        meaning: "Apa kabar?",
+        meaning: "Gimana kabarmu?",
+        context: "Menanyakan kabar teman atau tetangga secara akrab.",
         phonetic: "ka-re-ba",
-        usage: "Menanyakan keadaan lawan bicara secara akrab dan bersahabat.",
       },
       {
         term: "Kareba roa",
-        meaning: "Kabar baik / Sehat",
+        meaning: "Kabar baik sekali!",
+        context: "Jawaban mantap kalau kamu sehat walafiat.",
         phonetic: "ka-re-ba ro-a",
-        usage: "Balasan umum ketika ditanya kabar untuk menegaskan keadaan damai.",
       },
       {
         term: "Tarima kasi",
-        meaning: "Terima kasih",
+        meaning: "Terima kasih banyak",
+        context: "Ungkapan rasa senang setelah dibantu atau dijamu.",
         phonetic: "ta-ri-ma ka-si",
-        usage: "Ungkapan penghargaan atas keramahan, bantuan, atau jamuan makan.",
       },
     ],
-    culturalNotes: [
+    dialogue: [
       {
-        heading: "Adab Tubuh saat Berucap 'Tabe'",
-        body: "Dalam masyarakat Kaili, berucap 'Tabe' selalu dibarengi gerak tubuh: tangan kanan sedikit merendah ke bawah dan tubuh agak membungkuk. Hal ini melambangkan rasa rendah hati (nodomi) dan tidak meninggikan diri di hadapan orang lain.",
+        speaker: "Rafi",
+        avatar: "🙋‍♂️",
+        role: "Pelajar Pendatang",
+        kaili: "Tabe, Ndokona! Kareba?",
+        indonesia: "Permisi, selamat pagi! Gimana kabarmu?",
       },
       {
-        heading: "Harmoni Tutur (Sintuvu)",
-        body: "Tutur kata yang lembut dipandang sebagai cerminan jiwa yang menghargai sesama. Menghindari intonasi meninggi adalah prinsip dasar tata krama pergaulan adat Kaili.",
+        speaker: "Ibu Nur",
+        avatar: "🧕",
+        role: "Warga Asli Palu",
+        kaili: "Ndokona roa! Kareba roa, alhamdulillah.",
+        indonesia: "Pagi juga! Kabar sangat baik, alhamdulillah.",
+      },
+      {
+        speaker: "Rafi",
+        avatar: "🙋‍♂️",
+        role: "Pelajar Pendatang",
+        kaili: "Tarima kasi, Ibu Nur!",
+        indonesia: "Terima kasih banyak, Bu Nur!",
+      },
+      {
+        speaker: "Ibu Nur",
+        avatar: "🧕",
+        role: "Warga Asli Palu",
+        kaili: "Io, sama-sama!",
+        indonesia: "Iya, sama-sama ya!",
       },
     ],
-    attireGuide: [
+    quickTips: [
       {
-        name: "Baju Koje & Siga",
-        target: "Busana Tradisional Pria",
-        desc: "Kemeja berlengan panjang berkerah tegak, dipadukan sarung tenun Donggala dan ikat kepala 'Siga' dengan lipatan segitiga khas melambangkan kehormatan.",
+        icon: "💡",
+        title: "Aturan Emas Kata 'Tabe'",
+        tip: "Di tanah Kaili, kata 'Tabe' itu seperti sihir kesopanan. Selalu tundukkan badan sedikit saat berucap, lawan bicara pasti langsung tersenyum ramah kepadamu!",
       },
       {
-        name: "Baju Sampua",
-        target: "Busana Tradisional Wanita",
-        desc: "Baju kurung longgar berlengan pendek yang dipadukan sarung sutra berornamen tenun tradisional, mencerminkan keanggunan dan kesopanan wanita lembah Palu.",
+        icon: "👔",
+        title: "Busana Pria: Baju Koje & Siga",
+        tip: "Kemeja lengan panjang berkerah tegak berpadu sarung tenun sutra Donggala. Di kepalanya terpasang 'Siga', ikat kepala segitiga simbol kehormatan pria Kaili.",
+      },
+      {
+        icon: "👗",
+        title: "Busana Wanita: Baju Sampua",
+        tip: "Baju kurung sutra longgar yang sangat adem untuk cuaca pesisir Teluk Palu. Dipadukan sarung tenun motif bunga melati yang anggun.",
       },
     ],
   },
   2: {
     label: "SECTION 1, UNIT 2",
     title: "Tenun Donggala & Kerajinan Sutra",
-    subtitle: "Ragam motif, proses tenun ikat, dan filosofi benang sutra pesisir.",
+    subtitle: "Ragam motif tenun dan filosofi benang sutra pesisir.",
     keyPhrases: [
-      { term: "Buya Sabe", meaning: "Sarung tenun sutra Donggala", phonetic: "bu-ya sa-be", usage: "Sarung sutra pusaka untuk pesta adat dan tamu agung." },
-      { term: "Buya Bomba", meaning: "Tenun motif kuncup bunga", phonetic: "bu-ya bom-ba", usage: "Motif sakral yang melambangkan kebaikan budi." },
+      { term: "Buya Sabe", meaning: "Sarung tenun sutra Donggala", context: "Sarung sutra pusaka untuk pesta adat dan tamu agung.", phonetic: "bu-ya sa-be" },
+      { term: "Buya Bomba", meaning: "Tenun motif kuncup bunga", context: "Motif sakral lambang kebaikan budi pekerti.", phonetic: "bu-ya bom-ba" },
     ],
-    culturalNotes: [
+    dialogue: [
       {
-        heading: "Filosofi Tenun Donggala",
-        body: "Setiap helai benang ditenun dengan kesabaran menggunakan alat tenun tradisional bukan mesin (ATBM), melambangkan ketelitian dan doa pelestarian warisan leluhur.",
+        speaker: "Penenun",
+        avatar: "👵",
+        role: "Maestro Tenun",
+        kaili: "Ini Buya Bomba, ditenun berbulan-bulan.",
+        indonesia: "Ini Buya Bomba, ditenun dengan sabar berbulan-bulan.",
       },
     ],
-    attireGuide: [
+    quickTips: [
       {
-        name: "Motif Subi & Bomba",
-        target: "Warisan Tekstil Khas Donggala",
-        desc: "Ragam hias tenun geometris dan flora dengan sulaman benang emas yang dahulu hanya dikenakan kalangan bangsawan Kaili.",
+        icon: "🧵",
+        title: "Menenun Pakai ATBM",
+        tip: "Tenun Donggala dibuat tanpa mesin modern. Setiap helai benang adalah doa ketelitian dan kebanggaan pesisir.",
       },
     ],
   },
   3: {
     label: "SECTION 1, UNIT 3",
     title: "Upacara Adat Souraja & Diplomasi Tutur",
-    subtitle: "Tata krama bertamu ke rumah panggung raja Kaili dan pantangan adat.",
+    subtitle: "Tata krama bertamu ke rumah panggung raja Kaili.",
     keyPhrases: [
-      { term: "Souraja", meaning: "Rumah Besar / Istana Kayu Kaili", phonetic: "sou-ra-ja", usage: "Pusat pemerintahan adat dan musyawarah tetua Palu." },
-      { term: "Gandaria", meaning: "Serambi depan ruang penerima tamu", phonetic: "gan-da-ri-a", usage: "Tempat bertamu sebelum dipersilakan masuk lebih dalam." },
+      { term: "Souraja", meaning: "Istana Kayu / Rumah Besar Kaili", context: "Pusat adat dan musyawarah tetua Palu.", phonetic: "sou-ra-ja" },
+      { term: "Gandaria", meaning: "Serambi tamu depan", context: "Tempat menunggu izin sebelum masuk ke dalam rumah.", phonetic: "gan-da-ri-a" },
     ],
-    culturalNotes: [
+    dialogue: [
       {
-        heading: "Tata Tertib Bertamu di Souraja",
-        body: "Tamu wajib melepas alas kaki di tangga pertama, melafalkan salam santun, dan menunggu dipersilakan duduk di serambi Gandaria oleh pemangku adat.",
+        speaker: "Tetua Adat",
+        avatar: "👴",
+        role: "Pemangku Adat",
+        kaili: "Tabe, silakan duduk di Gandaria.",
+        indonesia: "Permisi, silakan duduk dengan nyaman di serambi depan.",
       },
     ],
-    attireGuide: [],
+    quickTips: [
+      {
+        icon: "🏛️",
+        title: "Adab Tangga Pertama",
+        tip: "Lepas alas kaki di anak tangga paling bawah sebelum naik ke lantai kayu Souraja.",
+      },
+    ],
   },
   4: {
     label: "SECTION 2, UNIT 1",
     title: "Arsitektur Tongkonan & Adab Toraja",
     subtitle: "Eksplorasi budaya rumpun Sulawesi berikutnya.",
     keyPhrases: [
-      { term: "Kurre Sumanga'", meaning: "Terima kasih banyak (Toraja)", phonetic: "kur-re su-ma-nga", usage: "Ungkapan rasa hormat dan syukur mendalam." },
+      { term: "Kurre Sumanga'", meaning: "Terima kasih banyak", context: "Ungkapan rasa hormat dan terima kasih mendalam.", phonetic: "kur-re su-ma-nga" },
     ],
-    culturalNotes: [
+    dialogue: [],
+    quickTips: [
       {
-        heading: "Falsafah Tongkonan",
-        body: "Rumah adat bukan sekadar tempat bernaung, melainkan poros musyawarah dan pemersatu marga keluarga besar.",
+        icon: "🏠",
+        title: "Falsafah Tongkonan",
+        tip: "Rumah adat adalah pusat musyawarah dan pemersatu marga keluarga besar.",
       },
     ],
-    attireGuide: [],
   },
 };
 
@@ -308,6 +366,25 @@ export default function DashboardPage() {
   const [sessionTitles, setSessionTitles] = useState<Record<string, { title: string; xp: number }>>({});
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [guidebookUnit, setGuidebookUnit] = useState<number | null>(null);
+  const [guidebookTab, setGuidebookTab] = useState<"frasa" | "dialog" | "tips">("frasa");
+  const [playingTerm, setPlayingTerm] = useState<string | null>(null);
+
+  const playAudio = (text: string) => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "id-ID";
+        utterance.rate = 0.85;
+        utterance.onstart = () => setPlayingTerm(text);
+        utterance.onend = () => setPlayingTerm(null);
+        utterance.onerror = () => setPlayingTerm(null);
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        setPlayingTerm(null);
+      }
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1196,7 +1273,7 @@ export default function DashboardPage() {
       {/* Modal Buku Panduan Unit Ala Duolingo Guidebook */}
       {guidebookUnit !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-2xl max-h-[90vh] bg-surface rounded-3xl border-2 border-outline-variant/30 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-2xl max-h-[92vh] bg-surface rounded-3xl border-2 border-outline-variant/30 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header dengan Tema Unit */}
             <div
               style={{
@@ -1210,7 +1287,7 @@ export default function DashboardPage() {
                   <span>{(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).label}</span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1.5">
-                  Buku Panduan: {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).title}
+                  {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).title}
                 </h2>
                 <p className="text-xs sm:text-sm text-white/90 font-semibold mt-1 leading-relaxed">
                   {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).subtitle}
@@ -1227,111 +1304,222 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* Konten Panduan Unit (Scrollable) */}
-            <div className="overflow-y-auto p-5 sm:p-6 space-y-6 text-on-surface">
-              {/* 1. Frasa Kunci & Kosakata */}
-              <section>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-base sm:text-lg font-black text-on-surface tracking-tight">
-                    🗣️ Kosakata &amp; Frasa Kunci
-                  </span>
-                  <span className="text-xs text-on-surface-variant font-bold">
-                    ({(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).keyPhrases.length} frasa)
-                  </span>
-                </div>
-                <div className="grid gap-2.5 sm:grid-cols-2">
-                  {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).keyPhrases.map((phrase, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3.5 rounded-2xl bg-surface-container border border-outline-variant/30 flex flex-col justify-between hover:border-primary/40 transition-colors"
-                    >
-                      <div>
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="text-base font-black text-primary tracking-tight">
-                            {phrase.term}
-                          </span>
-                          {phrase.phonetic && (
-                            <span className="text-[11px] font-mono text-outline font-semibold">
-                              /{phrase.phonetic}/
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs font-bold text-on-surface mt-0.5">
-                          {phrase.meaning}
-                        </div>
-                      </div>
-                      {phrase.usage && (
-                        <p className="text-[11px] text-on-surface-variant font-medium mt-2 pt-2 border-t border-outline-variant/20 leading-relaxed">
-                          {phrase.usage}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
+            {/* Tab Navigasi Tactile */}
+            <div className="flex items-center gap-2 px-5 sm:px-6 py-3 border-b border-outline-variant/20 bg-surface-container-lowest overflow-x-auto shrink-0">
+              <button
+                type="button"
+                onClick={() => setGuidebookTab("frasa")}
+                style={{
+                  backgroundColor: guidebookTab === "frasa" ? (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor : undefined,
+                  boxShadow: guidebookTab === "frasa" ? `0 3px 0 0 ${(UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).shadowColor}` : undefined,
+                }}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                  guidebookTab === "frasa"
+                    ? "text-white active:translate-y-0.5"
+                    : "bg-surface-container text-on-surface hover:bg-surface-container-high"
+                }`}
+              >
+                <Volume2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Frasa &amp; Suara</span>
+              </button>
 
-              {/* 2. Catatan Budaya & Adab */}
-              {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).culturalNotes.length > 0 && (
-                <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-base sm:text-lg font-black text-on-surface tracking-tight">
-                      🤝 Catatan Adab &amp; Norma Tutur
+              <button
+                type="button"
+                onClick={() => setGuidebookTab("dialog")}
+                style={{
+                  backgroundColor: guidebookTab === "dialog" ? (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor : undefined,
+                  boxShadow: guidebookTab === "dialog" ? `0 3px 0 0 ${(UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).shadowColor}` : undefined,
+                }}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                  guidebookTab === "dialog"
+                    ? "text-white active:translate-y-0.5"
+                    : "bg-surface-container text-on-surface hover:bg-surface-container-high"
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Contoh Obrolan</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setGuidebookTab("tips")}
+                style={{
+                  backgroundColor: guidebookTab === "tips" ? (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor : undefined,
+                  boxShadow: guidebookTab === "tips" ? `0 3px 0 0 ${(UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).shadowColor}` : undefined,
+                }}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                  guidebookTab === "tips"
+                    ? "text-white active:translate-y-0.5"
+                    : "bg-surface-container text-on-surface hover:bg-surface-container-high"
+                }`}
+              >
+                <Lightbulb className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Tips Kilat</span>
+              </button>
+            </div>
+
+            {/* Konten Panduan Unit (Scrollable) */}
+            <div className="overflow-y-auto p-5 sm:p-6 space-y-4 text-on-surface">
+              {/* TAB 1: FRASA & SUARA (SOUNDBOARD) */}
+              {guidebookTab === "frasa" && (
+                <div className="space-y-4 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between text-xs font-bold text-on-surface-variant">
+                    <span>Ketuk kartu atau tombol speaker untuk mendengar lafal aslinya:</span>
+                    <span className="font-extrabold text-primary">
+                      {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).keyPhrases.length} Frasa
                     </span>
                   </div>
-                  <div className="space-y-3">
-                    {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).culturalNotes.map((note, idx) => (
-                      <div
-                        key={idx}
-                        className="p-4 rounded-2xl bg-surface-container-low border-l-4 border-primary border-t border-r border-b border-outline-variant/30"
-                      >
-                        <h4 className="text-xs sm:text-sm font-black text-on-surface tracking-tight">
-                          {note.heading}
-                        </h4>
-                        <p className="text-xs text-on-surface-variant font-medium mt-1 leading-relaxed">
-                          {note.body}
-                        </p>
-                      </div>
-                    ))}
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).keyPhrases.map((phrase, idx) => {
+                      const isPlaying = playingTerm === phrase.term;
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => playAudio(phrase.term)}
+                          style={{
+                            borderColor: isPlaying ? (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor : undefined,
+                          }}
+                          className={`p-4 rounded-3xl bg-surface-container border-2 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs hover:border-primary/60 active:translate-y-0.5 ${
+                            isPlaying ? "ring-2 ring-primary/30 bg-primary/5" : "border-outline-variant/40"
+                          }`}
+                        >
+                          <div className="min-w-0">
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-xl font-black text-on-surface tracking-tight">
+                                {phrase.term}
+                              </span>
+                              {phrase.phonetic && (
+                                <span className="text-[11px] font-mono text-outline font-semibold">
+                                  /{phrase.phonetic}/
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs font-bold text-primary mt-0.5">
+                              {phrase.meaning}
+                            </div>
+                            <p className="text-[11px] text-on-surface-variant font-medium mt-1 leading-snug">
+                              {phrase.context}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playAudio(phrase.term);
+                            }}
+                            style={{
+                              backgroundColor: isPlaying ? (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor : undefined,
+                              boxShadow: isPlaying
+                                ? `0 3px 0 0 ${(UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).shadowColor}`
+                                : "0 3px 0 0 #d1d5db",
+                            }}
+                            className={`w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center border-2 border-outline-variant/40 transition-all active:scale-90 ${
+                              isPlaying
+                                ? "text-white animate-pulse"
+                                : "bg-surface-container-high text-primary hover:bg-primary hover:text-white"
+                            }`}
+                            title="Dengarkan Suara"
+                          >
+                            <Volume2 className="w-5 h-5 stroke-[2.5]" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
-                </section>
+                </div>
               )}
 
-              {/* 3. Pengenalan Busana Adat */}
-              {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).attireGuide.length > 0 && (
-                <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-base sm:text-lg font-black text-on-surface tracking-tight">
-                      👘 Busana Tradisional Kaili
-                    </span>
+              {/* TAB 2: CONTOH OBROLAN (COMIC CHAT BUBBLES) */}
+              {guidebookTab === "dialog" && (
+                <div className="space-y-4 animate-in fade-in duration-150">
+                  <div className="text-xs font-bold text-on-surface-variant">
+                    Simulasi percakapan nyata saat menyapa warga di lembah Palu:
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).attireGuide.map((item, idx) => (
+
+                  <div className="space-y-3 p-4 rounded-3xl bg-surface-container-lowest border-2 border-outline-variant/30">
+                    {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).dialogue.map((line, idx) => {
+                      const isLeft = idx % 2 === 0;
+                      const isPlaying = playingTerm === line.kaili;
+                      return (
+                        <div
+                          key={idx}
+                          className={`flex items-start gap-3 ${isLeft ? "justify-start" : "justify-end flex-row-reverse"}`}
+                        >
+                          {/* Avatar */}
+                          <div className="w-10 h-10 rounded-2xl bg-surface-container-high border-2 border-outline-variant/40 flex items-center justify-center text-xl shrink-0 shadow-xs">
+                            {line.avatar}
+                          </div>
+
+                          {/* Speech Bubble */}
+                          <div
+                            className={`max-w-[80%] rounded-3xl p-4 shadow-sm border-2 ${
+                              isLeft
+                                ? "bg-surface-container border-outline-variant/40 rounded-tl-sm"
+                                : "bg-primary-fixed/30 border-primary/30 rounded-tr-sm"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-3 mb-1">
+                              <span className="text-[11px] font-black uppercase tracking-wider text-on-surface-variant">
+                                {line.speaker} • {line.role}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => playAudio(line.kaili)}
+                                className="p-1 rounded-full text-primary hover:bg-primary/10 transition active:scale-90 cursor-pointer"
+                                title="Putar dialog"
+                              >
+                                <Volume2 className={`w-3.5 h-3.5 stroke-[2.5] ${isPlaying ? "animate-pulse text-secondary" : ""}`} />
+                              </button>
+                            </div>
+                            <p className="text-sm font-extrabold text-on-surface tracking-tight">
+                              &ldquo;{line.kaili}&rdquo;
+                            </p>
+                            <p className="text-xs font-semibold text-on-surface-variant mt-1 italic">
+                              &ldquo;{line.indonesia}&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: TIPS KILAT (GAME RULES & FASHION) */}
+              {guidebookTab === "tips" && (
+                <div className="space-y-4 animate-in fade-in duration-150">
+                  <div className="text-xs font-bold text-on-surface-variant">
+                    Rahasia adat dan kunci penting untuk lulus kuis unit ini:
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).quickTips.map((tip, idx) => (
                       <div
                         key={idx}
-                        className="p-4 rounded-2xl bg-surface-container border border-outline-variant/30 flex flex-col justify-between"
+                        className="p-5 rounded-3xl bg-surface-container border-2 border-outline-variant/30 flex flex-col justify-between shadow-xs hover:border-primary/40 transition-colors"
                       >
                         <div>
-                          <div className="text-[10px] font-black uppercase tracking-wider text-primary">
-                            {item.target}
-                          </div>
-                          <h4 className="text-sm font-black text-on-surface mt-0.5">
-                            {item.name}
+                          <div className="text-3xl mb-2">{tip.icon}</div>
+                          <h4 className="text-sm font-black text-on-surface tracking-tight">
+                            {tip.title}
                           </h4>
-                          <p className="text-xs text-on-surface-variant font-medium mt-1 leading-relaxed">
-                            {item.desc}
+                          <p className="text-xs text-on-surface-variant font-medium mt-1.5 leading-relaxed">
+                            {tip.tip}
                           </p>
                         </div>
                       </div>
                     ))}
                   </div>
-                </section>
+                </div>
               )}
             </div>
 
             {/* Footer Modal */}
             <div className="p-4 sm:p-5 bg-surface-container-lowest border-t border-outline-variant/30 flex items-center justify-between gap-3 shrink-0">
               <span className="text-xs font-bold text-on-surface-variant hidden sm:inline">
-                Gunakan panduan ini sebagai bekal menjawab kuis di unit ini.
+                Siap mempraktikkan materi ini di latihan?
               </span>
               <button
                 type="button"
