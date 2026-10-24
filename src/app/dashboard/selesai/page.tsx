@@ -101,7 +101,7 @@ function SelesaiContent() {
               <div className="inline-flex max-w-full items-center justify-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-surface-container-lowest shadow-xs mb-4">
                 <BadgeCheck className="text-secondary w-4 h-4" />
                 <span className="text-label-sm sm:text-label-md text-secondary uppercase tracking-widest font-bold text-center">
-                  Sesi Tuntas • {progress.lastLesson?.correctExercises ?? (progress.completedLessons.length > 0 ? 3 : 0)}/{progress.lastLesson?.totalExercises ?? 3} Exercise
+                  Sesi Tuntas • {progress.lastLesson?.correctExercises ?? (progress.completedLessons.length > 0 ? 3 : 0)}/{progress.lastLesson?.totalExercises ?? 3} Soal Selesai
                 </span>
               </div>
 

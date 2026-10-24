@@ -76,7 +76,7 @@ export function readProgress(email: string): UserProgress {
     const isNewDay = Boolean(parsed.lastStudyDate && parsed.lastStudyDate < today);
     const hearts = isNewDay
       ? 3
-      : (typeof parsed.hearts === "number" ? parsed.hearts : 3);
+      : (typeof parsed.hearts === "number" && parsed.hearts > 0 ? parsed.hearts : 3);
 
     return {
       ...DEFAULT_PROGRESS,
@@ -116,7 +116,8 @@ export function mergeClientProgress(
 
   const xp = Math.max(Number(local.xp || 0), Number(remote.xp || 0));
   const streak = Math.max(Number(local.streak || 0), Number(remote.streak || 0));
-  const hearts = typeof remote.hearts === "number" ? remote.hearts : local.hearts;
+  const rawHearts = typeof remote.hearts === "number" ? remote.hearts : local.hearts;
+  const hearts = rawHearts > 0 ? rawHearts : 3;
 
   let lastLesson = local.lastLesson || remote.lastLesson || null;
   if (local.lastLesson && remote.lastLesson) {

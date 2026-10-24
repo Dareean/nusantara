@@ -10,7 +10,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "LARAS — Nusantara, Before It's Gone",
+  title: "LARAS — Lestarikan Bahasa & Budaya Nusantara",
   description:
     "Belajar bahasa daerah Kaili dan busana adat secara terpadu melalui gamifikasi modern berstandar etnolinguistik. Ubah wawasan budaya pasif menjadi kebiasaan interaktif 5 menit sehari.",
   keywords: [

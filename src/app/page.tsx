@@ -131,7 +131,7 @@ export default function LandingPage() {
                 className="absolute -top-2 -left-4 z-20 bg-surface-container-lowest px-4 py-2 rounded-2xl shadow-lg border-2 border-primary/20 flex items-center gap-2 motion-reduce:animate-none"
               >
                 <Flame className="text-primary w-5 h-5" />
-                <span className="font-black text-primary text-sm">7 HARI STREAK</span>
+                <span className="font-black text-primary text-sm">7 HARI BERUNTUN</span>
               </motion.div>
 
               <motion.div

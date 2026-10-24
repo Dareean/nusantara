@@ -98,7 +98,7 @@ export default function OnboardingPage() {
                     Kultur Interaktif Generasi Baru
                   </span>
                   <p className="text-headline-md text-on-primary font-bold">
-                    Learn the Language. Wear the Culture.
+                    Pelajari Bahasanya. Hayati Budayanya.
                   </p>
                 </div>
               </div>
@@ -150,10 +150,10 @@ export default function OnboardingPage() {
                   </div>
                   <div>
                     <p className="text-label-lg text-on-surface font-bold">
-                      Streak &amp; Level
+                      Hari Beruntun &amp; Level
                     </p>
                     <p className="text-body-sm text-on-surface-variant">
-                      Buka Paspor Budaya tiap bab
+                      Buka Paspor Budaya tiap unit
                     </p>
                   </div>
                 </div>
@@ -350,7 +350,7 @@ export default function OnboardingPage() {
                             Sulawesi Tengah — Suku Kaili
                           </span>
                           <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold">
-                            Tersedia • 6 Bab
+                            Tersedia • 6 Unit
                           </span>
                         </div>
                         <p className="text-body-sm text-on-surface-variant mt-0.5">
@@ -591,7 +591,7 @@ export default function OnboardingPage() {
                 <p className="text-body-md text-on-surface-variant max-w-md mx-auto mb-4">
                   Kurikulum harianmu telah dipersonalisasi. Selesaikan
                   pelajaran pertamamu hari ini untuk menyalakan{" "}
-                  <strong className="text-primary">Streak Hari ke-1</strong>!
+                  <strong className="text-primary">Hari Beruntun ke-1</strong>!
                 </p>
 
                 <div className="bg-surface-container-lowest max-w-sm mx-auto rounded-xl p-3 flex items-center justify-between shadow-xs border border-outline-variant/20">
@@ -601,10 +601,10 @@ export default function OnboardingPage() {
                     </div>
                     <div className="text-left">
                       <p className="text-label-lg text-on-surface font-bold">
-                        Bonus Streak Day 1
+                        Bonus Hari Beruntun Ke-1
                       </p>
                       <p className="text-body-sm text-on-surface-variant">
-                        +50 XP Selamat Datang
+                        +30 XP Pelajaran Pertama
                       </p>
                     </div>
                   </div>
@@ -646,10 +646,10 @@ export default function OnboardingPage() {
                 </div>
                 <div className="bg-surface-container-low rounded-xl p-3 text-center">
                   <span className="text-label-sm text-on-surface-variant block">
-                    Modul Awal
+                    Unit Awal
                   </span>
                   <span className="text-label-lg text-secondary font-bold block mt-0.5 truncate">
-                    Bab 1: Sapaan
+                    Unit 1: Sapaan
                   </span>
                 </div>
               </div>
@@ -661,7 +661,7 @@ export default function OnboardingPage() {
                   className="w-full py-4 px-6 rounded-full bg-primary text-on-primary font-label-lg shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer font-bold text-base"
                 >
                   <Play className="w-5 h-5 fill-current" />
-                  <span>Mulai Pelajaran Pertama Sekarang (Bab 1)</span>
+                  <span>Mulai Pelajaran Pertama Sekarang (Unit 1)</span>
                 </button>
                 <button
                   type="button"

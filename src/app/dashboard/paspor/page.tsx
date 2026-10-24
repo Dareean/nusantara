@@ -20,20 +20,7 @@ import {
 } from "lucide-react";
 import { getCachedSessionSync, getSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
-import { CANONICAL_BADGES, type CanonicalBadge } from "@/lib/badges";
-
-// Daftar Seluruh Cap Paspor Resmi (Termasuk Skenario Terpadu)
-const ALL_PASSPORT_STAMPS = [
-  ...CANONICAL_BADGES,
-  {
-    id: "tamu-sopan-lembah-palu",
-    title: "Tamu Sopan Lembah Palu",
-    lessonId: 4,
-    detail: "Menuntaskan Skenario Upacara Adat Souraja dengan harmoni sempurna.",
-    rewardXp: 30,
-    tone: "primary" as const,
-  },
-];
+import { CANONICAL_BADGES, ALL_PASSPORT_STAMPS, type CanonicalBadge } from "@/lib/badges";
 
 const STAMP_ICONS: Record<number, typeof Award> = {
   1: Award,

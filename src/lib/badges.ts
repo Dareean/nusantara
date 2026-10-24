@@ -93,14 +93,29 @@ export const CANONICAL_BADGES: CanonicalBadge[] = [
   },
 ];
 
+// Seluruh Cap Paspor Resmi (Termasuk Cap Skenario Terpadu Souraja - Total 9 Cap)
+export const ALL_PASSPORT_STAMPS: CanonicalBadge[] = [
+  ...CANONICAL_BADGES,
+  {
+    id: "tamu-sopan-lembah-palu",
+    title: "Tamu Sopan Lembah Palu",
+    lessonId: 4,
+    unitId: 1,
+    detail: "Menuntaskan Skenario Upacara Adat Souraja dengan harmoni sempurna.",
+    rewardXp: 30,
+    tone: "primary",
+  },
+];
+
 export function getBadgeByLessonId(lessonId: number): CanonicalBadge | undefined {
-  return CANONICAL_BADGES.find((b) => b.lessonId === lessonId);
+  return ALL_PASSPORT_STAMPS.find((b) => b.lessonId === lessonId);
 }
 
 export function getBadgeByTitle(title: string): CanonicalBadge | undefined {
-  return CANONICAL_BADGES.find((b) => b.title.toLowerCase() === title.toLowerCase());
+  return ALL_PASSPORT_STAMPS.find((b) => b.title.toLowerCase() === title.toLowerCase());
 }
 
 export function getUnitClosingBadge(unitId: number): CanonicalBadge | undefined {
   return CANONICAL_BADGES.find((b) => b.unitId === unitId && b.isUnitCloser);
 }
+

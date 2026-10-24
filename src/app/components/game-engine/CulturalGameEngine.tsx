@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   X,
@@ -11,6 +11,7 @@ import {
   Check,
   CheckCircle2,
   XCircle,
+  GripVertical,
   ArrowRight,
   ArrowUp,
   ArrowDown,
@@ -90,6 +91,11 @@ export default function CulturalGameEngine({
 
   // ORDER states (Ronde 4 interaction)
   const [orderedItems, setOrderedItems] = useState<string[]>([]);
+  const [draggedOrderIndex, setDraggedOrderIndex] = useState<number | null>(null);
+  const [dragOverOrderIndex, setDragOverOrderIndex] = useState<number | null>(null);
+  const orderItemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const touchStartY = useRef<number | null>(null);
+  const touchStartIndex = useRef<number | null>(null);
 
   // SCENARIO states
   const [scenarioStepIdx, setScenarioStepIdx] = useState<number>(0);
@@ -125,6 +131,18 @@ export default function CulturalGameEngine({
     if (currentPairs.length === 0) return [];
     return shuffleArray(currentPairs.map((p) => p.right));
   }, [currentPairs, currentIdx]);
+
+  // P6: Acak pilihan jawaban agar jawaban benar tidak selalu di opsi pertama
+  const shuffledChoiceOptions = useMemo(() => {
+    if (!currentQ.options || currentQ.options.length <= 1) {
+      return currentQ.options || [];
+    }
+    const shuffled = shuffleArray(currentQ.options);
+    return shuffled.map((opt, idx) => ({
+      ...opt,
+      label: opt.label ? String.fromCharCode(65 + idx) : opt.label,
+    }));
+  }, [currentQ.id, currentQ.options, currentIdx]);
 
   // Reset state on step / question change
   useEffect(() => {
@@ -178,7 +196,15 @@ export default function CulturalGameEngine({
   // ── MATCH INTERACTION HANDLERS ──
   const handleMatchLeftClick = (left: string) => {
     if (feedbackState !== "idle") return;
-    if (matchedPairs.some((p) => p.left === left)) return;
+
+    // Jika item ini sudah terpasang, tekan lagi untuk membatalkan pasangannya
+    const existingPair = matchedPairs.find((p) => p.left === left);
+    if (existingPair) {
+      setMatchedPairs((prev) => prev.filter((p) => p.left !== left));
+      setMatchSelectedLeft(null);
+      setMatchSelectedRight(null);
+      return;
+    }
 
     if (matchSelectedRight) {
       const isValid = currentPairs.some(
@@ -200,7 +226,15 @@ export default function CulturalGameEngine({
 
   const handleMatchRightClick = (right: string) => {
     if (feedbackState !== "idle") return;
-    if (matchedPairs.some((p) => p.right === right)) return;
+
+    // Jika item ini sudah terpasang, tekan lagi untuk membatalkan pasangannya
+    const existingPair = matchedPairs.find((p) => p.right === right);
+    if (existingPair) {
+      setMatchedPairs((prev) => prev.filter((p) => p.right !== right));
+      setMatchSelectedLeft(null);
+      setMatchSelectedRight(null);
+      return;
+    }
 
     if (matchSelectedLeft) {
       const isValid = currentPairs.some(
@@ -223,10 +257,86 @@ export default function CulturalGameEngine({
   // ── ORDER INTERACTION HANDLER ──
   const moveOrderItem = (fromIndex: number, toIndex: number) => {
     if (feedbackState !== "idle") return;
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
     const next = [...orderedItems];
+    if (fromIndex >= next.length || toIndex >= next.length) return;
     const [moved] = next.splice(fromIndex, 1);
     next.splice(toIndex, 0, moved);
     setOrderedItems(next);
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    if (feedbackState !== "idle") return;
+    setDraggedOrderIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(index));
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    if (feedbackState !== "idle") return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverOrderIndex !== index) {
+      setDragOverOrderIndex(index);
+    }
+  };
+
+  const handleDragLeave = (index: number) => {
+    if (dragOverOrderIndex === index) {
+      setDragOverOrderIndex(null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    if (feedbackState !== "idle") return;
+    e.preventDefault();
+    const sourceIndexStr = e.dataTransfer.getData("text/plain");
+    const sourceIndex =
+      draggedOrderIndex !== null ? draggedOrderIndex : parseInt(sourceIndexStr, 10);
+    if (!isNaN(sourceIndex) && sourceIndex !== targetIndex) {
+      moveOrderItem(sourceIndex, targetIndex);
+    }
+    setDraggedOrderIndex(null);
+    setDragOverOrderIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedOrderIndex(null);
+    setDragOverOrderIndex(null);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent, index: number) => {
+    if (feedbackState !== "idle") return;
+    touchStartY.current = e.touches[0].clientY;
+    touchStartIndex.current = index;
+    setDraggedOrderIndex(index);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (feedbackState !== "idle" || touchStartIndex.current === null) return;
+    const currentY = e.touches[0].clientY;
+    orderItemRefs.current.forEach((el, idx) => {
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        if (currentY >= rect.top && currentY <= rect.bottom) {
+          setDragOverOrderIndex(idx);
+        }
+      }
+    });
+  };
+
+  const handleTouchEnd = () => {
+    if (
+      touchStartIndex.current !== null &&
+      dragOverOrderIndex !== null &&
+      touchStartIndex.current !== dragOverOrderIndex
+    ) {
+      moveOrderItem(touchStartIndex.current, dragOverOrderIndex);
+    }
+    touchStartY.current = null;
+    touchStartIndex.current = null;
+    setDraggedOrderIndex(null);
+    setDragOverOrderIndex(null);
   };
 
   // ── CHECK BUTTON READINESS DETERMINATION ──
@@ -636,7 +746,7 @@ export default function CulturalGameEngine({
       </div>
 
       {/* ── MAIN VIEWPORT ── */}
-      <main className="flex-1 flex flex-col items-center justify-start p-3 sm:p-5 pb-32 max-w-xl mx-auto w-full">
+      <main className="flex-1 flex flex-col items-center justify-start p-3 sm:p-5 pt-6 sm:pt-8 pb-32 max-w-xl mx-auto w-full">
         {/* ======================================================== */}
         {/* 1. MATCH (JODOHKAN PASANGAN DUA KOLOM - RONDE 4)          */}
         {/* ======================================================== */}
@@ -678,8 +788,9 @@ export default function CulturalGameEngine({
                     <button
                       key={p.left}
                       type="button"
-                      disabled={feedbackState !== "idle" || isMatched}
+                      disabled={feedbackState !== "idle"}
                       onClick={() => handleMatchLeftClick(p.left)}
+                      title={isMatched ? "Tekan untuk membatalkan pasangan ini" : undefined}
                       className={`w-full p-4 rounded-2xl border text-left font-bold text-sm transition flex items-center justify-between cursor-pointer disabled:cursor-default ${style}`}
                     >
                       <span>{p.left}</span>
@@ -702,7 +813,7 @@ export default function CulturalGameEngine({
                     "border-outline-variant/30 bg-surface-container-low hover:bg-surface-container text-on-surface";
                   if (isMatched) {
                     style =
-                      "border-secondary bg-secondary-fixed/40 text-on-surface ring-1 ring-secondary";
+                      "border-secondary bg-secondary-fixed/40 text-on-surface ring-1 ring-secondary hover:ring-2 hover:bg-secondary-fixed/60";
                   } else if (isSelected) {
                     style =
                       "border-primary bg-primary-fixed/30 ring-2 ring-primary text-primary font-black";
@@ -712,8 +823,9 @@ export default function CulturalGameEngine({
                     <button
                       key={rightText}
                       type="button"
-                      disabled={feedbackState !== "idle" || isMatched}
+                      disabled={feedbackState !== "idle"}
                       onClick={() => handleMatchRightClick(rightText)}
+                      title={isMatched ? "Tekan untuk membatalkan pasangan ini" : undefined}
                       className={`w-full p-4 rounded-2xl border text-left font-bold text-sm transition flex items-center justify-between cursor-pointer disabled:cursor-default ${style}`}
                     >
                       <span className="text-xs sm:text-sm">{rightText}</span>
@@ -746,7 +858,7 @@ export default function CulturalGameEngine({
                 {currentQ.prompt}
               </h2>
               <p className="text-xs text-on-surface-variant font-medium mt-1">
-                Susun urutan yang tepat dengan menekan tombol naik (↑) atau turun (↓).
+                Susun urutan yang tepat dengan menggeser (tarik/drag) kartu atau menekan tombol panah (↑/↓).
               </p>
             </div>
 
@@ -755,26 +867,57 @@ export default function CulturalGameEngine({
                 const targetItems = currentQ.items || [];
                 const isTargetCorrect =
                   feedbackState === "correct" && targetItems[index] === item;
+                const isDragging = draggedOrderIndex === index;
+                const isDragOver = dragOverOrderIndex === index && !isDragging;
 
-                let borderStyle = "border-outline-variant/30 bg-surface-container-low";
+                let borderStyle = "border-outline-variant/30 bg-surface-container-low hover:border-primary/40";
                 if (feedbackState === "correct") {
                   borderStyle = "border-secondary bg-secondary-fixed/30 ring-1 ring-secondary";
                 } else if (feedbackState === "wrong") {
                   borderStyle = isTargetCorrect
                     ? "border-secondary bg-secondary-fixed/30 ring-1 ring-secondary"
                     : "border-error bg-error-container/30 ring-1 ring-error";
+                } else if (isDragging) {
+                  borderStyle = "border-primary bg-primary-fixed/20 opacity-50 scale-[0.98] ring-2 ring-primary shadow-md";
+                } else if (isDragOver) {
+                  borderStyle = "border-primary bg-primary-fixed/30 ring-2 ring-primary scale-[1.02] shadow-lg";
                 }
 
                 return (
                   <div
                     key={`${item}-${index}`}
-                    className={`flex items-center justify-between rounded-2xl border p-4 transition ${borderStyle}`}
+                    ref={(el) => {
+                      orderItemRefs.current[index] = el;
+                    }}
+                    draggable={feedbackState === "idle"}
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={() => handleDragLeave(index)}
+                    onDrop={(e) => handleDrop(e, index)}
+                    onDragEnd={handleDragEnd}
+                    onTouchStart={(e) => handleTouchStart(e, index)}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    className={`flex items-center justify-between rounded-2xl border p-3.5 sm:p-4 transition-all duration-200 select-none ${
+                      feedbackState === "idle"
+                        ? "cursor-grab active:cursor-grabbing hover:shadow-xs"
+                        : ""
+                    } ${borderStyle}`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-fixed text-xs font-black text-primary">
+                      {feedbackState === "idle" && (
+                        <div
+                          className="cursor-grab active:cursor-grabbing text-on-surface-variant/40 hover:text-primary transition p-1 -ml-1 rounded-md"
+                          title="Tarik untuk menyusun"
+                          aria-label="Tarik untuk menyusun"
+                        >
+                          <GripVertical className="h-5 w-5" />
+                        </div>
+                      )}
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-fixed text-xs font-black text-primary shrink-0">
                         {index + 1}
                       </span>
-                      <span className="font-bold text-on-surface text-sm sm:text-base">
+                      <span className="font-bold text-on-surface text-sm sm:text-base select-none">
                         {item}
                       </span>
                     </div>
@@ -864,7 +1007,7 @@ export default function CulturalGameEngine({
                     key={opt.id}
                     type="button"
                     disabled={isLocked}
-                    onClick={() => setSelectedOptionId(opt.id)}
+                    onClick={() => setSelectedOptionId((prev) => (prev === opt.id ? null : opt.id))}
                     className={`p-6 rounded-3xl border-2 text-center font-black text-base sm:text-lg transition-all shadow-[0_3px_0_0_#e0bfb7] cursor-pointer ${btnStyle}`}
                   >
                     <span>{opt.label}</span>
@@ -935,7 +1078,7 @@ export default function CulturalGameEngine({
                           key={cIdx}
                           type="button"
                           disabled={isLocked}
-                          onClick={() => setSelectedScenarioChoiceIdx(cIdx)}
+                          onClick={() => setSelectedScenarioChoiceIdx((prev) => (prev === cIdx ? null : cIdx))}
                           className={`w-full p-4 rounded-2xl border-2 text-left transition flex items-center justify-between cursor-pointer ${style}`}
                         >
                           <span className="text-sm sm:text-base font-bold">
@@ -967,11 +1110,15 @@ export default function CulturalGameEngine({
                   {currentQ.prompt}
                 </h2>
 
-                <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden bg-surface-container-high/40 flex items-center justify-center border border-outline-variant/20">
+                <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-surface-container-high via-surface-container-low to-surface-container-high flex items-center justify-center border border-outline-variant/20 shadow-inner">
+                  <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#A83B10_1px,transparent_1px)] [background-size:16px_16px]" />
                   {currentQ.imageUrl ? (
                     <img
                       src={currentQ.imageUrl}
                       alt={currentQ.prompt}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
                       className="w-full h-full object-contain p-2"
                     />
                   ) : (
@@ -989,8 +1136,13 @@ export default function CulturalGameEngine({
                         type="button"
                         disabled={feedbackState !== "idle"}
                         onClick={() => {
-                          setActiveHotspotId(spot.id);
-                          setSelectedOptionId(String(spot.id));
+                          const spotIdStr = String(spot.id);
+                          if (selectedOptionId === spotIdStr) {
+                            setSelectedOptionId(null);
+                          } else {
+                            setActiveHotspotId(spot.id);
+                            setSelectedOptionId(spotIdStr);
+                          }
                         }}
                         style={{ top: spot.top, left: spot.left }}
                         className={`absolute -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center font-black text-xs transition-transform cursor-pointer ${
@@ -1026,9 +1178,13 @@ export default function CulturalGameEngine({
                       type="button"
                       disabled={isLocked}
                       onClick={() => {
-                        setSelectedOptionId(opt.id);
-                        const numeric = Number(opt.id);
-                        if (!isNaN(numeric)) setActiveHotspotId(numeric);
+                        if (selectedOptionId === opt.id) {
+                          setSelectedOptionId(null);
+                        } else {
+                          setSelectedOptionId(opt.id);
+                          const numeric = Number(opt.id);
+                          if (!isNaN(numeric)) setActiveHotspotId(numeric);
+                        }
                       }}
                       className={`w-full py-3.5 px-4 rounded-2xl text-left font-black text-sm sm:text-base transition-all border-2 cursor-pointer shadow-[0_3px_0_0_#e0bfb7] ${
                         isSelected
@@ -1074,7 +1230,7 @@ export default function CulturalGameEngine({
             </div>
 
             <div className="grid grid-cols-1 gap-2.5 w-full">
-              {currentQ.options?.map((opt) => {
+              {shuffledChoiceOptions.map((opt) => {
                 const isSelected = selectedOptionId === opt.id;
                 const isLocked = feedbackState !== "idle";
                 const isThisCorrect = isLocked && opt.isCorrect;
@@ -1098,7 +1254,7 @@ export default function CulturalGameEngine({
                     key={opt.id}
                     type="button"
                     disabled={isLocked}
-                    onClick={() => setSelectedOptionId(opt.id)}
+                    onClick={() => setSelectedOptionId((prev) => (prev === opt.id ? null : opt.id))}
                     className={`w-full py-3 px-4 sm:py-3.5 sm:px-5 rounded-2xl text-left font-bold text-sm sm:text-base transition-all border-2 cursor-pointer shadow-[0_3px_0_0_#e0bfb7] ${btnStyle}`}
                   >
                     <div className="flex items-center justify-between">

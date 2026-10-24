@@ -11,6 +11,7 @@ export const DEFAULT_SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function getAuthSecret(): string {
   return (
+    process.env.LARAS_SESSION_SECRET ||
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.NEXTAUTH_SECRET ||
     "laras-session-hmac-secret-munas-2026-salt"
