@@ -339,10 +339,10 @@ export function recordLessonResult(email: string, result: LessonResult) {
     streak,
     hearts: result.correct || alreadyCompleted ? current.hearts : Math.max(0, current.hearts - 1),
     completedLessons: isCultureConnection
-      ? Array.from(new Set([...completedLessons, result.lessonId]))
+      ? completedLessons
       : completedLessons,
     unlockedLessons: isCultureConnection
-      ? Array.from(new Set([...unlockedLessons, result.lessonId + 1]))
+      ? unlockedLessons
       : unlockedLessons,
     badges,
     lastLesson: result,

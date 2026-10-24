@@ -1,20 +1,22 @@
 {
   "demo@gmail.com": {
-    "xp": 300,
+    "xp": 330,
     "streak": 5,
     "hearts": 3,
     "completedLessons": [
       1,
       2,
       3,
-      4
+      4,
+      5
     ],
     "unlockedLessons": [
       1,
       2,
       3,
       4,
-      5
+      5,
+      6
     ],
     "badges": [
       "pembelajar_kaili",
@@ -23,20 +25,20 @@
       "Penjaga Busana"
     ],
     "lastLesson": {
-      "lessonId": 3,
+      "lessonId": 5,
       "answered": "lesson-session",
       "correct": true,
       "score": 100,
-      "xp": 0,
+      "xp": 30,
       "bonusXp": 0,
       "baseRewardXp": 30,
-      "totalExercises": 5,
-      "correctExercises": 5,
-      "firstAttemptCorrect": 5,
+      "totalExercises": 6,
+      "correctExercises": 6,
+      "firstAttemptCorrect": 6,
       "heartsRemaining": 3,
       "completed": true,
-      "completedAt": "2026-10-24T06:06:33.785Z",
-      "isRepeat": true
+      "completedAt": "2026-10-24T13:38:59.553Z",
+      "isRepeat": false
     },
     "lastStudyDate": "2026-10-24",
     "cultureConnectionClaimed": true
@@ -58,55 +60,49 @@
     "streak": 1,
     "hearts": 1,
     "completedLessons": [
-      1,
-      4
+      1
     ],
     "unlockedLessons": [
       1,
-      2,
-      5
+      2
     ],
     "badges": [
-      "Pionir Salam",
-      "Tamu Sopan"
+      "Pionir Salam"
     ],
     "lastLesson": {
-      "lessonId": 4,
-      "answered": "culture-connection",
+      "lessonId": 1,
+      "answered": "lesson-session",
       "correct": true,
-      "score": 120,
-      "xp": 0,
+      "score": 100,
+      "xp": 20,
       "completedAt": "2026-10-22T15:43:19.535Z"
     },
     "lastStudyDate": "2026-10-22",
-    "cultureConnectionClaimed": true
+    "cultureConnectionClaimed": false
   },
   "admin@laras.id": {
     "xp": 50,
     "streak": 1,
     "hearts": 2,
     "completedLessons": [
-      1,
-      4
+      1
     ],
     "unlockedLessons": [
       1,
-      2,
-      5
+      2
     ],
     "badges": [
-      "Pionir Salam",
-      "Tamu Sopan"
+      "Pionir Salam"
     ],
     "lastLesson": {
-      "lessonId": 4,
-      "answered": "culture-connection",
+      "lessonId": 1,
+      "answered": "lesson-session",
       "correct": true,
-      "score": 120,
-      "xp": 30,
+      "score": 100,
+      "xp": 20,
       "completedAt": "2026-10-24T06:48:51.227Z"
     },
     "lastStudyDate": "2026-10-24",
-    "cultureConnectionClaimed": true
+    "cultureConnectionClaimed": false
   }
 }
