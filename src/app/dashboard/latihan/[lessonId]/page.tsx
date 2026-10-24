@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -13,6 +13,7 @@ import {
   Check,
   CheckCircle2,
   Compass,
+  GripVertical,
   Heart,
   Lock,
   RotateCcw,
@@ -93,6 +94,11 @@ export default function LessonSessionPage() {
 
   // ORDER state
   const [orderedItems, setOrderedItems] = useState<string[]>([]);
+  const [draggedOrderIndex, setDraggedOrderIndex] = useState<number | null>(null);
+  const [dragOverOrderIndex, setDragOverOrderIndex] = useState<number | null>(null);
+  const orderItemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const touchStartY = useRef<number | null>(null);
+  const touchStartIndex = useRef<number | null>(null);
 
   useEffect(() => {
     const lessonIdStr = String(params.lessonId);
@@ -137,7 +143,11 @@ export default function LessonSessionPage() {
         return;
       }
       setSessionEmail(session.email);
-      setHearts(currentProgress.hearts > 0 ? currentProgress.hearts : 3);
+      const startingHearts = currentProgress.hearts > 0 ? currentProgress.hearts : 3;
+      if (currentProgress.hearts <= 0) {
+        saveProgress(session.email, { ...currentProgress, hearts: 3 });
+      }
+      setHearts(startingHearts);
       setLesson(initialLesson);
       setQuestionOrder(initialLesson.questions.map((q) => q.id));
       setQuestionIndex(0);
@@ -206,10 +216,9 @@ export default function LessonSessionPage() {
     setIsRetryRound(false);
     if (sessionEmail) {
       const prog = readProgress(sessionEmail);
-      setHearts(prog.hearts > 0 ? prog.hearts : 3);
-    } else {
-      setHearts(3);
+      saveProgress(sessionEmail, { ...prog, hearts: 3 });
     }
+    setHearts(3);
     setSelectedAnswer("");
     setIsCorrect(null);
     setCorrectQuestionIds([]);
@@ -424,7 +433,7 @@ export default function LessonSessionPage() {
               key={option.id}
               type="button"
               disabled={screen === "feedback"}
-              onClick={() => setSelectedAnswer(option.id)}
+              onClick={() => setSelectedAnswer((prev) => (prev === option.id ? "" : option.id))}
               className={`flex w-full items-center justify-between rounded-2xl border p-4 text-left transition ${btnClass}`}
             >
               <div className="flex items-center gap-2">
@@ -452,10 +461,19 @@ export default function LessonSessionPage() {
   // MATCH EXERCISE
   const handleMatchLeftClick = (left: string) => {
     if (screen === "feedback") return;
-    if (matchedPairs.some((p) => p.left === left)) return;
+
+    // Jika item ini sudah terpasang, tekan lagi untuk membatalkan pasangannya
+    const existingPair = matchedPairs.find((p) => p.left === left);
+    if (existingPair) {
+      setMatchedPairs((prev) => prev.filter((p) => p.left !== left));
+      setSelectedAnswer("");
+      setMatchSelectedLeft(null);
+      setMatchSelectedRight(null);
+      return;
+    }
 
     if (matchSelectedRight) {
-      // Complete pair attempt
+      // Selesaikan pasangan
       const data = currentQuestion?.data as MatchQuestionData;
       const valid = data.pairs.some((p) => p.left === left && p.right === matchSelectedRight);
       if (valid) {
@@ -477,10 +495,19 @@ export default function LessonSessionPage() {
 
   const handleMatchRightClick = (right: string) => {
     if (screen === "feedback") return;
-    if (matchedPairs.some((p) => p.right === right)) return;
+
+    // Jika item ini sudah terpasang, tekan lagi untuk membatalkan pasangannya
+    const existingPair = matchedPairs.find((p) => p.right === right);
+    if (existingPair) {
+      setMatchedPairs((prev) => prev.filter((p) => p.right !== right));
+      setSelectedAnswer("");
+      setMatchSelectedLeft(null);
+      setMatchSelectedRight(null);
+      return;
+    }
 
     if (matchSelectedLeft) {
-      // Complete pair attempt
+      // Selesaikan pasangan
       const data = currentQuestion?.data as MatchQuestionData;
       const valid = data.pairs.some((p) => p.left === matchSelectedLeft && p.right === right);
       if (valid) {
@@ -504,7 +531,7 @@ export default function LessonSessionPage() {
     return (
       <div className="mt-8 space-y-4">
         <p className="text-xs text-on-surface-variant font-medium">
-          Ketuk satu ungkapan di kolom kiri, lalu ketuk arti/konteksnya di kolom kanan untuk menjodohkan.
+          Ketuk satu ungkapan di kolom kiri, lalu ketuk arti/konteksnya di kolom kanan untuk menjodohkan. Tekan kembali pasangan yang terhubung untuk membatalkannya.
         </p>
 
         <div className="grid grid-cols-2 gap-4">
@@ -517,7 +544,7 @@ export default function LessonSessionPage() {
 
               let style = "border-outline-variant/30 bg-surface-container-low hover:bg-surface-container text-on-surface";
               if (isMatched) {
-                style = "border-secondary bg-secondary-fixed/40 text-on-surface ring-1 ring-secondary";
+                style = "border-secondary bg-secondary-fixed/40 text-on-surface ring-1 ring-secondary hover:ring-2 hover:bg-secondary-fixed/60";
               } else if (isSelected) {
                 style = "border-primary bg-primary-fixed/30 ring-2 ring-primary text-primary font-black";
               }
@@ -526,8 +553,9 @@ export default function LessonSessionPage() {
                 <button
                   key={p.left}
                   type="button"
-                  disabled={screen === "feedback" || isMatched}
+                  disabled={screen === "feedback"}
                   onClick={() => handleMatchLeftClick(p.left)}
+                  title={isMatched ? "Tekan untuk membatalkan pasangan ini" : undefined}
                   className={`w-full p-4 rounded-2xl border text-left font-bold text-sm transition flex items-center justify-between cursor-pointer disabled:cursor-default ${style}`}
                 >
                   <span>{p.left}</span>
@@ -546,7 +574,7 @@ export default function LessonSessionPage() {
 
               let style = "border-outline-variant/30 bg-surface-container-low hover:bg-surface-container text-on-surface";
               if (isMatched) {
-                style = "border-secondary bg-secondary-fixed/40 text-on-surface ring-1 ring-secondary";
+                style = "border-secondary bg-secondary-fixed/40 text-on-surface ring-1 ring-secondary hover:ring-2 hover:bg-secondary-fixed/60";
               } else if (isSelected) {
                 style = "border-primary bg-primary-fixed/30 ring-2 ring-primary text-primary font-black";
               }
@@ -555,8 +583,9 @@ export default function LessonSessionPage() {
                 <button
                   key={rightText}
                   type="button"
-                  disabled={screen === "feedback" || isMatched}
+                  disabled={screen === "feedback"}
                   onClick={() => handleMatchRightClick(rightText)}
+                  title={isMatched ? "Tekan untuk membatalkan pasangan ini" : undefined}
                   className={`w-full p-4 rounded-2xl border text-left font-bold text-sm transition flex items-center justify-between cursor-pointer disabled:cursor-default ${style}`}
                 >
                   <span className="text-xs sm:text-sm">{rightText}</span>
@@ -580,40 +609,145 @@ export default function LessonSessionPage() {
   // ORDER EXERCISE
   const moveOrderItem = (fromIndex: number, toIndex: number) => {
     if (screen === "feedback") return;
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
     const next = [...orderedItems];
+    if (fromIndex >= next.length || toIndex >= next.length) return;
     const [moved] = next.splice(fromIndex, 1);
     next.splice(toIndex, 0, moved);
     setOrderedItems(next);
     setSelectedAnswer(next.join("|"));
   };
 
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    if (screen === "feedback") return;
+    setDraggedOrderIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(index));
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    if (screen === "feedback") return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverOrderIndex !== index) {
+      setDragOverOrderIndex(index);
+    }
+  };
+
+  const handleDragLeave = (index: number) => {
+    if (dragOverOrderIndex === index) {
+      setDragOverOrderIndex(null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    if (screen === "feedback") return;
+    e.preventDefault();
+    const sourceIndexStr = e.dataTransfer.getData("text/plain");
+    const sourceIndex = draggedOrderIndex !== null ? draggedOrderIndex : parseInt(sourceIndexStr, 10);
+    if (!isNaN(sourceIndex) && sourceIndex !== targetIndex) {
+      moveOrderItem(sourceIndex, targetIndex);
+    }
+    setDraggedOrderIndex(null);
+    setDragOverOrderIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedOrderIndex(null);
+    setDragOverOrderIndex(null);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent, index: number) => {
+    if (screen === "feedback") return;
+    touchStartY.current = e.touches[0].clientY;
+    touchStartIndex.current = index;
+    setDraggedOrderIndex(index);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (screen === "feedback" || touchStartIndex.current === null) return;
+    const currentY = e.touches[0].clientY;
+    orderItemRefs.current.forEach((el, idx) => {
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        if (currentY >= rect.top && currentY <= rect.bottom) {
+          setDragOverOrderIndex(idx);
+        }
+      }
+    });
+  };
+
+  const handleTouchEnd = () => {
+    if (
+      touchStartIndex.current !== null &&
+      dragOverOrderIndex !== null &&
+      touchStartIndex.current !== dragOverOrderIndex
+    ) {
+      moveOrderItem(touchStartIndex.current, dragOverOrderIndex);
+    }
+    touchStartY.current = null;
+    touchStartIndex.current = null;
+    setDraggedOrderIndex(null);
+    setDragOverOrderIndex(null);
+  };
+
   const renderOrderExercise = (data: OrderQuestionData) => {
     return (
       <div className="mt-8 space-y-3">
-        <p className="text-xs text-on-surface-variant font-medium">
-          Susun urutan yang tepat dengan menekan tombol naik (↑) atau turun (↓).
+        <p className="text-xs text-on-surface-variant font-medium flex items-center gap-1.5 flex-wrap">
+          <span>Susun urutan yang tepat dengan menggeser (tarik/drag) kartu atau menekan tombol panah (↑/↓).</span>
         </p>
 
         <div className="space-y-2.5">
           {orderedItems.map((item, index) => {
             const isTargetCorrect = screen === "feedback" && data.answer[index] === item;
-            let borderStyle = "border-outline-variant/30 bg-surface-container-low";
+            const isDragging = draggedOrderIndex === index;
+            const isDragOver = dragOverOrderIndex === index && !isDragging;
+
+            let borderStyle = "border-outline-variant/30 bg-surface-container-low hover:border-primary/40";
             if (screen === "feedback") {
               borderStyle = isTargetCorrect
                 ? "border-secondary bg-secondary-fixed/30 ring-1 ring-secondary"
                 : "border-error bg-error-container/30 ring-1 ring-error";
+            } else if (isDragging) {
+              borderStyle = "border-primary bg-primary-fixed/20 opacity-50 scale-[0.98] ring-2 ring-primary shadow-md";
+            } else if (isDragOver) {
+              borderStyle = "border-primary bg-primary-fixed/30 ring-2 ring-primary scale-[1.02] shadow-lg";
             }
 
             return (
               <div
                 key={item}
-                className={`flex items-center justify-between rounded-2xl border p-4 transition ${borderStyle}`}
+                ref={(el) => {
+                  orderItemRefs.current[index] = el;
+                }}
+                draggable={screen !== "feedback"}
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragLeave={() => handleDragLeave(index)}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+                onTouchStart={(e) => handleTouchStart(e, index)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className={`flex items-center justify-between rounded-2xl border p-3.5 sm:p-4 transition-all duration-200 select-none ${
+                  screen !== "feedback" ? "cursor-grab active:cursor-grabbing hover:shadow-xs" : ""
+                } ${borderStyle}`}
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-fixed text-xs font-black text-primary">
+                  {screen !== "feedback" && (
+                    <div
+                      className="cursor-grab active:cursor-grabbing text-on-surface-variant/40 hover:text-primary transition p-1 -ml-1 rounded-md"
+                      title="Tarik untuk menyusun"
+                      aria-label="Tarik untuk menyusun"
+                    >
+                      <GripVertical className="h-5 w-5" />
+                    </div>
+                  )}
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-fixed text-xs font-black text-primary shrink-0">
                     {index + 1}
                   </span>
-                  <span className="font-bold text-on-surface text-sm">{item}</span>
+                  <span className="font-bold text-on-surface text-sm sm:text-base select-none">{item}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <button
@@ -685,7 +819,7 @@ export default function LessonSessionPage() {
                 key={spot.id}
                 type="button"
                 disabled={screen === "feedback"}
-                onClick={() => setSelectedAnswer(spot.id)}
+                onClick={() => setSelectedAnswer((prev) => (prev === spot.id ? "" : spot.id))}
                 style={{ top: spot.top || "50%", left: spot.left || "50%" }}
                 aria-label={`Titik ${idx + 1}: ${spot.label}`}
                 className={`absolute -translate-x-1/2 -translate-y-1/2 transition-all cursor-pointer flex items-center justify-center rounded-full font-black text-xs shadow-lg ${
@@ -741,7 +875,7 @@ export default function LessonSessionPage() {
                 key={spot.id}
                 type="button"
                 disabled={screen === "feedback"}
-                onClick={() => setSelectedAnswer(spot.id)}
+                onClick={() => setSelectedAnswer((prev) => (prev === spot.id ? "" : spot.id))}
                 className={`flex items-center gap-2 rounded-xl border p-3 text-left transition cursor-pointer ${
                   isSelected
                     ? "border-primary bg-primary-fixed/30 ring-2 ring-primary text-primary"
@@ -1070,14 +1204,29 @@ export default function LessonSessionPage() {
             <p className="mt-2 text-on-surface-variant">
               Ulangi sesi ini dan perhatikan konteks sebelum memilih tindakan.
             </p>
-            <button
-              type="button"
-              onClick={resetSession}
-              className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 font-black text-on-primary shadow-[0_4px_0_0_#881f00] cursor-pointer"
-            >
-              <RotateCcw className="h-5 w-5" />
-              Coba Lagi
-            </button>
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={resetSession}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 font-black text-on-primary shadow-[0_4px_0_0_#881f00] cursor-pointer"
+              >
+                <RotateCcw className="h-5 w-5" />
+                Coba Lagi
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (sessionEmail) {
+                    const prog = readProgress(sessionEmail);
+                    saveProgress(sessionEmail, { ...prog, hearts: 3 });
+                  }
+                  router.push("/dashboard");
+                }}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-surface-container px-6 py-3 font-bold text-on-surface hover:bg-surface-container-high transition cursor-pointer"
+              >
+                Kembali ke Beranda
+              </button>
+            </div>
           </section>
         )}
       </div>
