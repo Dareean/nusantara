@@ -41,6 +41,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const isLessonPlayer =
+    pathname.startsWith("/dashboard/belajar/") && pathname !== "/dashboard/belajar";
+
+  if (isLessonPlayer) {
+    return <div className="min-h-screen bg-background text-on-surface antialiased">{children}</div>;
+  }
+
   const isImmersive = immersiveRoutes.some((route) => pathname.startsWith(route));
 
   if (isImmersive) {

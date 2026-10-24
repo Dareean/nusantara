@@ -559,92 +559,93 @@ export default function CulturalGameEngine({
   // -------------------------------------------------------------
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col antialiased font-sans select-none">
-      {/* ── PREVIEW MODE TOP BANNER ── */}
-      {isPreview && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-[#e7c4a0] border-b border-[#db9964] text-[#3d2419] px-4 py-1.5 text-center text-xs font-black flex items-center justify-between shadow-xs">
-          <div className="flex items-center gap-2 mx-auto">
-            <span className="px-2 py-0.5 rounded bg-[#3d2419] text-[#fffaf5] text-[10px] font-black uppercase tracking-wider">
-              Mode Pratinjau
-            </span>
-            <span>
-              Soal #{currentIdx + 1} dari {totalQuestions} • Transisi &amp; Penilaian Nyata (Simulasi, Progres Tidak Disimpan)
-            </span>
+      {/* ── TOP HUD CONTAINER (STICKY, ZERO OVERLAP) ── */}
+      <div className="sticky top-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant/20 shadow-xs">
+        {/* Preview Banner */}
+        {isPreview && (
+          <div className="bg-amber-500/15 border-b border-amber-500/25 text-amber-950 px-3 py-1.5 flex items-center justify-between text-xs font-black">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse shrink-0" />
+              <span className="text-[11px] font-black truncate">
+                Mode Pratinjau (Simulasi) • Soal #{currentIdx + 1}/{totalQuestions}
+              </span>
+            </div>
+            {onExit ? (
+              <button
+                type="button"
+                onClick={onExit}
+                className="px-2.5 py-0.5 rounded-lg bg-amber-800 text-white text-[10px] font-bold hover:bg-amber-900 cursor-pointer shrink-0 ml-2 shadow-2xs"
+              >
+                Tutup
+              </button>
+            ) : (
+              <Link
+                href={onExitHref}
+                className="px-2.5 py-0.5 rounded-lg bg-amber-800 text-white text-[10px] font-bold hover:bg-amber-900 shrink-0 ml-2 shadow-2xs"
+              >
+                Keluar
+              </Link>
+            )}
           </div>
+        )}
+
+        {/* Top HUD (Exit, Progress Bar, Hearts) */}
+        <header className="h-14 flex items-center justify-between px-3 sm:px-6">
           {onExit ? (
             <button
               type="button"
               onClick={onExit}
-              className="px-2.5 py-0.5 rounded bg-[#3d2419] text-[#fffaf5] text-[11px] font-bold hover:opacity-90 cursor-pointer shrink-0"
+              className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
+              title="Keluar"
             >
-              Tutup Pratinjau
+              <X className="w-5 h-5" />
             </button>
           ) : (
             <Link
               href={onExitHref}
-              className="px-2.5 py-0.5 rounded bg-[#3d2419] text-[#fffaf5] text-[11px] font-bold hover:opacity-90 shrink-0"
+              className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
+              title="Keluar"
             >
-              Kembali ke Builder
+              <X className="w-5 h-5" />
             </Link>
           )}
-        </div>
-      )}
 
-      {/* ── TOP HUD (HEADER) ── */}
-      <header className={`fixed ${isPreview ? "top-8" : "top-0"} left-0 right-0 h-16 bg-surface/90 backdrop-blur-md z-40 flex items-center justify-between px-4 lg:px-8 border-b border-outline-variant/20 transition-all`}>
-        {onExit ? (
-          <button
-            type="button"
-            onClick={onExit}
-            className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
-            title="Keluar"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        ) : (
-          <Link
-            href={onExitHref}
-            className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
-            title="Keluar"
-          >
-            <X className="w-6 h-6" />
-          </Link>
-        )}
-
-        {/* Progress Bar & Question Counter */}
-        <div className="flex-1 max-w-xl mx-4 sm:mx-8">
-          <div className="flex items-center justify-between mb-1 text-[11px] font-bold text-on-surface-variant">
-            <span>
-              Soal {Math.min(currentIdx + 1, totalQuestions)} dari {totalQuestions}
-            </span>
-            {isPreview && (
-              <span className="text-[10px] uppercase font-black tracking-wider text-secondary">
-                Simulasi Permainan
+          {/* Progress Bar & Question Counter */}
+          <div className="flex-1 max-w-md mx-3 sm:mx-6">
+            <div className="flex items-center justify-between mb-1 text-[11px] font-bold text-on-surface-variant">
+              <span>
+                Soal {Math.min(currentIdx + 1, totalQuestions)} dari {totalQuestions}
               </span>
-            )}
+              {isPreview && (
+                <span className="text-[10px] uppercase font-black tracking-wider text-secondary">
+                  Simulasi
+                </span>
+              )}
+            </div>
+            <div className="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden">
+              <div
+                className="bg-primary h-full rounded-full transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
           </div>
-          <div className="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden">
-            <div
-              className="bg-primary h-full rounded-full transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
 
-        {/* HUD Items: Streak & Hearts */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 bg-surface-container px-3 py-1 rounded-full text-sm font-bold text-on-surface">
-            <Flame className="w-4 h-4 text-primary fill-current" />
-            <span>{session.streakDays || 3}</span>
+          {/* Hearts & Streak */}
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1 bg-surface-container px-2.5 py-0.5 rounded-full text-xs font-bold text-on-surface">
+              <Flame className="w-3.5 h-3.5 text-primary fill-current" />
+              <span>{session.streakDays || 3}</span>
+            </div>
+            <div className="flex items-center gap-1 bg-error-container/40 px-2.5 py-0.5 rounded-full border border-error/20">
+              <Heart className="w-4 h-4 text-error fill-current" />
+              <span className="text-xs text-error font-extrabold">{hearts}/3</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1 bg-error-container/40 px-3.5 py-1 rounded-full border border-error/20">
-            <Heart className="w-5 h-5 text-error fill-current" />
-            <span className="text-sm text-error font-extrabold">{hearts}/3</span>
-          </div>
-        </div>
-      </header>
+        </header>
+      </div>
 
       {/* ── MAIN VIEWPORT ── */}
-      <main className={`${isPreview ? "pt-28" : "pt-20"} pb-36 flex-1 flex flex-col items-center justify-center p-4`}>
+      <main className="flex-1 flex flex-col items-center justify-start p-3 sm:p-5 pb-32 max-w-xl mx-auto w-full">
         {/* ======================================================== */}
         {/* 1. MATCH (JODOHKAN PASANGAN DUA KOLOM - RONDE 4)          */}
         {/* ======================================================== */}
@@ -1058,12 +1059,12 @@ export default function CulturalGameEngine({
         {/* ======================================================== */}
         {(currentQ.type === "multiple_choice" || currentQ.type === "audio") && (
           <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
-            <div className="w-full bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border-2 border-outline-variant/30 shadow-sm mb-6 text-center">
-              <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">
+            <div className="w-full bg-surface-container-lowest rounded-3xl p-5 sm:p-7 border-2 border-outline-variant/30 shadow-xs mb-4 text-center">
+              <h2 className="text-lg sm:text-xl font-black text-on-surface tracking-tight">
                 {currentQ.prompt}
               </h2>
               {currentQ.subPrompt && (
-                <p className="text-sm text-on-surface-variant font-medium mt-2">
+                <p className="text-xs sm:text-sm text-on-surface-variant font-medium mt-1.5">
                   {currentQ.subPrompt}
                 </p>
               )}
@@ -1073,7 +1074,7 @@ export default function CulturalGameEngine({
                 <button
                   type="button"
                   onClick={handlePlayAudio}
-                  className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary text-xs font-black uppercase tracking-wider transition-all cursor-pointer border border-primary/20"
+                  className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary text-xs font-black uppercase tracking-wider transition-all cursor-pointer border border-primary/20"
                 >
                   <Volume2 className="h-4 w-4" />
                   <span>{isPlayingAudio ? "Memutar..." : "Putar Audio Rekaman"}</span>
@@ -1081,7 +1082,7 @@ export default function CulturalGameEngine({
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-3.5 w-full">
+            <div className="grid grid-cols-1 gap-2.5 w-full">
               {currentQ.options?.map((opt) => {
                 const isSelected = selectedOptionId === opt.id;
                 const isLocked = feedbackState !== "idle";
@@ -1107,7 +1108,7 @@ export default function CulturalGameEngine({
                     type="button"
                     disabled={isLocked}
                     onClick={() => setSelectedOptionId(opt.id)}
-                    className={`w-full py-4 px-6 rounded-2xl text-left font-black text-base sm:text-lg transition-all border-2 cursor-pointer shadow-[0_3px_0_0_#e0bfb7] ${btnStyle}`}
+                    className={`w-full py-3 px-4 sm:py-3.5 sm:px-5 rounded-2xl text-left font-bold text-sm sm:text-base transition-all border-2 cursor-pointer shadow-[0_3px_0_0_#e0bfb7] ${btnStyle}`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
