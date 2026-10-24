@@ -535,7 +535,7 @@ export default function CultureConnectionPage() {
                       </span>
                       {isAlreadyClaimed && (
                         <span className="text-body-xs text-on-surface-variant font-medium">
-                          • Replay skenario (tanpa XP baru)
+                          • Latihan ulang skenario (tanpa XP baru)
                         </span>
                       )}
                       <span>•</span>
@@ -565,7 +565,7 @@ export default function CultureConnectionPage() {
                           ? "Selesaikan Keputusan"
                           : isAlreadyClaimed
                           ? "Sudah Diklaim • Buka Paspor"
-                          : "Klaim Hadiah & Simpan ke Paspor"}
+                          : "Klaim Cap Paspor"}
                       </span>
                       <ArrowRight className="w-5 h-5" />
                     </>

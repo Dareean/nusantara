@@ -65,7 +65,7 @@ export default function PengaturanPage() {
             <div className="flex items-center justify-between rounded-[20px] bg-surface-container-lowest p-4 shadow-xs ring-1 ring-outline-variant/25">
               <div>
                 <p className="text-base font-extrabold text-on-surface">Notifikasi push</p>
-                <p className="text-xs text-on-surface-variant">Ingatkan misi harian dan streak.</p>
+                <p className="text-xs text-on-surface-variant">Ingatkan target harian dan hari beruntun.</p>
               </div>
               <button
                 type="button"

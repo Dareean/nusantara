@@ -16,7 +16,7 @@ import {
 import { getSession } from "../auth/authClient";
 
 const navItems = [
-  { path: "/dashboard", Icon: Compass, label: "Belajar" },
+  { path: "/dashboard", Icon: Compass, label: "Beranda" },
   { path: "/dashboard/arcade", Icon: Gamepad2, label: "Arcade" },
   { path: "/dashboard/paspor", Icon: Trophy, label: "Paspor" },
   { path: "/dashboard/profil", Icon: User, label: "Profil" },

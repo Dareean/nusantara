@@ -329,7 +329,7 @@ export default function ArcadePage() {
                   <span className="w-6 text-center font-bold text-secondary text-title-md">1</span>
                   <div className="flex flex-col">
                     <span className="text-label-md font-bold text-on-surface">Rafi Fadhlillah</span>
-                    <span className="text-[11px] text-on-surface-variant">Ledo Master • 8 Streak</span>
+                    <span className="text-[11px] text-on-surface-variant">Ledo Master • 8 Hari beruntun</span>
                   </div>
                 </div>
                 <span className="text-label-md font-bold text-primary">1,420 XP</span>

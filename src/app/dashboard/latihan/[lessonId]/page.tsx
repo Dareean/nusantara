@@ -6,15 +6,21 @@ import { useParams, useRouter } from "next/navigation";
 import {
   ArrowDown,
   ArrowLeft,
+  ArrowRight,
   ArrowUp,
+  Award,
+  BookOpen,
   Check,
   CheckCircle2,
   Compass,
   Heart,
   Lock,
   RotateCcw,
+  Sparkles,
+  Trophy,
   Volume2,
   XCircle,
+  Zap,
 } from "lucide-react";
 import SourceCard from "../../../components/SourceCard";
 import { getSession } from "../../../auth/authClient";
@@ -33,7 +39,7 @@ import {
 import { getStoredSessions, syncSessionsFromServer } from "../../../components/game-engine/sessionStore";
 import { gameSessionToLesson } from "../../../components/game-engine/lessonAdapter";
 
-type SessionScreen = "loading" | "intro" | "exercise" | "feedback" | "gameover";
+type SessionScreen = "loading" | "intro" | "exercise" | "feedback" | "gameover" | "summary";
 
 function isAnswerCorrect(question: Question, answer: string, scenarioScore: number) {
   if (question.type === "choice") return answer === (question.data as ChoiceQuestionData).answer;
@@ -130,7 +136,9 @@ export default function LessonSessionPage() {
       setSessionEmail(session.email);
       setHearts(currentProgress.hearts > 0 ? currentProgress.hearts : 3);
       setLesson(initialLesson);
-      setScreen("intro");
+      setQuestionOrder(initialLesson.questions.map((q) => q.id));
+      setQuestionIndex(0);
+      setScreen("exercise");
 
       // Background sync from server (if published updates exist)
       syncSessionsFromServer().then((updatedList) => {
@@ -146,6 +154,10 @@ export default function LessonSessionPage() {
       }).catch(() => {});
     });
   }, [params.lessonId, router]);
+
+  const [missedHistory, setMissedHistory] = useState<
+    Array<{ id: string; prompt: string; correctAnswerText: string; explanation: string }>
+  >([]);
 
 
   const questionMap = useMemo(
@@ -206,7 +218,42 @@ export default function LessonSessionPage() {
     setMatchSelectedLeft(null);
     setMatchSelectedRight(null);
     setMatchedPairs([]);
+    setMissedHistory([]);
     setScreen("exercise");
+  };
+
+  const getReadableCorrectAnswer = (q: Question | undefined): string => {
+    if (!q) return "";
+    if (q.type === "choice") {
+      const data = q.data as ChoiceQuestionData;
+      const opt = data.options.find((o) => o.id === data.answer);
+      return opt ? opt.label : data.answer;
+    }
+    if (q.type === "truefalse") {
+      const data = q.data as TrueFalseQuestionData;
+      return data.answer ? "Fakta" : "Mitos";
+    }
+    if (q.type === "match") {
+      const data = q.data as MatchQuestionData;
+      return data.pairs.map((p) => `${p.left} = ${p.right}`).join(", ");
+    }
+    if (q.type === "order") {
+      const data = q.data as OrderQuestionData;
+      return data.answer.join(" → ");
+    }
+    if (q.type === "hotspot") {
+      const data = q.data as HotspotQuestionData;
+      const spot = data.hotspots.find((h) => h.id === data.answer);
+      return spot ? spot.label : data.answer;
+    }
+    if (q.type === "scenario") {
+      const data = q.data as ScenarioQuestionData;
+      const step = data.steps[scenarioStep];
+      if (!step) return "Sikap santun dan hormat";
+      const best = [...step.choices].sort((a, b) => b.score - a.score)[0];
+      return best ? best.label : "Sikap santun dan hormat";
+    }
+    return "";
   };
 
   const finishSession = () => {
@@ -224,7 +271,7 @@ export default function LessonSessionPage() {
       heartsRemaining: hearts,
       completedAt: new Date().toISOString(),
     });
-    router.push(`/dashboard/evaluasi?lesson=${lesson.id}`);
+    setScreen("summary");
   };
 
   const moveToNextQuestion = () => {
@@ -291,6 +338,19 @@ export default function LessonSessionPage() {
       if (!isRetryRound && !wrongQuestionIds.includes(currentQuestion.id)) {
         setWrongQuestionIds((ids) => [...ids, currentQuestion.id]);
       }
+      const readableAns = getReadableCorrectAnswer(currentQuestion);
+      setMissedHistory((prev) => {
+        if (prev.some((item) => item.id === currentQuestion.id)) return prev;
+        return [
+          ...prev,
+          {
+            id: currentQuestion.id,
+            prompt: currentQuestion.prompt,
+            correctAnswerText: readableAns,
+            explanation: currentQuestion.penjelasan || currentQuestion.why,
+          },
+        ];
+      });
       if (nextHearts <= 0) {
         setScreen("gameover");
         return;
@@ -715,15 +775,13 @@ export default function LessonSessionPage() {
   const retryCurrent = isRetryRound ? Math.min(questionIndex - totalExercises + 1, retryTotal) : 0;
 
   const counterText =
-    screen === "intro"
-      ? `0 dari ${totalExercises}`
-      : isRetryRound
-      ? `Pengulangan • soal ${retryCurrent} dari ${retryTotal} yang diulang`
-      : `soal ${Math.min(questionIndex + 1, totalExercises)} dari ${totalExercises}`;
+    isRetryRound
+      ? `Pengulangan • Soal ${retryCurrent} dari ${retryTotal} yang diulang`
+      : `Soal ${Math.min(questionIndex + 1, totalExercises)} dari ${totalExercises}`;
 
   // Progress Bar calculation taking scenario sub-steps into account
   let progressPercent = 0;
-  if (screen !== "intro" && totalExercises > 0) {
+  if (totalExercises > 0) {
     if (isRetryRound) {
       const stepBonus = screen === "feedback" && isCorrect ? 1 : 0;
       progressPercent = Math.min(100, Math.max(0, ((retryCurrent - 1 + stepBonus) / retryTotal) * 100));
@@ -745,69 +803,58 @@ export default function LessonSessionPage() {
   return (
     <main className="min-h-screen bg-background text-on-surface px-4 pt-6 pb-28 sm:px-6 sm:pb-32">
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-3xl flex-col [@media(orientation:landscape)_and_(max-height:450px)]:pl-14">
-        <header className="flex items-center justify-between gap-4">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm font-bold text-on-surface-variant hover:text-on-surface"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            Keluar sesi
-          </Link>
-          <div className="flex items-center gap-2 rounded-full bg-error-container px-3 py-1.5 text-sm font-black text-on-error-container">
-            <Heart className="h-4 w-4 fill-current" />
-            {hearts}/3
-          </div>
-        </header>
-
-        {/* Progress Bar & Question Counter */}
-        <div className="mt-6 flex items-center gap-3">
-          <div className="h-3 flex-1 overflow-hidden rounded-full bg-surface-container-high">
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <span className="text-xs font-black text-on-surface-variant whitespace-nowrap">
-            {counterText}
-          </span>
-        </div>
-
-        {screen === "intro" && (
-          <section className="my-auto rounded-3xl bg-surface-container-lowest p-6 shadow-xl ring-1 ring-outline-variant/30 sm:p-10">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-fixed text-primary">
-              <Compass className="h-7 w-7" />
-            </div>
-            <p className="mt-6 text-xs font-black uppercase tracking-[0.16em] text-primary">
-              Bab {lesson.id} • {lesson.region}
-            </p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">{lesson.title}</h1>
-            <p className="mt-2 text-lg font-bold text-on-surface-variant">{lesson.subtitle}</p>
-            <div className="mt-8 rounded-2xl bg-primary-fixed/30 p-5">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">Tahukah kamu?</p>
-              <p className="mt-2 text-lg font-semibold leading-relaxed text-on-surface">{lesson.intro}</p>
-            </div>
-            {lesson.source && (
-              <div className="mt-6">
-                <SourceCard source={lesson.source} />
+        {screen !== "summary" && (
+          <>
+            <header className="flex items-center justify-between gap-4">
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 text-sm font-bold text-on-surface-variant hover:text-on-surface"
+              >
+                <ArrowLeft className="h-5 w-5" />
+                <span>Keluar</span>
+              </Link>
+              <div className="flex items-center gap-2">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary-fixed/50 px-3 py-1.5 text-xs font-black text-on-secondary-fixed">
+                  <Zap className="h-4 w-4 text-secondary fill-current" />
+                  <span>+{earnedXp} XP</span>
+                </div>
+                <div className="flex items-center gap-1.5 rounded-full bg-error-container px-3 py-1.5 text-xs font-black text-on-error-container">
+                  <Heart className="h-4 w-4 fill-current text-error" />
+                  <span>{hearts}/3</span>
+                </div>
               </div>
-            )}
-            <p className="mt-5 text-sm text-on-surface-variant">
-              Sesi ini berisi {totalExercises} exercise. Jawaban salah mengurangi satu heart dan akan diulang sekali di akhir.
-            </p>
-            <button
-              type="button"
-              onClick={resetSession}
-              className="mt-8 w-full rounded-full bg-primary px-6 py-4 text-base font-black text-on-primary shadow-[0_4px_0_0_#881f00] transition hover:bg-primary-container cursor-pointer"
-            >
-              Mulai sesi
-            </button>
-          </section>
+            </header>
+
+            {/* Progress Bar & Question Counter */}
+            <div className="mt-6 flex items-center gap-3">
+              <div className="h-3 flex-1 overflow-hidden rounded-full bg-surface-container-high">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-300"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <span className="text-xs font-black text-on-surface-variant whitespace-nowrap">
+                {counterText}
+              </span>
+            </div>
+          </>
         )}
 
         {(screen === "exercise" || screen === "feedback") && currentQuestion && (
           <section className="my-auto rounded-3xl bg-surface-container-lowest p-6 shadow-xl ring-1 ring-outline-variant/30 sm:p-10">
+            {/* Objective Banner */}
+            <div className="mb-4 rounded-2xl bg-primary-fixed/20 p-3 sm:p-3.5 border border-primary/20 flex items-start gap-2.5">
+              <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+              <div className="text-xs">
+                <span className="font-black text-primary uppercase tracking-wider block">Tujuan Pelajaran</span>
+                <p className="text-on-surface font-semibold mt-0.5">
+                  {lesson.objective || `Setelah pelajaran ini, kamu bisa memahami ${lesson.title.toLowerCase()}.`}
+                </p>
+              </div>
+            </div>
+
             <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">
-              Exercise {Math.min(questionIndex + 1, totalExercises)} • {currentQuestion.type}
+              Soal {Math.min(questionIndex + 1, totalExercises)} dari {totalExercises}
             </p>
             {currentQuestion.audioUrl && (
               <div className="mt-3 flex items-center gap-2">
@@ -833,17 +880,37 @@ export default function LessonSessionPage() {
 
             {screen === "feedback" && (
               <div
-                className={`mt-6 rounded-2xl p-4 ${
+                className={`mt-6 rounded-2xl p-4 sm:p-5 border-2 ${
                   isCorrect
-                    ? "bg-secondary-fixed/40 text-on-secondary-fixed"
-                    : "bg-error-container/60 text-on-error-container"
+                    ? "bg-[#d7f7c2]/80 border-[#58a700]/50 text-[#1b5e20]"
+                    : "bg-[#ffdfe0]/80 border-[#ea2b2b]/50 text-[#b71c1c]"
                 }`}
               >
-                <div className="flex items-center gap-2 font-black">
-                  {isCorrect ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
-                  {isCorrect ? "Jawaban tepat" : "Belum tepat"}
+                <div className="flex items-center gap-2 font-black text-base sm:text-lg">
+                  {isCorrect ? (
+                    <CheckCircle2 className="h-6 w-6 text-[#58a700] shrink-0" />
+                  ) : (
+                    <XCircle className="h-6 w-6 text-[#ea2b2b] shrink-0" />
+                  )}
+                  <span>
+                    {isCorrect
+                      ? `Benar! Kamu mendapat ${currentQuestion.xp} XP.`
+                      : "Kurang tepat."}
+                  </span>
                 </div>
-                <p className="mt-2 text-sm font-semibold">{currentQuestion.why}</p>
+
+                {!isCorrect && (
+                  <div className="mt-2 text-sm font-black text-on-surface">
+                    Jawaban yang benar:{" "}
+                    <span className="text-[#881f00] font-extrabold underline decoration-primary/40">
+                      {getReadableCorrectAnswer(currentQuestion)}
+                    </span>
+                  </div>
+                )}
+
+                <p className="mt-2 text-xs sm:text-sm font-semibold leading-relaxed">
+                  {currentQuestion.penjelasan || currentQuestion.why}
+                </p>
               </div>
             )}
 
@@ -853,7 +920,118 @@ export default function LessonSessionPage() {
               onClick={screen === "exercise" ? checkAnswer : continueAfterFeedback}
               className="mt-8 w-full rounded-full bg-primary px-6 py-4 text-base font-black text-on-primary shadow-[0_4px_0_0_#881f00] transition hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
             >
-              {screen === "exercise" ? "Periksa" : "Lanjut"}
+              {screen === "exercise" ? "Periksa" : "Berikutnya"}
+            </button>
+          </section>
+        )}
+
+        {screen === "summary" && (
+          <section className="my-auto rounded-3xl bg-surface-container-lowest p-6 shadow-xl ring-1 ring-outline-variant/30 sm:p-10 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-fixed text-primary shadow-sm mb-4">
+              <Trophy className="h-8 w-8" />
+            </div>
+
+            <span className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+              Ringkasan Pelajaran Selesai
+            </span>
+            <h1 className="mt-1 text-2xl sm:text-3xl font-black text-on-surface tracking-tight">
+              {lesson.title}
+            </h1>
+            <p className="mt-1 text-xs sm:text-sm text-on-surface-variant font-medium">
+              {lesson.region} • Sesi pembelajaran berhasil diselesaikan
+            </p>
+
+            {/* Metrik: XP, Akurasi, Nyawa */}
+            <div className="mt-6 grid grid-cols-3 gap-3 text-left">
+              <div className="rounded-2xl bg-surface-container p-3 sm:p-4 ring-1 ring-outline-variant/20">
+                <span className="text-[10px] uppercase font-black tracking-wider text-on-surface-variant">XP Didapat</span>
+                <div className="mt-1 flex items-center gap-1.5 text-lg sm:text-xl font-black text-primary">
+                  <Zap className="w-4 h-4 text-secondary fill-current" />
+                  <span>+{lesson.rewardXp} XP</span>
+                </div>
+              </div>
+              <div className="rounded-2xl bg-surface-container p-3 sm:p-4 ring-1 ring-outline-variant/20">
+                <span className="text-[10px] uppercase font-black tracking-wider text-on-surface-variant">Akurasi</span>
+                <div className="mt-1 text-lg sm:text-xl font-black text-secondary">
+                  {Math.round((firstAttemptCorrectCount / Math.max(1, totalExercises)) * 100)}%
+                </div>
+                <span className="text-[10px] text-on-surface-variant font-medium">
+                  {firstAttemptCorrectCount}/{totalExercises} soal tepat
+                </span>
+              </div>
+              <div className="rounded-2xl bg-surface-container p-3 sm:p-4 ring-1 ring-outline-variant/20">
+                <span className="text-[10px] uppercase font-black tracking-wider text-on-surface-variant">Sisa Nyawa</span>
+                <div className="mt-1 flex items-center gap-1 text-lg sm:text-xl font-black text-error">
+                  <Heart className="w-4 h-4 fill-current" />
+                  <span>{hearts}/3</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Konsep yang Dipelajari */}
+            <div className="mt-6 rounded-2xl bg-surface-container-low p-4 sm:p-5 text-left border border-outline-variant/20">
+              <div className="flex items-center gap-2 mb-2.5">
+                <BookOpen className="w-4 h-4 text-primary" />
+                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-on-surface">
+                  Konsep yang Dipelajari
+                </h3>
+              </div>
+              <ul className="space-y-1.5 text-xs sm:text-sm text-on-surface-variant">
+                {(lesson.concepts && lesson.concepts.length > 0
+                  ? lesson.concepts
+                  : [
+                      lesson.objective || lesson.intro,
+                      "Penerapan sapaan dan adab santun dalam konteks adat",
+                      "Praktik membaca situasi sebelum bertindak",
+                    ]
+                ).map((c, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                    <span className="font-medium text-on-surface">{c}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Evaluasi Soal yang Pernah Salah */}
+            <div className="mt-4 rounded-2xl bg-surface-container-low p-4 sm:p-5 text-left border border-outline-variant/20">
+              <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-on-surface mb-2.5">
+                Tinjauan Soal
+              </h3>
+              {missedHistory.length === 0 ? (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary-fixed/30 text-on-secondary-fixed text-xs font-bold">
+                  <CheckCircle2 className="w-4 h-4 text-secondary shrink-0" />
+                  <span>Sempurna! Semua soal kamu jawab dengan tepat pada percobaan pertama.</span>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-xs text-on-surface-variant font-medium">
+                    Soal yang sempat keliru dan jawaban benarnya:
+                  </p>
+                  {missedHistory.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-xl bg-surface-container-lowest border border-outline-variant/30 text-xs space-y-1"
+                    >
+                      <p className="font-bold text-on-surface">{item.prompt}</p>
+                      <p className="text-secondary font-extrabold">
+                        Jawaban yang benar: <span className="underline">{item.correctAnswerText}</span>
+                      </p>
+                      <p className="text-[11px] text-on-surface-variant font-medium">{item.explanation}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* SATU TOMBOL DOMINAN: Lanjutkan */}
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="mt-6 w-full py-3.5 sm:py-4 rounded-full bg-primary text-on-primary font-black text-sm uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer flex items-center justify-center gap-2"
+            >
+              <span>Lanjutkan</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </section>
         )}
@@ -863,7 +1041,7 @@ export default function LessonSessionPage() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-error-container text-error">
               <Lock className="h-8 w-8" />
             </div>
-            <h1 className="mt-6 text-3xl font-black">Hearts habis</h1>
+            <h1 className="mt-6 text-3xl font-black">Nyawa Habis</h1>
             <p className="mt-2 text-on-surface-variant">
               Ulangi sesi ini dan perhatikan konteks sebelum memilih tindakan.
             </p>
@@ -873,7 +1051,7 @@ export default function LessonSessionPage() {
               className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 font-black text-on-primary shadow-[0_4px_0_0_#881f00] cursor-pointer"
             >
               <RotateCcw className="h-5 w-5" />
-              Coba lagi
+              Coba Lagi
             </button>
           </section>
         )}

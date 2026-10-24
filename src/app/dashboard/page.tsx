@@ -48,7 +48,7 @@ const pathNodes: PathNode[] = [
   { id: 3, title: "Peti Budaya", subtitle: "Reward Bab 1", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "center" },
   { id: 4, title: "Skenario Souraja", subtitle: "Pelajaran 3 • Rumah adat", type: "lesson", href: "/dashboard/latihan/3", xp: 30, offset: "right" },
   { id: 5, title: "Culture Connection: Upacara Adat", subtitle: "Simulasi • Pernikahan adat Kaili", type: "review", href: "/dashboard/culture-connection", xp: 30, offset: "center" },
-  { id: 6, title: "Lencana Tamu Sopan", subtitle: "Penutup Bab 1", type: "review", href: "/dashboard/paspor", xp: 50, offset: "left" },
+  { id: 6, title: "Cap Paspor Tamu Sopan", subtitle: "Penutup Bab 1", type: "review", href: "/dashboard/paspor", xp: 50, offset: "left" },
 ];
 
 function getNodeStatus(node: PathNode, progress: UserProgress): NodeStatus {
@@ -432,75 +432,110 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* KARTU SAMBUTAN INLINE UNTUK PENGGUNA BARU */}
-              {isLoaded && progress.completedLessons.length === 0 && !hasSeenOnboarding && (
-                <div className="mb-6 rounded-3xl border-2 border-primary/25 bg-gradient-to-br from-primary-fixed/40 via-surface-container-lowest to-surface-container-lowest p-5 sm:p-6 shadow-md transition-all">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-black uppercase tracking-wider mb-2">
-                        <Sparkles className="w-3.5 h-3.5 fill-current" />
-                        <span>Panduan Pengguna Baru</span>
-                      </div>
-                      <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">
-                        Selamat datang di LARAS, {userName || "Sahabat Budaya"}!
-                      </h2>
-                      <p className="mt-2 text-sm text-on-surface-variant font-medium leading-relaxed">
-                        Ini peta belajarmu. Ikuti dari pelajaran pertama — jawab soal, kumpulkan XP, dan isi Paspor Budayamu.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleDismissOnboarding}
-                      className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer shrink-0"
-                      title="Tutup Panduan"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <div className="mt-5 flex flex-wrap items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={handleStartFirstLesson}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
-                    >
-                      <span>Mulai Pelajaran Pertama</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleStartTour}
-                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-extrabold text-xs sm:text-sm transition cursor-pointer"
-                    >
-                      <HelpCircle className="w-4 h-4 text-primary" />
-                      <span>Lihat Panduan Singkat</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDismissOnboarding}
-                      className="text-xs font-bold text-on-surface-variant hover:text-primary transition underline underline-offset-4 cursor-pointer ml-auto"
-                    >
-                      Lewati
-                    </button>
-                  </div>
+              {/* 1. STRIP KEADAAN (Selalu Terlihat, Termasuk Saat Nilainya 0) */}
+              <div className="mb-4 rounded-2xl bg-surface-container-lowest px-4 py-2.5 border-2 border-outline-variant/30 text-xs font-bold text-on-surface flex items-center justify-between flex-wrap gap-2 shadow-xs">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span>
+                    Halo, <strong className="text-primary">{userName || "Sahabat Budaya"}</strong>
+                  </span>
+                  <span className="text-outline">·</span>
+                  <span>Level {Math.floor((progress?.xp || 0) / 100) + 1}</span>
+                  <span className="text-outline">·</span>
+                  <span>{progress?.xp || 0} XP (poin pengalaman)</span>
+                  <span className="text-outline">·</span>
+                  <span>Hari beruntun: {progress?.streak || 0}</span>
+                  <span className="text-outline">·</span>
+                  <span>Target hari ini: {completedBaseCount > 0 ? 1 : 0} dari 1 pelajaran</span>
                 </div>
-              )}
+              </div>
 
-
-              {/* Misi Berikutnya Hero Banner */}
+              {/* 2. SATU KARTU DOMINAN (Hanya Satu Tombol Utama di Layar Ini) */}
               {!isLoaded ? (
-                <section className="relative overflow-hidden rounded-2xl bg-surface-container-high px-5 py-5 mb-8 animate-pulse border-2 border-outline-variant/30">
+                <section className="relative overflow-hidden rounded-3xl bg-surface-container-high px-5 py-5 mb-8 animate-pulse border-2 border-outline-variant/30">
                   <div className="flex items-center justify-between gap-4">
                     <div className="space-y-2">
                       <div className="h-3 w-24 rounded bg-outline-variant/50" />
-                      <div className="h-5 w-44 rounded bg-outline-variant/60" />
-                      <div className="h-3 w-56 rounded bg-outline-variant/40" />
+                      <div className="h-5 w-48 rounded bg-outline-variant/60" />
+                      <div className="h-3 w-64 rounded bg-outline-variant/40" />
                     </div>
-                    <div className="h-9 w-24 rounded-full bg-outline-variant/50" />
+                    <div className="h-10 w-28 rounded-full bg-outline-variant/50" />
+                  </div>
+                </section>
+              ) : progress.completedLessons.length === 0 ? (
+                /* Pengguna Baru: Kartu Pelajaran Pertama */
+                <section className="relative overflow-hidden rounded-3xl border-2 border-primary/30 bg-gradient-to-br from-primary-fixed/40 via-surface-container-lowest to-surface-container-lowest p-5 sm:p-6 shadow-md mb-8 transition-all">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-black uppercase tracking-wider mb-2">
+                          <Sparkles className="w-3.5 h-3.5 fill-current" />
+                          <span>Pelajaran 1 • Baru</span>
+                        </div>
+                        <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">
+                          Salam &amp; Adab Tabe
+                        </h2>
+                        <p className="mt-1.5 text-xs sm:text-sm text-on-surface-variant font-semibold leading-relaxed">
+                          Tujuan: Setelah pelajaran ini, kamu bisa menyapa dan mempraktikkan adab santun Tabe dalam budaya Kaili.
+                        </p>
+                        <p className="mt-1 text-xs text-primary font-bold">
+                          ±3 menit · 5 soal · +20 XP
+                        </p>
+                      </div>
+
+                      {!hasSeenOnboarding && (
+                        <button
+                          type="button"
+                          onClick={handleDismissOnboarding}
+                          className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer shrink-0"
+                          title="Tutup Panduan"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {!hasSeenOnboarding && (
+                      <p className="text-xs text-on-surface-variant font-medium pt-2 border-t border-outline-variant/20">
+                        Selamat datang di LARAS, {userName || "Sahabat Budaya"}! Ini peta belajarmu. Tekan Mulai Pelajaran untuk langsung membuka soal pertama.
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                      {/* SATU TOMBOL DOMINAN */}
+                      <Link
+                        href="/dashboard/latihan/1"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary text-on-primary font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
+                      >
+                        <Play className="h-4 w-4 fill-current" />
+                        <span>Mulai Pelajaran</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+
+                      {!hasSeenOnboarding && (
+                        <div className="flex items-center gap-2 ml-auto">
+                          <button
+                            type="button"
+                            onClick={handleStartTour}
+                            className="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold text-xs transition cursor-pointer"
+                          >
+                            <HelpCircle className="w-3.5 h-3.5 text-primary" />
+                            <span>Panduan singkat</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDismissOnboarding}
+                            className="text-xs font-bold text-on-surface-variant hover:text-primary transition underline cursor-pointer"
+                          >
+                            Lewati
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </section>
               ) : isUnit1Complete ? (
-                <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary-container px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
+                /* Pengguna yang Sudah Menyelesaikan Seluruh Bab 1 */
+                <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary to-primary-container px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
                   <div className="relative z-10 flex items-center justify-between gap-4">
                     <div className="min-w-0">
                       <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary-fixed">
@@ -515,21 +550,22 @@ export default function DashboardPage() {
                     </div>
                     <Link
                       href="/dashboard/paspor"
-                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-5 py-2.5 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
                     >
                       <Award className="h-3.5 w-3.5" />
-                      <span>Lihat Paspor</span>
+                      <span>Buka Paspor</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
                   <div className="absolute -right-8 -top-12 h-32 w-32 rounded-full bg-primary-container/40 pointer-events-none" />
                 </section>
               ) : (
-                <section className="relative overflow-hidden rounded-2xl bg-primary px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
+                /* Pengguna yang Sedang Berprogres: Kartu Lanjutkan */
+                <section className="relative overflow-hidden rounded-3xl bg-primary px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
                   <div className="relative z-10 flex items-center justify-between gap-4">
                     <div className="min-w-0">
                       <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary-fixed">
-                        Misi berikutnya
+                        Lanjutkan dari terakhir: {activeNode.title} · {Math.round(progressRatio * 100)}%
                       </p>
                       <h2 className="text-lg font-black tracking-tight truncate mt-0.5">
                         {activeNode.title}
@@ -538,12 +574,13 @@ export default function DashboardPage() {
                         {activeNode.subtitle} • +{activeNode.xp} XP
                       </p>
                     </div>
+                    {/* SATU TOMBOL DOMINAN */}
                     <Link
                       href={activeNode.href}
-                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-surface px-5 py-2.5 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
                     >
                       <Play className="h-3.5 w-3.5 fill-current" />
-                      <span>Mulai</span>
+                      <span>Lanjutkan</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
@@ -590,61 +627,6 @@ export default function DashboardPage() {
                     />
                   )}
                 </svg>
-
-                {/* Desktop Culture Accent Card (menempel di sisi node rujukannya) */}
-                {isLoaded && cultureNode && (
-                  <div
-                    style={{
-                      top: `${cultureNodeY - 48}px`,
-                      left: `${cardLeft}px`,
-                    }}
-                    className="absolute z-10 hidden sm:flex flex-col w-[170px] rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-md transition-all"
-                  >
-                    <div className="relative h-20 w-full overflow-hidden bg-surface-container-high">
-                      <img
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
-                        alt="Souraja Rumah Adat Kaili"
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[8px] font-black text-white uppercase tracking-wider">
-                        Kultur Kaili
-                      </span>
-                    </div>
-                    <div className="p-2">
-                      <p className="text-[11px] font-black text-on-surface leading-tight">
-                        Souraja — rumah adat Kaili
-                      </p>
-                      <p className="text-[9px] text-on-surface-variant font-medium mt-0.5 line-clamp-1">
-                        Pusat adab &amp; diplomasi Banua Oge
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Mobile Culture Accent Card (rapi di bawah node rujukannya, selebar kolom) */}
-                {isLoaded && cultureNode && (
-                  <div
-                    style={{ top: `${cultureNodeY + 44}px` }}
-                    className="sm:hidden absolute z-10 w-[calc(100%-16px)] left-2 rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-xs flex items-center gap-3 p-2.5 transition-all"
-                  >
-                    <img
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
-                      alt="Souraja Rumah Adat Kaili"
-                      className="w-12 h-12 rounded-xl object-cover shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <span className="text-[9px] font-black text-primary uppercase tracking-wider">
-                        Artefak Budaya
-                      </span>
-                      <p className="text-xs font-black text-on-surface truncate">
-                        Souraja — rumah adat Kaili
-                      </p>
-                      <p className="text-[10px] text-on-surface-variant truncate">
-                        Pusat adab &amp; diplomasi Banua Oge
-                      </p>
-                    </div>
-                  </div>
-                )}
 
                 {/* Node-Node Lingkaran Faux-3D */}
                 {!isLoaded
@@ -805,6 +787,66 @@ export default function DashboardPage() {
                   );
                 })}
               </div>
+
+              {/* 3. KONTEN INFORMASI: JELAJAHI BUDAYA (PENGAYAAN — DI BAWAH PETA) */}
+              <section className="mt-10 pt-6 border-t border-outline-variant/30 w-full">
+                <div className="mb-4">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[10px] font-black uppercase tracking-wider mb-1">
+                    <Sparkles className="w-3 h-3" />
+                    <span>Jelajahi Budaya</span>
+                  </div>
+                  <h2 className="text-lg font-black text-on-surface">Khazanah &amp; Konteks Kaili</h2>
+                  <p className="text-xs text-on-surface-variant font-medium mt-0.5 leading-relaxed">
+                    Materi pengayaan wawasan budaya. Membaca konten ini tidak memberi penyelesaian pelajaran dan tidak memberi XP.
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-surface-container-lowest border-2 border-outline-variant/30 overflow-hidden shadow-xs flex flex-col">
+                    <div className="relative h-28 w-full bg-surface-container-high overflow-hidden">
+                      <img
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
+                        alt="Souraja Rumah Adat Kaili"
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 backdrop-blur-xs text-[9px] font-black text-white uppercase tracking-wider">
+                        Rumah Adat
+                      </span>
+                    </div>
+                    <div className="p-3.5 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-sm font-black text-on-surface">Souraja (Banua Oge)</h3>
+                        <p className="text-xs text-on-surface-variant font-medium mt-1 leading-relaxed">
+                          Pusat tata krama, musyawarah adat, dan tempat bertamu masyarakat bangsawan Kaili Ledo di Palu Barat.
+                        </p>
+                      </div>
+                      <span className="mt-3 text-[10px] font-bold text-outline">Pengayaan materi • Tanpa XP</span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-surface-container-lowest border-2 border-outline-variant/30 overflow-hidden shadow-xs flex flex-col">
+                    <div className="relative h-28 w-full bg-surface-container-high overflow-hidden">
+                      <img
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBL3GhtQRWPzykvIVNWr2V35NhJTe_dCVIIrRtyBVfZEEj3XqYhEOJv_SEbk1PTWX0c31bxzkMEw4gOh7sN-WlcJNaV67h505nMT6eV4hEBOjXkJ6KJwhuR9O1EtZUS6Z3a5-anWincRSwsEM6Cd1eIcoTaILOCLMI3NIxB7VqVikEobrcT0CoVvKVVkAc_aFxEbqVUD4ypGJjz4ltJB0RE8BCXz7x3pKJC2QF3wSnftvmW7hDh7y67iQ"
+                        alt="Pelataran Souraja"
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 backdrop-blur-xs text-[9px] font-black text-white uppercase tracking-wider">
+                        Adab Bertamu
+                      </span>
+                    </div>
+                    <div className="p-3.5 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-sm font-black text-on-surface">Pelataran &amp; Adab Tangga</h3>
+                        <p className="text-xs text-on-surface-variant font-medium mt-1 leading-relaxed">
+                          Tata cara mengucap Tabe dan menundukkan gesture sebelum menginjakkan kaki ke ruang utama Banua Oge.
+                        </p>
+                      </div>
+                      <span className="mt-3 text-[10px] font-bold text-outline">Pengayaan materi • Tanpa XP</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
           </div>
 
@@ -817,7 +859,7 @@ export default function DashboardPage() {
               </div>
               {isLoaded ? (
                 <p className="mt-5 text-3xl font-black">
-                  {progress.streak} <span className="text-sm text-on-surface-variant">hari streak</span>
+                  {progress.streak} <span className="text-sm text-on-surface-variant">hari beruntun</span>
                 </p>
               ) : (
                 <div className="mt-5 h-9 w-28 rounded bg-surface-container-high animate-pulse" />
@@ -848,7 +890,7 @@ export default function DashboardPage() {
                     ) : (
                       <div className="mt-2 h-6 w-8 rounded bg-surface-container-high animate-pulse" />
                     )}
-                    <p className="text-xs font-bold text-on-surface-variant">hearts</p>
+                    <p className="text-xs font-bold text-on-surface-variant">nyawa</p>
                   </div>
                   <p className="mt-1 text-[10px] text-on-surface-variant leading-tight">Terisi penuh kembali setiap hari baru</p>
                 </div>
@@ -869,9 +911,9 @@ export default function DashboardPage() {
               className="flex items-center justify-between rounded-3xl bg-secondary-fixed p-5 text-on-secondary-fixed transition hover:brightness-95"
             >
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.14em]">Reward berikutnya</p>
+                <p className="text-xs font-black uppercase tracking-[0.14em]">Cap Paspor berikutnya</p>
                 <p className="mt-1 font-black">Tamu Sopan</p>
-                <p className="mt-1 text-xs font-semibold">Buka Paspor Budaya</p>
+                <p className="mt-1 text-xs font-semibold">Buka Paspor</p>
               </div>
               <ArrowRight className="h-5 w-5" />
             </Link>
@@ -939,7 +981,7 @@ export default function DashboardPage() {
                     onClick={() => setTourStep(2)}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary font-bold text-xs uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
                   >
-                    <span>Lanjut</span>
+                    <span>Berikutnya</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -965,7 +1007,7 @@ export default function DashboardPage() {
                     onClick={() => setTourStep(3)}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary font-bold text-xs uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
                   >
-                    <span>Lanjut</span>
+                    <span>Berikutnya</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -976,7 +1018,7 @@ export default function DashboardPage() {
               <div>
                 <h3 className="text-lg font-black text-on-surface tracking-tight">Paspor Budaya</h3>
                 <p className="mt-1.5 text-xs sm:text-sm text-on-surface-variant font-medium leading-relaxed">
-                  Lencana dari pelajaran yang kamu selesaikan terkumpul di Paspor Budaya. Cek isinya kapan saja dari sini.
+                  Cap Paspor dari pelajaran yang kamu selesaikan terkumpul di Paspor Budaya. Cek isinya kapan saja dari sini.
                 </p>
                 <div className="mt-4 flex items-center justify-between gap-3 pt-3 border-t border-outline-variant/20">
                   <button
@@ -991,7 +1033,7 @@ export default function DashboardPage() {
                     onClick={handleStartFirstLesson}
                     className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-primary text-on-primary font-black text-xs uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
                   >
-                    <span>Mulai Belajar</span>
+                    <span>Mulai Pelajaran</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>

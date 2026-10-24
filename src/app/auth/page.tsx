@@ -82,9 +82,9 @@ function AuthPageContent() {
 
   useEffect(() => {
     if (errorParam === "OAuthFailed" || errorParam === "OAuthCallback" || errorParam === "OAuthSignin") {
-      setErrorMessage("Gagal masuk dengan Google. Pastikan akun Google Anda valid atau coba kembali.");
+      setErrorMessage("Gagal masuk dengan Google. Pastikan akun Google aktif atau coba lagi.");
     } else if (errorParam) {
-      setErrorMessage("Terjadi kendala saat autentikasi. Silakan coba lagi.");
+      setErrorMessage("Autentikasi belum berhasil. Periksa akunmu, lalu coba lagi.");
     }
   }, [errorParam]);
 
@@ -210,8 +210,8 @@ function AuthPageContent() {
             </h1>
             <p className="mt-0.5 text-xs text-on-surface-variant font-medium leading-normal">
               {authMode === "login"
-                ? "Lanjutkan petualangan belajar dan rawat streak harianmu."
-                : "Buat akun gratis dan kumpulkan paspor budaya pertamamu."}
+                ? "Lanjutkan petualangan belajar dan rawat hari beruntunmu."
+                : "Buat akun gratis dan kumpulkan Cap Paspor pertamamu."}
             </p>
           </div>
 

@@ -79,17 +79,17 @@ export default function AchievementPage() {
                 {isLoaded ? `Level ${Math.floor(progress.xp / 100) + 1}` : "Level --"}
               </span>
               <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">
-                {isLoaded ? `${progress.streak} hari streak` : "-- hari streak"}
+                {isLoaded ? `${progress.streak} hari beruntun` : "-- hari beruntun"}
               </span>
               <span className="rounded-full bg-white/80 px-2.5 py-1.5 text-xs font-bold text-[#492617]">
-                {isLoaded ? `${progress.badges.length} badge` : "-- badge"}
+                {isLoaded ? `${progress.badges.length} Cap Paspor` : "-- Cap Paspor"}
               </span>
             </div>
           </section>
 
           <section className="grid gap-3 md:grid-cols-3">
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
-              <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Quest selesai</p>
+              <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Pelajaran selesai</p>
               {isLoaded ? (
                 <h2 className="mt-2 text-2xl font-black text-on-surface">{progress.completedLessons.length}</h2>
               ) : (
@@ -97,7 +97,7 @@ export default function AchievementPage() {
               )}
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
-              <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Badge aktif</p>
+              <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Cap Paspor aktif</p>
               {isLoaded ? (
                 <h2 className="mt-2 text-2xl font-black text-on-surface">
                   {progress.badges.length}/{CANONICAL_BADGES.length}
@@ -107,10 +107,26 @@ export default function AchievementPage() {
               )}
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
-              <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Misi hari ini</p>
-              <h2 className="mt-2 text-2xl font-black text-on-surface">2</h2>
+              <p className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Target Harian</p>
+              <h2 className="mt-2 text-2xl font-black text-on-surface">1 Pelajaran</h2>
             </div>
           </section>
+
+          {/* Empty State Edukatif (jika belum ada Cap Paspor) */}
+          {isLoaded && progress.badges.length === 0 && (
+            <div className="rounded-3xl border-2 border-primary/20 bg-primary-fixed/20 p-5 sm:p-6 text-center flex flex-col items-center gap-3">
+              <p className="text-sm font-extrabold text-on-surface">
+                Kamu belum punya Cap Paspor. Selesaikan Unit 1 untuk mendapat Cap Paspor pertamamu.
+              </p>
+              <Link
+                href="/dashboard/latihan/1"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-black text-xs uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition"
+              >
+                <span>Mulai Unit 1</span>
+                <Play className="w-3.5 h-3.5 fill-current" />
+              </Link>
+            </div>
+          )}
 
           <section className="space-y-3">
             {CANONICAL_BADGES.map((item: CanonicalBadge) => {
@@ -167,7 +183,7 @@ export default function AchievementPage() {
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1d120d] px-4 py-2.5 text-sm font-extrabold text-[#fff7f1] shadow-[0_4px_0_0_#4a2214] transition-all hover:translate-y-[-1px]"
             >
               <Play className="w-4 h-4 fill-current" />
-              Kembali ke Roadmap
+              Kembali ke Beranda
             </Link>
           </div>
         </div>
