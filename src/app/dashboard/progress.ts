@@ -292,6 +292,25 @@ export async function loadProgress(email: string): Promise<UserProgress> {
   }
 }
 
+export function getNextLessonsToUnlock(completedLessonId: number): number[] {
+  if (completedLessonId === 6) {
+    // Selesai Pelajaran 6 membuka Pelajaran 7 (inti) dan 16 (pengayaan) sekaligus
+    return [7, 16];
+  }
+  if (completedLessonId === 16) {
+    // Selesai Pelajaran 16 membuka Pelajaran 17
+    return [17];
+  }
+  if (completedLessonId === 17) {
+    // Selesai Pelajaran 17 tidak membuka apa pun (jangan mencari ID 18)
+    return [];
+  }
+  if (completedLessonId === 15) {
+    return [];
+  }
+  return [completedLessonId + 1];
+}
+
 export function recordLessonResult(email: string, result: LessonResult) {
   const current = readProgress(email);
   const alreadyCompleted = current.completedLessons.includes(result.lessonId);
@@ -312,9 +331,10 @@ export function recordLessonResult(email: string, result: LessonResult) {
       ? [...current.completedLessons, result.lessonId]
       : current.completedLessons;
 
+  const newlyUnlocked = getNextLessonsToUnlock(result.lessonId);
   const unlockedLessons =
     result.correct && !alreadyCompleted
-      ? Array.from(new Set([...current.unlockedLessons, result.lessonId + 1]))
+      ? Array.from(new Set([...current.unlockedLessons, ...newlyUnlocked]))
       : current.unlockedLessons;
 
   // Canonical badge for completed lesson
@@ -408,7 +428,7 @@ export function recordLessonSession(email: string, result: LessonSessionResult) 
       : [...current.completedLessons, result.lessonId],
     unlockedLessons: alreadyCompleted
       ? current.unlockedLessons
-      : Array.from(new Set([...current.unlockedLessons, result.lessonId + 1])),
+      : Array.from(new Set([...current.unlockedLessons, ...getNextLessonsToUnlock(result.lessonId)])),
     badges,
     lastLesson: lessonResult,
     lastStudyDate: today,

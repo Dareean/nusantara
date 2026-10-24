@@ -25,6 +25,7 @@ export type Unit = {
   statusLabel?: string;
   sourceCitation: string;
   lessonIds: number[];
+  enrichmentLessonIds?: number[];
   prerequisiteUnitId?: UnitId;
   verificationNotes?: string[];
 };
@@ -81,6 +82,7 @@ export const UNITS: Record<UnitId, Unit> = {
     status: "LIVE",
     sourceCitation: "Rujukan Modul Bahasa Daerah Kaili (Aslitah) — Sitasi Resmi",
     lessonIds: [4, 5, 6],
+    enrichmentLessonIds: [16, 17],
     prerequisiteUnitId: 1,
     verificationNotes: [
       "Motoro, Oto, Kapudara, Sakaya, dan Sapeda dikenalkan hanya sebagai kelompok kosakata transportasi — tidak ditambahkan arti per kata di luar rujukan.",
@@ -200,7 +202,17 @@ export function isLessonUnlocked(
   if (unlockedLessons.includes(lessonId)) return true;
   if (completedLessons.includes(lessonId)) return true;
 
-  // Cari unit dari lesson ini
+  // Jalur pengayaan khusus Unit 2 (Latihan Mendengar)
+  if (lessonId === 16) {
+    // Pelajaran 16 terbuka begitu Pelajaran 6 selesai
+    return completedLessons.includes(6);
+  }
+  if (lessonId === 17) {
+    // Pelajaran 17 terbuka begitu Pelajaran 16 selesai
+    return completedLessons.includes(16);
+  }
+
+  // Cari unit dari lesson ini (inti)
   const unit = Object.values(UNITS).find((u) => u.lessonIds.includes(lessonId));
   if (!unit) return false;
 

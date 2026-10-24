@@ -34,9 +34,12 @@ Hierarki final: Section membungkus beberapa Unit, Unit membungkus beberapa Pelaj
 - **Status sumber:** Rujukan Modul Bahasa Daerah Kaili (Aslitah) — sitasi wajib.
 - **Tujuan unit:** Menguasai kosakata sehari-hari Kaili Ledo: bilangan, waktu, alam, dan alat perjalanan.
 - **Lencana penutup unit:** Penjelajah Kosakata.
-- **Pelajaran 1 — Bilangan Satu sampai Sepuluh** — BARU, 6 soal, 30 XP
-- **Pelajaran 2 — Waktu: Pagi, Malam, Besok, Lusa, Tahun** — BARU, 6 soal, 30 XP
-- **Pelajaran 3 — Alam dan Alat Perjalanan** — BARU, 6 soal, 30 XP
+- **Pelajaran 1 (ID 4) — Bilangan Satu sampai Sepuluh** — BARU (inti), 6 soal, 30 XP
+- **Pelajaran 2 (ID 5) — Waktu: Pagi, Malam, Besok, Lusa, Tahun** — BARU (inti), 6 soal, 30 XP
+- **Pelajaran 3 (ID 6) — Alam dan Alat Perjalanan** — BARU (inti), 6 soal, 30 XP
+- **Jalur Pengayaan Latihan Mendengar (di luar hitungan inti kurikulum):**
+  - **Pelajaran 16 — Latihan Mendengar 1 — Kosakata Sehari-hari** (PENGAYAAN PARALEL, 5 soal, 25 XP). Kata: *Yaku, Komiu, Banua, Mangande, Manginu*. Terbuka setelah Pelajaran 6 selesai.
+  - **Pelajaran 17 — Latihan Mendengar 2 — Kosakata Sehari-hari Lanjutan** (PENGAYAAN PARALEL, 5 soal, 25 XP). Kata: *Sampesuvu, Naturu, Neguru, Nolipai, Notesa*. Terbuka setelah Pelajaran 16 selesai.
 
 #### Unit 3 — Sapaan Lanjutan — BARU
 - **Status sumber:** Rujukan Modul Bahasa Daerah Kaili (Aslitah) — sitasi wajib.
@@ -82,12 +85,14 @@ Hierarki final: Section membungkus beberapa Unit, Unit membungkus beberapa Pelaj
 
 ## Rekap Jumlah
 - **Total unit:** 6 (Unit 1 sudah ada + Unit 2–6 baru)
-- **Total pelajaran:** 15 (3 sudah live + 12 baru)
-- **Pelajaran baru:** 12
-- **Soal baru:** 72 (12 pelajaran × 6 soal)
-- **XP pelajaran baru:** 360 (12 pelajaran × 30 XP; tiap soal 5 XP)
+- **Total pelajaran inti kurikulum:** 15 (3 sudah live + 12 baru)
+- **Pelajaran inti baru:** 12
+- **Soal inti baru:** 72 (12 pelajaran × 6 soal)
+- **XP pelajaran inti baru:** 360 (12 pelajaran × 30 XP; tiap soal 5 XP)
 - **Per unit baru, soal baru:** Unit 2 = 18, Unit 3 = 12, Unit 4 = 12, Unit 5 = 12, Unit 6 = 18
 - **Per unit baru, XP baru:** Unit 2 = 90, Unit 3 = 60, Unit 4 = 60, Unit 5 = 60, Unit 6 = 90
+- **Tambahan Pelajaran Pengayaan (Unit 2):** 2 pelajaran (ID 16 & 17), 10 soal mendengar baru, total 50 XP (dicatat terpisah dari 72 soal kurikulum inti agar tidak menggeser basis hitungan progres dan prasyarat unit).
+- **Grand Total Pelajaran:** 17 pelajaran (15 inti + 2 pengayaan).
 
 *Tiap pelajaran baru memuat: judul, tujuan, 3 kartu materi, dan 6 soal (Pilihan Ganda, Benar/Salah, Jodohkan Pasangan, Susun Urutan, Hotspot Visual, Skenario Bercabang), masing-masing dengan jawaban benar dan 1 kalimat penjelasan.*
 
@@ -100,6 +105,7 @@ Urutan keseluruhannya tetap sama, hanya dikelompokkan per section:
 3. **Section 3 — Menjadi Bagian Komunitas:** Unit 5 selesai → Unit 6 terbuka.
 
 - Di dalam tiap unit, pelajaran dibuka berurutan dari Pelajaran 1 sampai pelajaran terakhir unit itu.
+- Jalur pengayaan mendengar (Pelajaran 16 & 17) bersifat paralel: Pelajaran 16 terbuka setelah Pelajaran 6 selesai, Pelajaran 17 terbuka setelah Pelajaran 16 selesai. Pelajaran 6 tetap membuka Pelajaran 7 (Unit 3).
 - Progres per section dihitung dari pelajaran yang sudah selesai di unit-unit section itu; section berikutnya terbuka setelah section sebelumnya selesai (urutan di atas).
 
 ---
@@ -114,6 +120,7 @@ Urutan keseluruhannya tetap sama, hanya dikelompokkan per section:
 7. **Unit 6, Pelajaran 2:** tahapan, sesaji, tokoh, dan tanggal *Padungku* — TIDAK dibahas dan TIDAK dikarang dalam file ini; hanya makna umumnya (syukur, kebersamaan, berbagi hasil panen) yang dipakai.
 8. **Gambar pendukung Hotspot Visual:** file ini hanya mendeskripsikan titik-titik hotspot, bukan mengklaim gambar tersebut sudah ada di sistem. Gambar pendukung perlu disiapkan saat penerapan ke builder.
 9. **Lembaga atau tokoh validator:** TIDAK disebutkan dalam file ini, sesuai larangan mengarang validator.
+10. **Pengayaan Unit 2 (Latihan Mendengar 1 & 2):** 10 rekaman kata penutur Claudya (*Yaku, Komiu, Banua, Mangande, Manginu, Sampesuvu, Naturu, Neguru, Nolipai, Notesa*) — pelafalan terverifikasi dari rekaman asli penutur, namun arti bahasa Indonesia dan konteks pemakaian menunggu konfirmasi narasumber; tidak ada arti atau terjemahan yang dispekulasikan di dalam soal maupun materi.
 
 ---
 

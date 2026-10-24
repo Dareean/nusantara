@@ -121,7 +121,9 @@ export const UNIT_NODES: Record<UnitId, PathNode[]> = {
     { id: 5, unitId: 2, lessonId: 5, title: "Waktu: Pagi, Malam, Besok, Lusa, Tahun", subtitle: "Pelajaran 5 • Waktu Kaili", type: "lesson", href: "/dashboard/latihan/5", xp: 30, offset: "left" },
     { id: "chest-2", unitId: 2, prereqLessonId: 5, title: "Peti Kosakata", subtitle: "Reward Kosakata", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "center" },
     { id: 6, unitId: 2, lessonId: 6, title: "Alam dan Alat Perjalanan", subtitle: "Pelajaran 6 • Kosakata transportasi", type: "lesson", href: "/dashboard/latihan/6", xp: 30, offset: "right" },
-    { id: "badge-2", unitId: 2, prereqLessonId: 6, badgeTitle: "Penjelajah Kosakata", title: "Cap Paspor Penjelajah Kosakata", subtitle: "Penutup Unit 2", type: "review", href: "/dashboard/paspor", xp: 30, offset: "center" },
+    { id: 16, unitId: 2, lessonId: 16, title: "Latihan Mendengar 1", subtitle: "Latihan Mendengar — Pengayaan", type: "lesson", href: "/dashboard/latihan/16", xp: 25, offset: "center" },
+    { id: 17, unitId: 2, lessonId: 17, title: "Latihan Mendengar 2", subtitle: "Latihan Mendengar — Pengayaan", type: "lesson", href: "/dashboard/latihan/17", xp: 25, offset: "left" },
+    { id: "badge-2", unitId: 2, prereqLessonId: 6, badgeTitle: "Penjelajah Kosakata", title: "Cap Paspor Penjelajah Kosakata", subtitle: "Penutup Unit 2", type: "review", href: "/dashboard/paspor", xp: 30, offset: "right" },
   ],
   3: [
     { id: 7, unitId: 3, lessonId: 7, title: "Menanyakan Kabar dengan Hormat", subtitle: "Pelajaran 7 • Sapaan santun", type: "lesson", href: "/dashboard/latihan/7", xp: 30, offset: "center" },
@@ -375,6 +377,9 @@ function NodeIcon({ node, status = "locked" }: { node: PathNode; status?: NodeSt
   }
   if (node.lessonId === 3 || node.lessonId === 11 || node.lessonId === 12) {
     return <Landmark className="h-8 w-8 text-on-primary" />;
+  }
+  if (node.lessonId === 16 || node.lessonId === 17) {
+    return <Volume2 className="h-8 w-8 text-on-primary" />;
   }
   return <Star className="h-8 w-8 fill-current text-on-primary" />;
 }
@@ -1155,6 +1160,11 @@ export default function DashboardPage() {
                                     {isLocked && (
                                       <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-surface-container-high text-outline">
                                         Terkunci
+                                      </span>
+                                    )}
+                                    {node.subtitle?.includes("Pengayaan") && (
+                                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-200 border border-amber-500/30">
+                                        Pengayaan
                                       </span>
                                     )}
                                   </div>
