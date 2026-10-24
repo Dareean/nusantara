@@ -25,9 +25,11 @@ import {
   ChevronRight,
   Filter,
   FileText,
+  LogOut,
 } from "lucide-react";
 import GameFlowBuilder from "./GameFlowBuilder";
 import { getStoredSessions } from "../components/game-engine/sessionStore";
+import { logout } from "../auth/authClient";
 
 interface CulturalEntry {
   id: string;
@@ -156,6 +158,15 @@ export default function AdminPage() {
     name: "Admin LARAS",
     role: "Administrator",
   });
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (err) {
+      console.error("Gagal logout:", err);
+    }
+    window.location.href = "/auth";
+  };
 
   // Load entries from localStorage and sync with server API
   useEffect(() => {
@@ -469,8 +480,8 @@ export default function AdminPage() {
           </nav>
         </div>
 
-        {/* Bawah Sidebar: Tombol Kembali ke Dashboard Murid */}
-        <div className="p-4 border-t border-outline-variant/30">
+        {/* Bawah Sidebar: Tombol Navigasi & Keluar */}
+        <div className="p-3 border-t border-outline-variant/30 space-y-1">
           <Link
             href="/dashboard"
             className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-[12px] font-bold text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all"
@@ -479,6 +490,15 @@ export default function AdminPage() {
             <ArrowLeft className="w-4 h-4 shrink-0" />
             <span className="truncate">← Dashboard Murid</span>
           </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-[12px] font-bold text-error hover:bg-error-container/30 transition-all cursor-pointer"
+            title="Keluar / Logout Akun"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span className="truncate">Keluar Akun</span>
+          </button>
         </div>
       </aside>
 
@@ -537,6 +557,15 @@ export default function AdminPage() {
                   {adminUser.role || "Administrator"}
                 </span>
               </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/20 text-xs font-bold transition-all cursor-pointer"
+                title="Keluar / Logout Akun"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Keluar</span>
+              </button>
             </div>
           </div>
         </header>
