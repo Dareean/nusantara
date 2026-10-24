@@ -81,6 +81,7 @@ export default function CulturalGameEngine({
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // MATCH states (Ronde 4 interaction)
   const [matchSelectedLeft, setMatchSelectedLeft] = useState<string | null>(null);
@@ -591,24 +592,14 @@ export default function CulturalGameEngine({
 
         {/* Top HUD (Exit, Progress Bar, Hearts) */}
         <header className="h-14 flex items-center justify-between px-3 sm:px-6">
-          {onExit ? (
-            <button
-              type="button"
-              onClick={onExit}
-              className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
-              title="Keluar"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          ) : (
-            <Link
-              href={onExitHref}
-              className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
-              title="Keluar"
-            >
-              <X className="w-5 h-5" />
-            </Link>
-          )}
+          <button
+            type="button"
+            onClick={() => setShowExitModal(true)}
+            className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
+            title="Keluar"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
           {/* Progress Bar & Question Counter */}
           <div className="flex-1 max-w-md mx-3 sm:mx-6">
@@ -1273,6 +1264,51 @@ export default function CulturalGameEngine({
             </div>
           </div>
         </footer>
+      )}
+
+      {/* ── MODAL: KONFIRMASI KELUAR PELAJARAN (RESPONSIF LANSKAP & POTRET) ── */}
+      {showExitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm rounded-3xl bg-surface-container-lowest p-5 sm:p-6 shadow-2xl ring-1 ring-outline-variant/30 max-h-[90dvh] overflow-y-auto flex flex-col items-center text-center [@media(max-height:450px)]:py-3 [@media(max-height:450px)]:px-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-error-container text-error flex items-center justify-center shrink-0 [@media(max-height:450px)]:w-10 [@media(max-height:450px)]:h-10">
+              <X className="w-7 h-7 sm:w-8 sm:h-8 [@media(max-height:450px)]:w-5 [@media(max-height:450px)]:h-5" />
+            </div>
+            <h2 className="mt-3 text-lg sm:text-xl font-black text-on-surface [@media(max-height:450px)]:mt-1.5 [@media(max-height:450px)]:text-base">
+              Keluar Pelajaran?
+            </h2>
+            <p className="mt-1 text-xs sm:text-sm text-on-surface-variant font-medium [@media(max-height:450px)]:mt-0.5 [@media(max-height:450px)]:text-xs">
+              Progres latihan ini akan hilang jika kamu keluar sekarang.
+            </p>
+            <div className="mt-5 w-full flex flex-col sm:flex-row gap-2 sm:gap-3 [@media(max-height:450px)]:mt-3">
+              <button
+                type="button"
+                onClick={() => setShowExitModal(false)}
+                className="w-full py-2.5 sm:py-3 rounded-full bg-surface-container text-on-surface font-extrabold text-xs sm:text-sm hover:bg-surface-container-high transition cursor-pointer"
+              >
+                Lanjut Belajar
+              </button>
+              {onExit ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowExitModal(false);
+                    onExit();
+                  }}
+                  className="w-full py-2.5 sm:py-3 rounded-full bg-error text-on-error font-extrabold text-xs sm:text-sm shadow-[0_3px_0_0_#93000a] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
+                >
+                  Keluar
+                </button>
+              ) : (
+                <Link
+                  href={onExitHref}
+                  className="w-full py-2.5 sm:py-3 rounded-full bg-error text-on-error font-extrabold text-xs sm:text-sm shadow-[0_3px_0_0_#93000a] hover:brightness-105 active:translate-y-0.5 transition text-center inline-flex items-center justify-center"
+                >
+                  Keluar
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
