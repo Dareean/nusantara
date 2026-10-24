@@ -813,65 +813,7 @@ export default function DashboardPage() {
                 })}
               </div>
 
-              {/* 3. KONTEN INFORMASI: JELAJAHI BUDAYA (PENGAYAAN — DI BAWAH PETA) */}
-              <section className="mt-10 pt-6 border-t border-outline-variant/30 w-full">
-                <div className="mb-4">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[10px] font-black uppercase tracking-wider mb-1">
-                    <Sparkles className="w-3 h-3" />
-                    <span>Jelajahi Budaya</span>
-                  </div>
-                  <h2 className="text-lg font-black text-on-surface">Khazanah &amp; Konteks Kaili</h2>
-                  <p className="text-xs text-on-surface-variant font-medium mt-0.5 leading-relaxed">
-                    Materi pengayaan wawasan budaya. Membaca konten ini tidak memberi penyelesaian pelajaran dan tidak memberi XP.
-                  </p>
-                </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl bg-surface-container-lowest border-2 border-outline-variant/30 overflow-hidden shadow-xs flex flex-col">
-                    <div className="relative h-28 w-full bg-surface-container-high overflow-hidden">
-                      <img
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
-                        alt="Souraja Rumah Adat Kaili"
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 backdrop-blur-xs text-[9px] font-black text-white uppercase tracking-wider">
-                        Rumah Adat
-                      </span>
-                    </div>
-                    <div className="p-3.5 flex-1 flex flex-col justify-between">
-                      <div>
-                        <h3 className="text-sm font-black text-on-surface">Souraja (Banua Oge)</h3>
-                        <p className="text-xs text-on-surface-variant font-medium mt-1 leading-relaxed">
-                          Pusat tata krama, musyawarah adat, dan tempat bertamu masyarakat bangsawan Kaili Ledo di Palu Barat.
-                        </p>
-                      </div>
-                      <span className="mt-3 text-[10px] font-bold text-outline">Pengayaan materi • Tanpa XP</span>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-surface-container-lowest border-2 border-outline-variant/30 overflow-hidden shadow-xs flex flex-col">
-                    <div className="relative h-28 w-full bg-surface-container-high overflow-hidden">
-                      <img
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBL3GhtQRWPzykvIVNWr2V35NhJTe_dCVIIrRtyBVfZEEj3XqYhEOJv_SEbk1PTWX0c31bxzkMEw4gOh7sN-WlcJNaV67h505nMT6eV4hEBOjXkJ6KJwhuR9O1EtZUS6Z3a5-anWincRSwsEM6Cd1eIcoTaILOCLMI3NIxB7VqVikEobrcT0CoVvKVVkAc_aFxEbqVUD4ypGJjz4ltJB0RE8BCXz7x3pKJC2QF3wSnftvmW7hDh7y67iQ"
-                        alt="Pelataran Souraja"
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 backdrop-blur-xs text-[9px] font-black text-white uppercase tracking-wider">
-                        Adab Bertamu
-                      </span>
-                    </div>
-                    <div className="p-3.5 flex-1 flex flex-col justify-between">
-                      <div>
-                        <h3 className="text-sm font-black text-on-surface">Pelataran &amp; Adab Tangga</h3>
-                        <p className="text-xs text-on-surface-variant font-medium mt-1 leading-relaxed">
-                          Tata cara mengucap Tabe dan menundukkan gesture sebelum menginjakkan kaki ke ruang utama Banua Oge.
-                        </p>
-                      </div>
-                      <span className="mt-3 text-[10px] font-bold text-outline">Pengayaan materi • Tanpa XP</span>
-                    </div>
-                  </div>
-                </div>
-              </section>
             </div>
           </div>
 
