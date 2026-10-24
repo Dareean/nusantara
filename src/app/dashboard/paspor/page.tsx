@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Sparkles,
   Zap,
+  Landmark,
 } from "lucide-react";
 import { getCachedSessionSync, getSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
@@ -39,6 +40,11 @@ const STAMP_ICONS: Record<number, typeof Award> = {
   2: ShieldCheck,
   3: Compass,
   4: Crown,
+  6: Sparkles,
+  8: BadgeCheck,
+  10: Crown,
+  12: Landmark,
+  15: Sparkles,
 };
 
 function getTravelerTitle(level: number): string {
