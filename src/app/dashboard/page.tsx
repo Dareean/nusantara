@@ -96,8 +96,38 @@ function NodeIcon({ node, status }: { node: PathNode; status: NodeStatus }) {
   return <Star className="h-8 w-8 fill-current text-on-primary" />;
 }
 
-const AMPLITUDE_DESKTOP = [0, 56, 88, 56, 0, -56, -88, -56];
-const AMPLITUDE_MOBILE = [0, 22, 35, 22, 0, -22, -35, -22];
+// Offset horizontal meliuk simetris kiri–kanan berirama tanpa drift diagonal
+const SINE_OFFSETS_DESKTOP = [0, 40, 70, 40, 0, -40, -70, -40];
+const SINE_OFFSETS_MOBILE = [0, 24, 42, 24, 0, -24, -42, -24];
+
+/**
+ * Konversi rangkaian titik tengah node menjadi segmen kurva Bézier kubik Catmull-Rom mulus.
+ * Menghasilkan kurva C1 kontinu tanpa sudut patah di setiap node.
+ */
+function getCatmullRomSegments(pts: { x: number; y: number }[]): string[] {
+  if (pts.length < 2) return [];
+  const segments: string[] = [];
+
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+
+    const p0 = i > 0 ? pts[i - 1] : { x: p1.x - (p2.x - p1.x) * 0.5, y: p1.y - (p2.y - p1.y) * 0.5 };
+    const p3 = i < pts.length - 2 ? pts[i + 2] : { x: p2.x + (p2.x - p1.x) * 0.5, y: p2.y + (p2.y - p1.y) * 0.5 };
+
+    const k = 1 / 6;
+    const cp1x = p1.x + (p2.x - p0.x) * k;
+    const cp1y = p1.y + (p2.y - p0.y) * k;
+    const cp2x = p2.x - (p3.x - p1.x) * k;
+    const cp2y = p2.y - (p3.y - p1.y) * k;
+
+    segments.push(
+      `C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`
+    );
+  }
+  return segments;
+}
+
 
 export default function DashboardPage() {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
@@ -282,18 +312,73 @@ export default function DashboardPage() {
   const activeNode = nodes.find((node) => node.status === "active") ?? nodes[nodes.length - 1];
   const dailyXp = Math.min(progress.xp, 50);
 
-  // Perhitungan layout sinusoidal jalur & koordinat node
-  const containerWidth = isMobile ? 340 : 540;
+  // Perhitungan layout sinusoidal jalur & geometri berirama konsisten
+  const containerWidth = isMobile ? 320 : 480;
   const centerX = containerWidth / 2;
-  const stepY = 126;
-  const startY = 72;
-  const offsets = isMobile ? AMPLITUDE_MOBILE : AMPLITUDE_DESKTOP;
-  const totalRoadmapHeight = startY + nodes.length * stepY + 40;
+  const stepY = 104; // Jarak vertikal seragam konsisten (96-112px)
+  const startY = 68;
+  const offsets = isMobile ? SINE_OFFSETS_MOBILE : SINE_OFFSETS_DESKTOP;
 
-  const activeIndex = nodes.findIndex((node) => node.status === "active");
-  const effectiveActiveIdx = activeIndex !== -1 ? activeIndex : 0;
-  const activeNodeY = startY + effectiveActiveIdx * stepY;
-  const activeOffset = offsets[effectiveActiveIdx % offsets.length];
+  // Node rujukan untuk artefak budaya (Souraja / Bab 1)
+  const sourajaIdx = nodes.findIndex(
+    (n) => n.id === 4 || n.title.toLowerCase().includes("souraja")
+  );
+  const cultureNodeIdx = sourajaIdx !== -1 ? sourajaIdx : 3;
+
+  // Hitung koordinat final setiap node secara dinamis
+  const mobileCardGap = isMobile ? 64 : 0;
+  const nodesWithCoords = nodes.map((node, i) => {
+    const offset = offsets[i % offsets.length];
+    const x = centerX + offset;
+    const extraY = isMobile && i > cultureNodeIdx ? mobileCardGap : 0;
+    const y = startY + i * stepY + extraY;
+    return {
+      ...node,
+      x,
+      y,
+      offsetVal: offset,
+    };
+  });
+
+  const totalRoadmapHeight =
+    nodesWithCoords.length > 0
+      ? nodesWithCoords[nodesWithCoords.length - 1].y + 64
+      : 700;
+
+  // Satu kurva mulus utuh melewati semua titik tengah node
+  const pts = nodesWithCoords.map((n) => ({ x: n.x, y: n.y }));
+  const segments = getCatmullRomSegments(pts);
+  const fullPathD =
+    pts.length >= 2
+      ? `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)} ` + segments.join(" ")
+      : "";
+
+  // Lapisan progres: dari awal sampai node aktif / node terakhir selesai
+  const activeIdx = nodes.findIndex((node) => node.status === "active");
+  const lastCompIdx = nodes.map((n) => n.status).lastIndexOf("completed");
+  let progressLimit = 0;
+  if (lastCompIdx >= 0) {
+    progressLimit = activeIdx > lastCompIdx ? activeIdx : lastCompIdx + 1;
+  } else if (activeIdx > 0) {
+    progressLimit = activeIdx;
+  }
+  progressLimit = Math.max(0, Math.min(segments.length, progressLimit));
+
+  const progressSegments = segments.slice(0, progressLimit);
+  const progressPathD =
+    progressSegments.length > 0
+      ? `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)} ` + progressSegments.join(" ")
+      : "";
+
+  const cultureNode = nodesWithCoords[cultureNodeIdx] || nodesWithCoords[0];
+  const cultureNodeY = cultureNode ? cultureNode.y : startY + 3 * stepY;
+  const cultureOffset = cultureNode ? cultureNode.offsetVal : 40;
+  // Pada desktop: jika offset positif (geser kanan), kartu diletakkan di sisi kiri; jika negatif, di kanan
+  const cardLeft =
+    cultureOffset >= 0
+      ? cultureNode.x - 38 - 14 - 170
+      : cultureNode.x + 38 + 14;
+
   const completedBaseCount = progress.completedLessons.filter((id) => [1, 2, 3].includes(id)).length;
   const isUnit1Complete = completedBaseCount >= 3 && progress.completedLessons.includes(4);
   const progressRatio = Math.min(1, Math.max(0, completedBaseCount / 3));
@@ -401,25 +486,6 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* Mobile Accent Card: Hanya tampil di layar kecil (< sm) di bawah banner unit */}
-              <div className="sm:hidden mb-5 rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-xs flex items-center gap-3 p-2.5">
-                <img
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
-                  alt="Souraja Rumah Adat Kaili"
-                  className="w-14 h-14 rounded-xl object-cover shrink-0"
-                />
-                <div className="min-w-0">
-                  <span className="text-[9px] font-black text-primary uppercase tracking-wider">
-                    Artefak Budaya
-                  </span>
-                  <p className="text-xs font-black text-on-surface truncate">
-                    Souraja — rumah adat Kaili
-                  </p>
-                  <p className="text-[10px] text-on-surface-variant truncate">
-                    Pusat adab &amp; diplomasi Banua Oge
-                  </p>
-                </div>
-              </div>
 
               {/* Misi Berikutnya Hero Banner */}
               {!isLoaded ? (
@@ -493,43 +559,46 @@ export default function DashboardPage() {
                 }`}
                 style={{ width: `${containerWidth}px`, height: `${totalRoadmapHeight}px` }}
               >
-                {/* Jalur SVG Melengkung Halus Melewati Titik Pusat Setiap Node */}
+                {/* Jalur SVG Kurva Bézier Mulus (2 Lapis: Rel Dasar & Lapisan Progres) */}
                 <svg
                   className="absolute inset-0 pointer-events-none z-0"
                   viewBox={`0 0 ${containerWidth} ${totalRoadmapHeight}`}
                   style={{ width: `${containerWidth}px`, height: `${totalRoadmapHeight}px` }}
                 >
-                  {nodes.slice(0, -1).map((_, i) => {
-                    const x1 = centerX + offsets[i % offsets.length];
-                    const y1 = startY + i * stepY;
-                    const x2 = centerX + offsets[(i + 1) % offsets.length];
-                    const y2 = startY + (i + 1) * stepY;
-                    const cy1 = y1 + stepY * 0.5;
-                    const cy2 = y2 - stepY * 0.5;
-                    const d = `M ${x1} ${y1} C ${x1} ${cy1}, ${x2} ${cy2}, ${x2} ${y2}`;
-                    const isSegmentCompleted = isLoaded && nodes[i].status === "completed" && nodes[i + 1].status === "completed";
-
-                    return (
-                      <path
-                        key={`seg-${i}`}
-                        d={d}
-                        fill="none"
-                        stroke={isSegmentCompleted ? "#881f00" : "#d8c7be"}
-                        strokeWidth={isSegmentCompleted ? 5 : 4}
-                        strokeDasharray="6 6"
-                        strokeLinecap="round"
-                      />
-                    );
-                  })}
+                  {/* Rel Dasar: Seluruh Jalur Mulus Putus-putus Warna Netral Terang */}
+                  {fullPathD && (
+                    <path
+                      d={fullPathD}
+                      fill="none"
+                      stroke="#d8c7be"
+                      strokeWidth={7}
+                      strokeDasharray="8 9"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  )}
+                  {/* Lapisan Progres: Mengikuti Kurva yang Sama Sampai Node Aktif/Selesai */}
+                  {progressPathD && (
+                    <path
+                      d={progressPathD}
+                      fill="none"
+                      stroke="#881f00"
+                      strokeWidth={7}
+                      strokeDasharray="8 9"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  )}
                 </svg>
 
-                {/* Desktop Accent Card (sejajar dengan node active di sisi berlawanan) */}
-                {isLoaded && (
+                {/* Desktop Culture Accent Card (menempel di sisi node rujukannya) */}
+                {isLoaded && cultureNode && (
                   <div
-                    style={{ top: `${Math.max(16, activeNodeY - 48)}px` }}
-                    className={`absolute z-10 hidden sm:flex flex-col w-[170px] rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-md ${
-                      activeOffset >= 0 ? "left-2" : "right-2"
-                    }`}
+                    style={{
+                      top: `${cultureNodeY - 48}px`,
+                      left: `${cardLeft}px`,
+                    }}
+                    className="absolute z-10 hidden sm:flex flex-col w-[170px] rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-md transition-all"
                   >
                     <div className="relative h-20 w-full overflow-hidden bg-surface-container-high">
                       <img
@@ -552,34 +621,54 @@ export default function DashboardPage() {
                   </div>
                 )}
 
+                {/* Mobile Culture Accent Card (rapi di bawah node rujukannya, selebar kolom) */}
+                {isLoaded && cultureNode && (
+                  <div
+                    style={{ top: `${cultureNodeY + 44}px` }}
+                    className="sm:hidden absolute z-10 w-[calc(100%-16px)] left-2 rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-xs flex items-center gap-3 p-2.5 transition-all"
+                  >
+                    <img
+                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
+                      alt="Souraja Rumah Adat Kaili"
+                      className="w-12 h-12 rounded-xl object-cover shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-black text-primary uppercase tracking-wider">
+                        Artefak Budaya
+                      </span>
+                      <p className="text-xs font-black text-on-surface truncate">
+                        Souraja — rumah adat Kaili
+                      </p>
+                      <p className="text-[10px] text-on-surface-variant truncate">
+                        Pusat adab &amp; diplomasi Banua Oge
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Node-Node Lingkaran Faux-3D */}
                 {!isLoaded
-                  ? nodes.map((node, i) => {
-                      const x = centerX + offsets[i % offsets.length];
-                      const y = startY + i * stepY;
+                  ? nodesWithCoords.map((node) => {
                       return (
                         <div
                           key={`skel-${node.id}`}
-                          style={{ left: `${x}px`, top: `${y}px` }}
+                          style={{ left: `${node.x}px`, top: `${node.y}px` }}
                           className="absolute -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
                         >
                           <div className="h-[68px] w-[68px] sm:h-[76px] sm:w-[76px] rounded-full bg-surface-container-high animate-pulse border-4 border-surface shadow-[0_5px_0_0_#d8c7be]" />
                         </div>
                       );
                     })
-                  : nodes.map((node, i) => {
+                  : nodesWithCoords.map((node) => {
                   const isActive = node.status === "active";
                   const isPrimaryActive = node.id === activeNode.id;
                   const isLocked = node.status === "locked";
                   const isCompleted = node.status === "completed";
 
-                  const x = centerX + offsets[i % offsets.length];
-                  const y = startY + i * stepY;
-
                   return (
                     <div
                       key={node.id}
-                      style={{ left: `${x}px`, top: `${y}px` }}
+                      style={{ left: `${node.x}px`, top: `${node.y}px` }}
                       className="absolute -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
                       onMouseEnter={() => setHoveredNodeId(node.id)}
                       onMouseLeave={() => setHoveredNodeId(null)}
