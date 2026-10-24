@@ -1270,26 +1270,24 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Modal Buku Panduan Unit Ala Duolingo Guidebook */}
+      {/* Modal Buku Panduan Unit Standar Modern (Daftar 1 Kolom Bersih) */}
       {guidebookUnit !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-2xl max-h-[92vh] bg-surface rounded-3xl border-2 border-outline-variant/30 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Header dengan Tema Unit */}
-            <div
-              style={{
-                backgroundColor: (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor,
-              }}
-              className="px-6 py-5 text-white flex items-start justify-between gap-4 border-b-4 border-black/10 shrink-0"
-            >
+          <div className="relative w-full max-w-xl max-h-[88vh] bg-surface rounded-3xl border border-outline-variant/30 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header Bersih Standar Modern */}
+            <div className="px-6 py-5 border-b border-outline-variant/20 bg-surface flex items-start justify-between gap-4 shrink-0">
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[11px] font-black uppercase tracking-widest backdrop-blur-xs">
-                  <BookOpen className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>{(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).label}</span>
+                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-black uppercase tracking-wider">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor }}
+                  />
+                  <span>{(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).label} • Panduan Unit</span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1.5">
+                <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight mt-1.5">
                   {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).title}
                 </h2>
-                <p className="text-xs sm:text-sm text-white/90 font-semibold mt-1 leading-relaxed">
+                <p className="text-xs text-on-surface-variant font-medium mt-0.5 leading-relaxed">
                   {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).subtitle}
                 </p>
               </div>
@@ -1297,133 +1295,118 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setGuidebookUnit(null)}
-                className="shrink-0 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white active:scale-95 transition cursor-pointer"
+                className="shrink-0 w-9 h-9 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface flex items-center justify-center transition active:scale-95 cursor-pointer"
                 aria-label="Tutup Panduan Unit"
               >
-                <X className="w-5 h-5 stroke-[2.5]" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Tab Navigasi Tactile */}
-            <div className="flex items-center gap-2 px-5 sm:px-6 py-3 border-b border-outline-variant/20 bg-surface-container-lowest overflow-x-auto shrink-0">
-              <button
-                type="button"
-                onClick={() => setGuidebookTab("frasa")}
-                style={{
-                  backgroundColor: guidebookTab === "frasa" ? (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor : undefined,
-                  boxShadow: guidebookTab === "frasa" ? `0 3px 0 0 ${(UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).shadowColor}` : undefined,
-                }}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                  guidebookTab === "frasa"
-                    ? "text-white active:translate-y-0.5"
-                    : "bg-surface-container text-on-surface hover:bg-surface-container-high"
-                }`}
-              >
-                <Volume2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Frasa &amp; Suara</span>
-              </button>
+            {/* Tab Navigasi Segmen Terpadu (Segmented Control) */}
+            <div className="px-6 pt-3.5 pb-2 bg-surface shrink-0">
+              <div className="grid grid-cols-3 p-1 rounded-2xl bg-surface-container-high text-xs font-bold gap-1">
+                <button
+                  type="button"
+                  onClick={() => setGuidebookTab("frasa")}
+                  className={`py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    guidebookTab === "frasa"
+                      ? "bg-surface text-primary shadow-xs font-black"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  <Volume2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Frasa &amp; Suara</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setGuidebookTab("dialog")}
-                style={{
-                  backgroundColor: guidebookTab === "dialog" ? (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor : undefined,
-                  boxShadow: guidebookTab === "dialog" ? `0 3px 0 0 ${(UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).shadowColor}` : undefined,
-                }}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                  guidebookTab === "dialog"
-                    ? "text-white active:translate-y-0.5"
-                    : "bg-surface-container text-on-surface hover:bg-surface-container-high"
-                }`}
-              >
-                <MessageSquare className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Contoh Obrolan</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setGuidebookTab("dialog")}
+                  className={`py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    guidebookTab === "dialog"
+                      ? "bg-surface text-primary shadow-xs font-black"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Percakapan</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setGuidebookTab("tips")}
-                style={{
-                  backgroundColor: guidebookTab === "tips" ? (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor : undefined,
-                  boxShadow: guidebookTab === "tips" ? `0 3px 0 0 ${(UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).shadowColor}` : undefined,
-                }}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                  guidebookTab === "tips"
-                    ? "text-white active:translate-y-0.5"
-                    : "bg-surface-container text-on-surface hover:bg-surface-container-high"
-                }`}
-              >
-                <Lightbulb className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Tips Kilat</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setGuidebookTab("tips")}
+                  className={`py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    guidebookTab === "tips"
+                      ? "bg-surface text-primary shadow-xs font-black"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  <Lightbulb className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Tips Budaya</span>
+                </button>
+              </div>
             </div>
 
             {/* Konten Panduan Unit (Scrollable) */}
-            <div className="overflow-y-auto p-5 sm:p-6 space-y-4 text-on-surface">
-              {/* TAB 1: FRASA & SUARA (SOUNDBOARD) */}
+            <div className="overflow-y-auto px-6 py-4 space-y-4 text-on-surface">
+              {/* TAB 1: FRASA & SUARA (DAFTAR 1 KOLOM BERSIH DENGAN AUDIO DI KIRI) */}
               {guidebookTab === "frasa" && (
-                <div className="space-y-4 animate-in fade-in duration-150">
-                  <div className="flex items-center justify-between text-xs font-bold text-on-surface-variant">
-                    <span>Ketuk kartu atau tombol speaker untuk mendengar lafal aslinya:</span>
+                <div className="space-y-3 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between text-xs font-bold text-on-surface-variant mb-1">
+                    <span>Tekan tombol audio atau baris untuk mendengarkan pelafalan:</span>
                     <span className="font-extrabold text-primary">
                       {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).keyPhrases.length} Frasa
                     </span>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2.5">
                     {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).keyPhrases.map((phrase, idx) => {
                       const isPlaying = playingTerm === phrase.term;
                       return (
                         <div
                           key={idx}
                           onClick={() => playAudio(phrase.term)}
-                          style={{
-                            borderColor: isPlaying ? (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor : undefined,
-                          }}
-                          className={`p-4 rounded-3xl bg-surface-container border-2 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs hover:border-primary/60 active:translate-y-0.5 ${
-                            isPlaying ? "ring-2 ring-primary/30 bg-primary/5" : "border-outline-variant/40"
+                          className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer group shadow-2xs ${
+                            isPlaying
+                              ? "bg-primary/5 border-primary ring-2 ring-primary/20"
+                              : "bg-surface-container-lowest hover:bg-surface-container-low border-outline-variant/30 hover:border-primary/40"
                           }`}
                         >
-                          <div className="min-w-0">
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-xl font-black text-on-surface tracking-tight">
-                                {phrase.term}
-                              </span>
-                              {phrase.phonetic && (
-                                <span className="text-[11px] font-mono text-outline font-semibold">
-                                  /{phrase.phonetic}/
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-xs font-bold text-primary mt-0.5">
-                              {phrase.meaning}
-                            </div>
-                            <p className="text-[11px] text-on-surface-variant font-medium mt-1 leading-snug">
-                              {phrase.context}
-                            </p>
-                          </div>
-
+                          {/* Tombol Audio di Kiri Standar Pemutar Suara */}
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               playAudio(phrase.term);
                             }}
-                            style={{
-                              backgroundColor: isPlaying ? (UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).bgColor : undefined,
-                              boxShadow: isPlaying
-                                ? `0 3px 0 0 ${(UNIT_THEMES[guidebookUnit] || UNIT_THEMES[1]).shadowColor}`
-                                : "0 3px 0 0 #d1d5db",
-                            }}
-                            className={`w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center border-2 border-outline-variant/40 transition-all active:scale-90 ${
+                            className={`w-11 h-11 rounded-full shrink-0 flex items-center justify-center transition active:scale-90 ${
                               isPlaying
-                                ? "text-white animate-pulse"
-                                : "bg-surface-container-high text-primary hover:bg-primary hover:text-white"
+                                ? "bg-primary text-on-primary animate-pulse"
+                                : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-on-primary"
                             }`}
                             title="Dengarkan Suara"
                           >
                             <Volume2 className="w-5 h-5 stroke-[2.5]" />
                           </button>
+
+                          {/* Teks Frasa 1 Kolom Teratur Tanpa Terpotong */}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-baseline gap-2 flex-wrap">
+                              <span className="text-base sm:text-lg font-black text-on-surface group-hover:text-primary transition-colors">
+                                {phrase.term}
+                              </span>
+                              {phrase.phonetic && (
+                                <span className="text-xs font-mono text-outline font-medium">
+                                  /{phrase.phonetic}/
+                                </span>
+                              )}
+                              <span className="text-xs font-bold text-primary">
+                                • {phrase.meaning}
+                              </span>
+                            </div>
+                            <p className="text-xs text-on-surface-variant font-medium mt-0.5 leading-relaxed">
+                              {phrase.context}
+                            </p>
+                          </div>
                         </div>
                       );
                     })}
@@ -1431,14 +1414,14 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* TAB 2: CONTOH OBROLAN (COMIC CHAT BUBBLES) */}
+              {/* TAB 2: PERCAKAPAN (COMIC CHAT BUBBLES) */}
               {guidebookTab === "dialog" && (
                 <div className="space-y-4 animate-in fade-in duration-150">
                   <div className="text-xs font-bold text-on-surface-variant">
                     Simulasi percakapan nyata saat menyapa warga di lembah Palu:
                   </div>
 
-                  <div className="space-y-3 p-4 rounded-3xl bg-surface-container-lowest border-2 border-outline-variant/30">
+                  <div className="space-y-3 p-4 rounded-2xl bg-surface-container-lowest border border-outline-variant/30">
                     {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).dialogue.map((line, idx) => {
                       const isLeft = idx % 2 === 0;
                       const isPlaying = playingTerm === line.kaili;
@@ -1448,16 +1431,16 @@ export default function DashboardPage() {
                           className={`flex items-start gap-3 ${isLeft ? "justify-start" : "justify-end flex-row-reverse"}`}
                         >
                           {/* Avatar */}
-                          <div className="w-10 h-10 rounded-2xl bg-surface-container-high border-2 border-outline-variant/40 flex items-center justify-center text-xl shrink-0 shadow-xs">
+                          <div className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/40 flex items-center justify-center text-lg shrink-0 shadow-xs">
                             {line.avatar}
                           </div>
 
                           {/* Speech Bubble */}
                           <div
-                            className={`max-w-[80%] rounded-3xl p-4 shadow-sm border-2 ${
+                            className={`max-w-[80%] rounded-2xl p-3.5 shadow-2xs border ${
                               isLeft
-                                ? "bg-surface-container border-outline-variant/40 rounded-tl-sm"
-                                : "bg-primary-fixed/30 border-primary/30 rounded-tr-sm"
+                                ? "bg-surface-container border-outline-variant/40 rounded-tl-xs"
+                                : "bg-primary-fixed/30 border-primary/30 rounded-tr-xs"
                             }`}
                           >
                             <div className="flex items-center justify-between gap-3 mb-1">
@@ -1487,25 +1470,27 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* TAB 3: TIPS KILAT (GAME RULES & FASHION) */}
+              {/* TAB 3: TIPS BUDAYA (KARTU VERTIKAL RAPI) */}
               {guidebookTab === "tips" && (
-                <div className="space-y-4 animate-in fade-in duration-150">
+                <div className="space-y-3 animate-in fade-in duration-150">
                   <div className="text-xs font-bold text-on-surface-variant">
                     Rahasia adat dan kunci penting untuk lulus kuis unit ini:
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="space-y-2.5">
                     {(UNIT_GUIDEBOOKS[guidebookUnit] || UNIT_GUIDEBOOKS[1]).quickTips.map((tip, idx) => (
                       <div
                         key={idx}
-                        className="p-5 rounded-3xl bg-surface-container border-2 border-outline-variant/30 flex flex-col justify-between shadow-xs hover:border-primary/40 transition-colors"
+                        className="p-4 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 flex items-start gap-3.5 shadow-2xs hover:border-primary/40 transition-colors"
                       >
-                        <div>
-                          <div className="text-3xl mb-2">{tip.icon}</div>
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">
+                          {tip.icon}
+                        </div>
+                        <div className="min-w-0 flex-1">
                           <h4 className="text-sm font-black text-on-surface tracking-tight">
                             {tip.title}
                           </h4>
-                          <p className="text-xs text-on-surface-variant font-medium mt-1.5 leading-relaxed">
+                          <p className="text-xs text-on-surface-variant font-medium mt-1 leading-relaxed">
                             {tip.tip}
                           </p>
                         </div>
@@ -1516,9 +1501,9 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Footer Modal */}
-            <div className="p-4 sm:p-5 bg-surface-container-lowest border-t border-outline-variant/30 flex items-center justify-between gap-3 shrink-0">
-              <span className="text-xs font-bold text-on-surface-variant hidden sm:inline">
+            {/* Footer Modal Bersih */}
+            <div className="px-6 py-4 bg-surface border-t border-outline-variant/20 flex items-center justify-between gap-3 shrink-0">
+              <span className="text-xs font-medium text-on-surface-variant hidden sm:inline">
                 Siap mempraktikkan materi ini di latihan?
               </span>
               <button
