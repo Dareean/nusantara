@@ -1,57 +1,147 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import TopBar from "../../components/TopBar";
+import Link from "next/link";
 import {
-  Navigation,
-  BookOpen,
-  BadgeCheck,
-  MapPin,
-  Volume2,
-  AudioWaveform,
-  Play,
-  Pause,
-  CheckCircle2,
-  ShieldCheck,
-  Brain,
-  Quote,
-  Trophy,
-  Award,
-  Zap,
-  RotateCw,
+  ArrowLeft,
   ArrowRight,
+  Award,
+  Check,
+  CheckCircle2,
+  Flame,
+  MapPin,
+  Pause,
+  Play,
+  RotateCw,
+  Sparkles,
+  Volume2,
+  Zap,
 } from "lucide-react";
-import { useEffect } from "react";
 import { getSession } from "../../auth/authClient";
 import { readProgress, recordLessonResult } from "../progress";
 
-const decisions = [
+interface Choice {
+  id: string;
+  label: string;
+  feedback: string;
+  score: number;
+  isBest: boolean;
+}
+
+interface Decision {
+  stage: string;
+  location: string;
+  narrative: string;
+  prompt: string;
+  image: string;
+  choices: Choice[];
+}
+
+const decisions: Decision[] = [
   {
-    title: "Sapaan saat tiba",
-    prompt: "Tetua sedang berbicara di beranda. Apa tindakanmu?",
+    stage: "Tahap 1 dari 3",
+    location: "Pelataran Souraja, Palu Barat",
+    narrative:
+      "Kamu tiba di pelataran Souraja mewakili keluargamu. Di muka beranda rumah panggung, para dewan tetua adat (Pue) sedang berbincang menyambut para tamu kehormatan.",
+    prompt: "Tetua adat sedang berbincang di muka serambi. Apa tindakan dan tutur sapa yang kamu lakukan?",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw",
     choices: [
-      { id: "tabe", label: "Ucapkan Tabe pue sambil menunduk", score: 2 },
-      { id: "wait", label: "Menunggu tanpa menyapa", score: 1 },
-      { id: "enter", label: "Langsung masuk ke rumah", score: 0 },
+      {
+        id: "tabe",
+        label: "Ucapkan 'Tabe pue, nalompa mai kami' sambil menundukkan badan",
+        feedback:
+          "Tetua adat tersenyum takzim dan mempersilakanmu naik. Sapaan 'Tabe' menunjukkan adab kerendahan hati tertinggi dalam budaya Kaili.",
+        score: 2,
+        isBest: true,
+      },
+      {
+        id: "wait",
+        label: "Berdiri diam di anak tangga tanpa menyapa sampai disapa duluan",
+        feedback:
+          "Cukup sopan, namun tetua sempat memandang heran karena kamu tampak kaku dan tidak berinisiatif memberi salam.",
+        score: 1,
+        isBest: false,
+      },
+      {
+        id: "enter",
+        label: "Langsung melangkah masuk ke ruang utama Souraja",
+        feedback:
+          "Kurang elok. Melangkah melewati tetua tanpa salam adat dianggap tidak mengindahkan adab bertamu.",
+        score: 0,
+        isBest: false,
+      },
     ],
   },
   {
-    title: "Pilihan busana",
-    prompt: "Kamu hadir sebagai tamu kehormatan. Apa yang kamu kenakan?",
+    stage: "Tahap 2 dari 3",
+    location: "Ruang Utama Majelis Souraja",
+    narrative:
+      "Kamu melangkah masuk ke ruang utama upacara adat perkawinan. Seluruh keluarga besar dan tamu dewan adat mengenakan busana tradisi bernuansa khidmat.",
+    prompt: "Pilihan busana apa yang kamu kenakan untuk menghormati majelis dewan adat ini?",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuAGGe6e5vP1nGlX2ZvT-UWV9U5KAgLs72Sx27pc9mWuqPe01VmMKmx0DY8XbKA_r787_92pwgfiNumLz4-iEx6Nq6vvyfNc4N2LM7ruBRvLAOih6SWFuROZCbgCyVmTQAuyl2CMFa2elMsDv2JbxdEeaCSXjUqCi9G3Wj0aeNXHmvef-hwkOzESw41KdPVLaaSgxbbKPPlqGPfNa2_DJN29ozR1Xvy4rPWtQLsRBJj8QzLNr5yBMJcbaQ",
     choices: [
-      { id: "nggembe", label: "Baju Nggembe dan Buya Sabe yang serasi", score: 2 },
-      { id: "plain", label: "Pakaian sehari-hari yang praktis", score: 1 },
-      { id: "loud", label: "Aksesori paling mencolok", score: 0 },
+      {
+        id: "nggembe",
+        label: "Baju Nggembe merah terakota & Sarung Tenun Donggala (Buya Sabe)",
+        feedback:
+          "Pilihan paripurna! Warna terakota dan tenun Buya Sabe mencerminkan tamu kehormatan yang paham tata krama tanpa menutupi busana emas pengantin.",
+        score: 2,
+        isBest: true,
+      },
+      {
+        id: "plain",
+        label: "Pakaian kemeja sehari-hari yang santai",
+        feedback:
+          "Pakaianmu bersih, namun dinilai kurang menghargai sakralnya perhelatan adat Souraja.",
+        score: 1,
+        isBest: false,
+      },
+      {
+        id: "loud",
+        label: "Busana gemerlap mencolok menyaingi busana pengantin",
+        feedback:
+          "Kurang tepat. Adab tamu mengutamakan keselarasan, bukan mencari perhatian yang menyaingi mempelai.",
+        score: 0,
+        isBest: false,
+      },
     ],
   },
   {
-    title: "Gesture penutup",
-    prompt: "Tuan rumah mempersilakanmu duduk. Bagaimana kamu merespons?",
+    stage: "Tahap 3 dari 3",
+    location: "Tikar Kehormatan Majelis Adat",
+    narrative:
+      "Tuan rumah (Pue Rumah) tersenyum ramah dan secara khusus mempersilakanmu menempati tikar anyaman kehormatan di dekat dewan adat.",
+    prompt: "Bagaimana gestur dan tutur katamu saat menerima penghormatan tempat duduk ini?",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuBL3GhtQRWPzykvIVNWr2V35NhJTe_dCVIIrRtyBVfZEEj3XqYhEOJv_SEbk1PTWX0c31bxzkMEw4gOh7sN-WlcJNaV67h505nMT6eV4hEBOjXkJ6KJwhuR9O1EtZUS6Z3a5-anWincRSwsEM6Cd1eIcoTaILOCLMI3NIxB7VqVikEobrcT0CoVvKVVkAc_aFxEbqVUD4ypGJjz4ltJB0RE8BCXz7x3pKJC2QF3wSnftvmW7hDh7y67iQ",
     choices: [
-      { id: "lower", label: "Menunduk ringan dan mengucapkan terima kasih", score: 2 },
-      { id: "nod", label: "Mengangguk singkat", score: 1 },
-      { id: "rush", label: "Duduk tanpa memberi respons", score: 0 },
+      {
+        id: "lower",
+        label: "Menunduk santun kedua tangan merapat sambil mengucap terima kasih",
+        feedback:
+          "Sangat beradab! Menundukkan gesture dan tangan merapat mencerminkan falsafah luhur Katura masyarakat Kaili.",
+        score: 2,
+        isBest: true,
+      },
+      {
+        id: "nod",
+        label: "Mengangguk singkat lalu langsung duduk",
+        feedback:
+          "Wajar dan santun, namun gestur tangan merapat akan jauh lebih berkesan di hadapan sang Pue Rumah.",
+        score: 1,
+        isBest: false,
+      },
+      {
+        id: "rush",
+        label: "Duduk tergesa-gesa tanpa menatap tuan rumah",
+        feedback:
+          "Tergesa-gesa di hadapan majelis dianggap kurang menaruh rasa hormat kepada sang tuan rumah.",
+        score: 0,
+        isBest: false,
+      },
     ],
   },
 ];
@@ -62,7 +152,8 @@ export default function CultureConnectionPage() {
   const [isClaiming, setIsClaiming] = useState(false);
   const [isAlreadyClaimed, setIsAlreadyClaimed] = useState(false);
   const [decisionStep, setDecisionStep] = useState(0);
-  const [selectedDecision, setSelectedDecision] = useState("");
+  const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
+  const [isConfirmed, setIsConfirmed] = useState(false);
   const [harmony, setHarmony] = useState(0);
   const [sessionEmail, setSessionEmail] = useState("");
   const [sessionReady, setSessionReady] = useState(false);
@@ -98,484 +189,273 @@ export default function CultureConnectionPage() {
     setTimeout(() => {
       setIsClaiming(false);
       router.push("/dashboard/paspor");
-    }, 1000);
+    }, 800);
   };
 
   const currentDecision = decisions[decisionStep];
-  const selectedChoice = currentDecision?.choices.find((choice) => choice.id === selectedDecision);
-  const chooseDecision = () => {
-    if (!selectedChoice) return;
-    setHarmony((value) => value + selectedChoice.score);
-    setSelectedDecision("");
-    setDecisionStep((value) => value + 1);
+  const activeChoice = currentDecision?.choices.find((c) => c.id === selectedChoiceId);
+
+  const handleConfirmDecision = () => {
+    if (!activeChoice) return;
+    setIsConfirmed(true);
+    setHarmony((prev) => prev + activeChoice.score);
   };
 
+  const handleNextStep = () => {
+    setIsConfirmed(false);
+    setSelectedChoiceId(null);
+    setDecisionStep((prev) => prev + 1);
+  };
+
+  const progressPercent = Math.min(100, Math.round(((decisionStep) / decisions.length) * 100));
+
   return (
-    <>
-      <TopBar
-        title="Culture Connection Studio"
-        subtitle="Simulasi Peristiwa Kontekstual Adat"
-      />
-      <main className="relative pt-28 px-4 lg:px-8 w-full min-h-screen overflow-x-clip font-sans">
-        <div className="w-full max-w-6xl mx-auto pb-16 flex flex-col gap-6">
-          {/* Top Banner / Scenario Sub-header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-6 rounded-2xl shadow-xs border border-outline-variant/30">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-label-sm uppercase tracking-wider font-bold">
-                  <Award className="w-4 h-4" />
-                  SIGNATURE CHALLENGE • SKENARIO TERPADU
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold">
-                  <Navigation className="w-4 h-4" />
-                  Lembah Palu • 3 Tahapan Keputusan
-                </span>
+    <div className="min-h-screen bg-surface text-on-surface flex flex-col font-sans">
+      {/* 1. TOP GAME HUD (Navigasi, Progress Bar, & Harmoni Meter) */}
+      <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur-md border-b border-outline-variant/30 px-4 py-3 sm:px-6">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-on-surface-variant hover:text-primary transition cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Kembali ke Beranda</span>
+          </Link>
+
+          {/* Central Progress Bar */}
+          <div className="flex-1 max-w-xs mx-auto flex flex-col gap-1">
+            <div className="flex items-center justify-between text-[11px] font-extrabold text-on-surface-variant">
+              <span>{decisionStep < decisions.length ? currentDecision.stage : "Selesai"}</span>
+              <span className="text-primary">{Math.round((harmony / 6) * 100)}% Harmoni</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-surface-container-high overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all duration-500 ease-out rounded-full"
+                style={{ width: `${decisionStep >= decisions.length ? 100 : progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Audio Atmosphere Toggle */}
+          <button
+            type="button"
+            onClick={toggleAudio}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition shadow-xs cursor-pointer ${
+              isPlayingAudio
+                ? "bg-primary text-on-primary animate-pulse"
+                : "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
+            }`}
+            title="Dengarkan Suasana Lalove & Ganda"
+          >
+            <Volume2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{isPlayingAudio ? "Audio Aktif" : "Musik Adat"}</span>
+          </button>
+        </div>
+      </header>
+
+      {/* 2. MAIN GAME ARENA (Terpusat, Bersih, Format Game Skenario) */}
+      <main className="flex-1 max-w-2xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center">
+        {decisionStep < decisions.length ? (
+          /* Skenario Game Berjalan */
+          <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* Visual Scene Stage Card */}
+            <div className="relative rounded-3xl overflow-hidden border-2 border-outline-variant/30 shadow-md bg-surface-container-lowest">
+              <div className="relative h-48 sm:h-56 w-full overflow-hidden bg-black/40">
+                <img
+                  src={currentDecision.image}
+                  alt={currentDecision.location}
+                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                
+                {/* Location Badge */}
+                <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-xs text-white text-[11px] font-bold">
+                  <MapPin className="w-3.5 h-3.5 text-primary-fixed" />
+                  <span>{currentDecision.location}</span>
+                </div>
               </div>
-              <h1 className="text-headline-lg text-on-surface tracking-tight font-extrabold mt-1">
-                Menghadiri Upacara Adat Pernikahan di Palu
+
+              {/* Story Narrative Bubble */}
+              <div className="p-4 sm:p-5 -mt-6 relative z-10 mx-3 mb-3 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-wider text-primary">
+                    Situasi Adat
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-on-surface font-medium leading-relaxed">
+                  {currentDecision.narrative}
+                </p>
+              </div>
+            </div>
+
+            {/* Prompt Pertanyaan Keputusan */}
+            <div className="px-1 pt-1">
+              <h2 className="text-base sm:text-lg font-black text-on-surface tracking-tight">
+                {currentDecision.prompt}
+              </h2>
+            </div>
+
+            {/* Pilihan Keputusan Bergaya Game Choice Cards */}
+            <div className="flex flex-col gap-2.5">
+              {currentDecision.choices.map((choice, index) => {
+                const isSelected = selectedChoiceId === choice.id;
+                const letter = String.fromCharCode(65 + index); // A, B, C
+
+                return (
+                  <button
+                    key={choice.id}
+                    type="button"
+                    disabled={isConfirmed}
+                    onClick={() => setSelectedChoiceId(choice.id)}
+                    className={`w-full text-left p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3.5 ${
+                      isSelected
+                        ? "border-primary bg-primary-fixed/20 shadow-[0_3px_0_0_#881f00] ring-1 ring-primary"
+                        : "border-outline-variant/30 bg-surface-container-lowest hover:border-primary/50 hover:bg-surface-container-low shadow-xs"
+                    } ${isConfirmed && !isSelected ? "opacity-40 cursor-not-allowed" : ""}`}
+                  >
+                    <span
+                      className={`w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs shrink-0 transition ${
+                        isSelected
+                          ? "bg-primary text-on-primary"
+                          : "bg-surface-container-high text-on-surface-variant"
+                      }`}
+                    >
+                      {letter}
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-on-surface flex-1 leading-snug">
+                      {choice.label}
+                    </span>
+                    {isSelected && (
+                      <Check className="w-5 h-5 text-primary shrink-0 stroke-[3]" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Feedback Jawaban / Konfirmasi Tindakan */}
+            {isConfirmed && activeChoice ? (
+              <div
+                className={`p-4 rounded-2xl border-2 flex flex-col gap-2 animate-in fade-in duration-300 ${
+                  activeChoice.isBest
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-100"
+                    : activeChoice.score > 0
+                    ? "bg-amber-500/10 border-amber-500/30 text-amber-950 dark:text-amber-100"
+                    : "bg-red-500/10 border-red-500/30 text-red-950 dark:text-red-100"
+                }`}
+              >
+                <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wide">
+                  <Sparkles className="w-4 h-4" />
+                  <span>
+                    {activeChoice.isBest
+                      ? "Harmoni Sempurna (+2)"
+                      : activeChoice.score > 0
+                      ? "Cukup Beradab (+1)"
+                      : "Kurang Selaras (+0)"}
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm font-medium leading-relaxed">
+                  {activeChoice.feedback}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="mt-2 inline-flex items-center justify-center gap-2 w-full py-3 rounded-full bg-primary text-on-primary font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
+                >
+                  <span>Lanjutkan</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleConfirmDecision}
+                disabled={!selectedChoiceId}
+                className="mt-2 w-full py-3.5 rounded-full bg-primary text-on-primary font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+              >
+                Tentukan Keputusan
+              </button>
+            )}
+          </div>
+        ) : (
+          /* Layar Kemenangan / Selesai Skenario (Victory Game Screen) */
+          <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-3xl border-2 border-primary/30 shadow-xl flex flex-col items-center text-center gap-5 animate-in zoom-in-95 duration-400">
+            <div className="w-20 h-20 rounded-full bg-primary-fixed flex items-center justify-center text-primary shadow-inner">
+              <Award className="w-10 h-10 animate-bounce" />
+            </div>
+
+            <div>
+              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">
+                Skenario Adat Tuntas
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black text-on-surface mt-1">
+                Upacara Adat Sempurna!
               </h1>
-              <p className="text-body-md text-on-surface-variant max-w-3xl">
-                Tantangan Terpadu: Gabungan Diplomasi Bahasa Sapaan &amp; Tata
-                Busana Adat Kaili.
+              <p className="text-xs sm:text-sm text-on-surface-variant font-medium mt-1.5 max-w-md">
+                Kamu telah mempraktikkan etika bertamu, tutur sapa Tabe, dan busana adat Kaili dengan penuh penghormatan di Souraja.
               </p>
             </div>
 
-            {/* Live Readiness Meter */}
-            <div className="flex items-center gap-4 self-start md:self-auto bg-surface-container-low px-4 py-3 rounded-2xl border border-outline-variant/20">
-              <div className="relative w-12 h-12 flex items-center justify-center">
-                <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
-                  <circle
-                    className="stroke-surface-container-highest"
-                    cx="24"
-                    cy="24"
-                    fill="transparent"
-                    r="20"
-                    strokeWidth="4"
-                  ></circle>
-                  <circle
-                    className="stroke-primary"
-                    cx="24"
-                    cy="24"
-                    fill="transparent"
-                    r="20"
-                    strokeDasharray="125.66"
-                    strokeDashoffset="0"
-                    strokeLinecap="round"
-                    strokeWidth="4"
-                  ></circle>
-                </svg>
-                <span className="absolute text-label-md text-primary font-bold">
+            {/* Stat Ringkas Kemenangan */}
+            <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+              <div className="p-3 rounded-2xl bg-surface-container-high flex flex-col items-center">
+                <span className="text-[10px] font-bold uppercase text-on-surface-variant">Tingkat Harmoni</span>
+                <span className="text-lg font-black text-primary mt-0.5">
                   {Math.round((harmony / 6) * 100)}%
                 </span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-label-sm text-on-surface-variant uppercase tracking-wider font-bold">
-                  Tingkat Harmoni
-                </span>
-                <span className="text-title-md text-on-surface font-extrabold">
-                  {decisionStep}/3 Tahap selesai
+              <div className="p-3 rounded-2xl bg-amber-500/10 flex flex-col items-center">
+                <span className="text-[10px] font-bold uppercase text-amber-800 dark:text-amber-200">Perolehan XP</span>
+                <span className="text-lg font-black text-amber-600 mt-0.5 flex items-center gap-1">
+                  <Zap className="w-4 h-4 fill-current" />
+                  {isAlreadyClaimed ? "0 XP" : "+30 XP"}
                 </span>
               </div>
             </div>
-          </div>
 
-          {/* Main 2-Column Studio Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* LEFT COLUMN: Cultural Scenario & Context */}
-            <section className="lg:col-span-5 flex flex-col gap-4">
-              {/* Scenario Brief Card */}
-              <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-xs flex flex-col gap-4 border border-outline-variant/30">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary shrink-0">
-                    <BookOpen className="w-5 h-5" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-label-sm uppercase tracking-wider text-secondary font-bold">
-                      Latar Peristiwa
-                    </span>
-                    <span className="text-title-md text-on-surface font-bold">
-                      Pernikahan Kerabat di Souraja
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-body-md text-on-surface leading-relaxed">
-                  Kamu diundang mewakili keluargamu menghadiri upacara
-                  pernikahan adat Kaili di Palu Barat. Satukan bahasa sapaan yang
-                  santun dan busana adat yang serasi untuk menghormati dewan
-                  pemangku adat.
-                </p>
-
-                {/* Etiquette Tips Mini Box */}
-                <div className="bg-surface-container-low p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/20">
-                  <div className="flex items-center gap-1.5 text-primary text-label-md font-bold">
-                    <BadgeCheck className="w-4 h-4" />
-                    Adab Utama Kaili (Kabilasa &amp; Maradika)
-                  </div>
-                  <p className="text-body-sm text-on-surface-variant leading-relaxed">
-                    Dalam tradisi Ledo, ketenangan tutur kata dan keselarasan
-                    warna kain tenun mencerminkan silsilah kehormatan dan adab
-                    menghargai sang tuan rumah (Pue Rumah).
-                  </p>
-                </div>
+            {/* Cap Paspor Unlocked Banner */}
+            <div className="w-full p-4 rounded-2xl bg-primary/10 border border-primary/20 flex items-center gap-3 text-left">
+              <div className="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
               </div>
-
-              {/* Atmospheric Venue Canvas Card */}
-              <div className="bg-surface-container-lowest rounded-2xl shadow-xs overflow-hidden flex flex-col border border-outline-variant/30">
-                <div className="relative w-full h-72 overflow-hidden group">
-                  <img
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    alt="Souraja Rumah Adat Kaili"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-5 text-white">
-                    <span className="inline-flex items-center gap-1 text-secondary-fixed text-label-sm uppercase tracking-wider mb-1 font-bold">
-                      <MapPin className="w-4 h-4" />
-                      Palu Barat, Sulawesi Tengah
-                    </span>
-                    <span className="text-title-md text-white font-bold leading-snug">
-                      Souraja (Rumah Adat Kaili)
-                    </span>
-                    <span className="text-body-sm text-neutral-300">
-                      Momen Kedatangan Tamu Kehormatan &amp; Dewan Pemangku Adat
-                    </span>
-                  </div>
-                </div>
-
-                {/* Ambient Audio Interactive Button */}
-                <div className="p-4 flex flex-col gap-2 bg-surface-container-lowest">
-                  <button
-                    type="button"
-                    onClick={toggleAudio}
-                    className="w-full flex items-center justify-between px-4 py-3 rounded-full bg-tertiary-fixed text-on-tertiary-fixed transition-all hover:bg-tertiary-fixed-dim cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      {isPlayingAudio ? (
-                        <AudioWaveform className="w-6 h-6 text-tertiary animate-pulse" />
-                      ) : (
-                        <Volume2 className="w-6 h-6 text-tertiary" />
-                      )}
-                      <div className="flex flex-col text-left">
-                        <span className="text-label-md font-bold">
-                          Dengarkan Suasana Lalove &amp; Ganda
-                        </span>
-                        <span className="text-body-sm text-on-tertiary-fixed-variant">
-                          {isPlayingAudio
-                            ? "Sedang memutar audio instrumen tradisi Kaili..."
-                            : "Gamelan tiup bambu & kendang sakral adat"}
-                        </span>
-                      </div>
-                    </div>
-                    {isPlayingAudio ? (
-                      <Pause className="w-5 h-5" />
-                    ) : (
-                      <Play className="w-5 h-5 fill-current" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Cultural Authority Validation */}
-              <div className="bg-surface-container-low p-4 rounded-xl flex items-center gap-3 border border-outline-variant/20">
-                <div className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary shrink-0">
-                  <BadgeCheck className="w-6 h-6" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">
-                    Otoritas Validasi Adat
-                  </span>
-                  <span className="text-label-md text-on-surface font-bold">
-                    Diverifikasi oleh Dewan Kesenian Palu &amp; Lembaga Adat
-                    Kaili
-                  </span>
-                </div>
-              </div>
-            </section>
-
-            {/* RIGHT COLUMN: 3-Step Interactive Decision Panel */}
-            <div id="interactive-decision-panel" className="lg:col-span-7 flex flex-col gap-4 scroll-mt-28">
-              {currentDecision ? (
-                <div className="bg-primary-fixed/30 p-6 rounded-2xl shadow-xs flex flex-col gap-4 border border-primary/20">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <span className="text-label-sm text-primary uppercase tracking-wider font-bold">
-                        Keputusan {decisionStep + 1} dari 3
-                      </span>
-                      <h2 className="text-headline-md text-on-surface font-extrabold mt-1">
-                        {currentDecision.title}
-                      </h2>
-                    </div>
-                    <span className="text-label-md font-black text-primary">Harmoni {harmony}/6</span>
-                  </div>
-                  <p className="text-body-lg text-on-surface leading-relaxed">{currentDecision.prompt}</p>
-                  <div className="flex flex-col gap-2">
-                    {currentDecision.choices.map((choice) => (
-                      <button
-                        key={choice.id}
-                        type="button"
-                        onClick={() => setSelectedDecision(choice.id)}
-                        className={`w-full text-left rounded-xl p-4 border transition-all ${selectedDecision === choice.id ? "border-primary bg-surface-container-lowest ring-2 ring-primary" : "border-outline-variant/30 bg-surface-container-low hover:bg-surface-container"}`}
-                      >
-                        <span className="text-title-md font-bold text-on-surface">{choice.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={chooseDecision}
-                    disabled={!selectedDecision || !sessionReady}
-                    className="w-full rounded-full bg-primary px-5 py-3 font-bold text-on-primary shadow-[0_4px_0_0_#881f00] disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Lakukan Keputusan
-                  </button>
-                </div>
-              ) : (
-                <div className="bg-secondary-fixed/40 p-6 rounded-2xl border border-secondary/20">
-                  <div className="flex items-center gap-2 text-secondary">
-                    <Award className="w-6 h-6" />
-                    <h2 className="text-headline-md font-extrabold text-on-surface">Skenario selesai</h2>
-                  </div>
-                  <p className="mt-2 text-body-md text-on-surface-variant">Semua keputusanmu sudah membentuk perjalanan bertamu. Klaim reward untuk menyimpan cap ke Paspor Budaya.</p>
-                </div>
-              )}
-
-              {/* Step 1: Speech Selection */}
-              <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-xs flex flex-col gap-4 relative overflow-hidden border border-outline-variant/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-label-md font-bold">
-                      1
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="text-label-sm text-secondary uppercase font-bold tracking-wider">
-                        Tahap 1 • Sapaan Adat
-                      </span>
-                      <span className="text-title-md text-on-surface font-bold">
-                        Diplomasi Tutur Saat Tiba
-                      </span>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-label-sm font-bold">
-                    <CheckCircle2 className="w-4 h-4" />
-                    {decisionStep > 0 ? "Terlewati" : "Menunggu keputusan"}
-                  </span>
-                </div>
-
-                <p className="text-body-md text-on-surface-variant">
-                  Saat melangkah masuk ke rumah adat dan menyapa para tetua adat
-                  di muka serambi:
-                </p>
-
-                <div className="bg-surface-container-low p-4 rounded-xl flex flex-col gap-3 shadow-[0_3px_0_0_#ca4a28] border border-outline-variant/20">
-                  <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div className="flex items-start gap-3">
-                      <button
-                        type="button"
-                        className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-xs hover:scale-105 active:scale-95 transition-transform shrink-0 cursor-pointer"
-                        title="Dengarkan Pelafalan Asli"
-                      >
-                        <Volume2 className="w-5 h-5" />
-                      </button>
-                      <div className="flex flex-col">
-                        <span className="text-headline-md text-primary tracking-tight font-bold">
-                          &ldquo;Tabe pue, nalompa mai kami&rdquo;
-                        </span>
-                        <span className="text-body-sm text-on-surface-variant italic mt-0.5">
-                          (Hormat kami para tetua adat, kami datang menghadap
-                          dengan niat tulus &amp; damai)
-                        </span>
-                      </div>
-                    </div>
-                    <span className="px-3 py-1 rounded-full bg-primary text-on-primary text-label-sm font-bold shrink-0">
-                      Pilihan Santun Tertinggi ✓
-                    </span>
-                  </div>
-                  <div className="bg-surface-container-lowest p-3 rounded-lg flex items-center gap-2 text-on-surface mt-1 border border-outline-variant/20">
-                    <BookOpen className="w-5 h-5 text-secondary shrink-0" />
-                    <span className="text-body-sm">
-                      <strong>Konteks Ledo:</strong> Kata{" "}
-                      <em>&ldquo;Tabe&rdquo;</em> adalah gestur kerendahan hati
-                      tertinggi kepada <em>Pue</em> (tokoh adat/penjaga
-                      kehormatan rumah).
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 2: Attire Synchronization */}
-              <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-xs flex flex-col gap-4 relative overflow-hidden border border-outline-variant/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-label-md font-bold">
-                      2
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="text-label-sm text-secondary uppercase font-bold tracking-wider">
-                        Tahap 2 • Tata Busana
-                      </span>
-                      <span className="text-title-md text-on-surface font-bold">
-                        Pilihan Busana Tamu Kehormatan
-                      </span>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-label-sm font-bold">
-                    <CheckCircle2 className="w-4 h-4" />
-                    {decisionStep > 1 ? "Terlewati" : "Menunggu keputusan"}
-                  </span>
-                </div>
-
-                <p className="text-body-md text-on-surface-variant">
-                  Pilihan busana resmi untuk acara adat perkawinan keluarga
-                  terpandang Kaili:
-                </p>
-
-                <div className="bg-surface-container-low p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center shadow-[0_3px_0_0_#ca4a28] border border-outline-variant/20">
-                  <div className="w-full md:w-36 h-36 rounded-xl overflow-hidden shrink-0">
-                    <img
-                      className="w-full h-full object-cover"
-                      alt="Baju Nggembe & Buya Sabe Resmi"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGGe6e5vP1nGlX2ZvT-UWV9U5KAgLs72Sx27pc9mWuqPe01VmMKmx0DY8XbKA_r787_92pwgfiNumLz4-iEx6Nq6vvyfNc4N2LM7ruBRvLAOih6SWFuROZCbgCyVmTQAuyl2CMFa2elMsDv2JbxdEeaCSXjUqCi9G3Wj0aeNXHmvef-hwkOzESw41KdPVLaaSgxbbKPPlqGPfNa2_DJN29ozR1Xvy4rPWtQLsRBJj8QzLNr5yBMJcbaQ"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2 flex-1">
-                    <h3 className="text-title-md text-on-surface font-bold leading-snug">
-                      Baju Nggembe Merah Terakota + Sarung Tenun Donggala (Buya
-                      Sabe)
-                    </h3>
-                    <div className="flex items-center gap-1.5 text-on-surface-variant text-body-sm">
-                      <ShieldCheck className="text-secondary w-4 h-4" />
-                      <span>
-                        Aksesoris: <strong>Sampa (Kalung Dada) Kuningan Resmi</strong>
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-wrap mt-1">
-                      <span className="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface text-label-sm font-semibold">
-                        Donggala Weave
-                      </span>
-                      <span className="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface text-label-sm font-semibold">
-                        Sampa Brass
-                      </span>
-                      <span className="px-2 py-0.5 rounded bg-secondary-fixed text-on-secondary-fixed text-label-sm font-bold">
-                        Resmi &amp; Beradab
-                      </span>
-                      <span className="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant text-label-sm font-bold">
-                        Selaras dengan konteks acara
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 3: Synthesis */}
-              <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-xs flex flex-col gap-4 relative overflow-hidden border border-outline-variant/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-tertiary flex items-center justify-center text-on-tertiary text-label-md font-bold">
-                      3
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="text-label-sm text-tertiary uppercase font-bold tracking-wider">
-                        Tahap 3 • Sintesis Filosofi
-                      </span>
-                      <span className="text-title-md text-on-surface font-bold">
-                        Mengapa Kombinasi Ini Tepat?
-                      </span>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-bold">
-                    <Brain className="w-4 h-4" />
-                    Refleksi Budaya
-                  </span>
-                </div>
-
-                <div className="bg-surface-container p-5 rounded-xl flex flex-col gap-3 border border-outline-variant/20">
-                  <div className="flex items-start gap-3">
-                    <Quote className="text-primary w-7 h-7 shrink-0" />
-                    <p className="text-body-lg text-on-surface leading-relaxed">
-                      Kata <strong>&ldquo;Tabe&rdquo;</strong> membuka adab luhur
-                      dengan merendahkan hati, sementara{" "}
-                      <strong>Baju Nggembe terakota</strong> menyiratkan martabat
-                      keluarga tamu undangan tanpa mengaburkan keagungan mempelai
-                      utama yang mengenakan busana keemasan bertingkat.
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20 text-on-surface-variant text-body-sm flex-wrap gap-2">
-                    <span className="flex items-center gap-1">
-                      <Trophy className="w-4 h-4 text-secondary" />
-                      Nilai Kearifan:{" "}
-                      <em>Katura (Keseimbangan Penghormatan Sosial)</em>
-                    </span>
-                    <span className="text-tertiary text-label-md font-bold">
-                      Skor Pemahaman: 10/10
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Scenario Completion Summary & Claim Bar */}
-              <div className="bg-surface-container-highest p-6 rounded-2xl shadow-md flex flex-col md:flex-row items-center justify-between gap-6 border border-outline-variant/30">
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                  <div className="w-14 h-14 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shrink-0 shadow-xs">
-                    <Award className="w-8 h-8" />
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <span className="text-headline-sm text-on-surface font-extrabold">
-                        {harmony >= 5 ? "Skenario Harmonis!" : "Skenario selesai"}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full bg-primary text-on-primary text-label-sm font-bold">
-                        {Math.round((harmony / 6) * 100)}% Harmoni
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 mt-0.5 text-body-sm flex-wrap">
-                      <span className="inline-flex items-center gap-1 text-label-md text-secondary font-bold">
-                        <Zap className="w-4 h-4" />
-                        {isAlreadyClaimed ? "+0 XP (Sudah diklaim)" : "+30 XP Kemahiran"}
-                      </span>
-                      {isAlreadyClaimed && (
-                        <span className="text-body-xs text-on-surface-variant font-medium">
-                          • Replay skenario (tanpa XP baru)
-                        </span>
-                      )}
-                      <span>•</span>
-                      <span className="inline-flex items-center gap-1 text-label-md text-tertiary font-bold">
-                        <BadgeCheck className="w-4 h-4" />
-                        Cap Paspor Adat &ldquo;Lembah Palu&rdquo;
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleClaim}
-                  disabled={isClaiming || decisionStep < decisions.length || !sessionReady}
-                  className="w-full md:w-auto px-8 py-3.5 rounded-full bg-primary text-on-primary font-label-lg font-bold shadow-[0_4px_0_0_#881f00] hover:translate-y-0.5 hover:shadow-[0_2px_0_0_#881f00] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
-                >
-                  {isClaiming ? (
-                    <>
-                      <RotateCw className="w-5 h-5 animate-spin" />
-                      <span>Menyimpan ke Paspor...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>
-                        {decisionStep < decisions.length
-                          ? "Selesaikan Keputusan"
-                          : isAlreadyClaimed
-                          ? "Sudah Diklaim • Buka Paspor"
-                          : "Klaim Hadiah & Simpan ke Paspor"}
-                      </span>
-                      <ArrowRight className="w-5 h-5" />
-                    </>
-                  )}
-                </button>
+              <div className="min-w-0">
+                <p className="text-xs font-black text-primary uppercase tracking-wider">Cap Paspor Baru</p>
+                <p className="text-sm font-extrabold text-on-surface truncate">Tamu Sopan Lembah Palu</p>
               </div>
             </div>
+
+            {/* Tombol Utama */}
+            <div className="w-full flex flex-col gap-2 pt-2">
+              <button
+                type="button"
+                onClick={handleClaim}
+                disabled={isClaiming || !sessionReady}
+                className="w-full py-3.5 rounded-full bg-primary text-on-primary font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer flex items-center justify-center gap-2"
+              >
+                {isClaiming ? (
+                  <>
+                    <RotateCw className="w-4 h-4 animate-spin" />
+                    <span>Menyimpan ke Paspor...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{isAlreadyClaimed ? "Buka Paspor Budaya" : "Klaim Cap Paspor"}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+
+              <Link
+                href="/dashboard"
+                className="w-full py-2.5 rounded-full text-center text-xs font-bold text-on-surface-variant hover:text-primary transition"
+              >
+                Kembali ke Beranda
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
       </main>
-    </>
+    </div>
   );
 }

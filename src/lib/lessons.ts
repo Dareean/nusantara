@@ -60,6 +60,7 @@ export type Question = {
   prompt: string;
   data: QuestionData;
   why: string;
+  penjelasan?: string;
   xp: number;
   audioUrl?: string;
 };
@@ -78,6 +79,8 @@ export type Lesson = {
   slug: string;
   title: string;
   subtitle: string;
+  objective?: string;
+  concepts?: string[];
   region: string;
   intro: string;
   rewardXp: number;
@@ -92,6 +95,12 @@ export const lessons: Lesson[] = [
     slug: "salam-adab-tabe",
     title: "Salam & Adab Tabe",
     subtitle: "Belajar membuka percakapan dengan hormat",
+    objective: "Setelah pelajaran ini, kamu bisa menyapa dan mempraktikkan adab santun Tabe dalam budaya Kaili.",
+    concepts: [
+      "Makna partikel santun Tabe (permisi dan hormat)",
+      "Sebutan penghormatan Pue untuk orang yang dituakan",
+      "Tata krama bertamu: tenang, mengucap salam, dan merendahkan gesture",
+    ],
     region: "Kaili Ledo • Lembah Palu",
     intro: "Tabe adalah cara meminta ruang dan menunjukkan hormat sebelum melangkah atau berbicara.",
     rewardXp: 20,
@@ -192,6 +201,12 @@ export const lessons: Lesson[] = [
     slug: "busana-baju-nggembe",
     title: "Kenali Baju Nggembe",
     subtitle: "Temukan bentuk, bahan, dan konteks busana",
+    objective: "Setelah pelajaran ini, kamu bisa mengenali Baju Nggembe, Buya Sabe, dan etika berbusana adat Kaili.",
+    concepts: [
+      "Baju Nggembe sebagai busana atasan khas wanita Kaili",
+      "Kain tenun Buya Sabe khas Donggala",
+      "Prinsip keselarasan busana tamu dalam perhelatan adat",
+    ],
     region: "Kaili • Donggala",
     intro: "Baju Nggembe dan Buya Sabe mengajarkan cara membaca bentuk busana sekaligus konteks pemakaiannya.",
     rewardXp: 25,
@@ -276,6 +291,12 @@ export const lessons: Lesson[] = [
     slug: "skenario-souraja",
     title: "Skenario Souraja",
     subtitle: "Satukan bahasa, gesture, dan busana",
+    objective: "Setelah pelajaran ini, kamu bisa memahami tata ruang Souraja dan adab bertamu di rumah adat Kaili.",
+    concepts: [
+      "Struktur Banua Oge (Souraja) sebagai ruang diplomasi adat",
+      "Keseimbangan antara sapaan Tabe dan gesture fisik",
+      "Etika melangkah perlahan di pelataran tetua",
+    ],
     region: "Palu Barat • Sulawesi Tengah",
     intro: "Dalam skenario ini kamu tidak hanya mengingat istilah, tetapi memilih sikap yang tepat sebagai tamu.",
     rewardXp: 30,

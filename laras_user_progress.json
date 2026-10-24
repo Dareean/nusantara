@@ -1,8 +1,8 @@
 {
   "demo@gmail.com": {
-    "xp": 270,
+    "xp": 300,
     "streak": 5,
-    "hearts": 2,
+    "hearts": 3,
     "completedLessons": [
       1,
       2,
@@ -19,24 +19,27 @@
     "badges": [
       "pembelajar_kaili",
       "Tamu Sopan",
-      "Pionir Salam"
+      "Pionir Salam",
+      "Penjaga Busana"
     ],
     "lastLesson": {
-      "lessonId": 1,
+      "lessonId": 3,
       "answered": "lesson-session",
       "correct": true,
       "score": 100,
       "xp": 0,
       "bonusXp": 0,
-      "baseRewardXp": 20,
+      "baseRewardXp": 30,
       "totalExercises": 5,
       "correctExercises": 5,
-      "heartsRemaining": 2,
+      "firstAttemptCorrect": 5,
+      "heartsRemaining": 3,
       "completed": true,
-      "completedAt": "2026-10-22T14:09:02.567Z",
+      "completedAt": "2026-10-24T06:06:33.785Z",
       "isRepeat": true
     },
-    "lastStudyDate": "2026-10-22"
+    "lastStudyDate": "2026-10-24",
+    "cultureConnectionClaimed": true
   },
   "cernitro2@gmail.com": {
     "xp": 0,
@@ -76,6 +79,34 @@
       "completedAt": "2026-10-22T15:43:19.535Z"
     },
     "lastStudyDate": "2026-10-22",
+    "cultureConnectionClaimed": true
+  },
+  "admin@laras.id": {
+    "xp": 50,
+    "streak": 1,
+    "hearts": 2,
+    "completedLessons": [
+      1,
+      4
+    ],
+    "unlockedLessons": [
+      1,
+      2,
+      5
+    ],
+    "badges": [
+      "Pionir Salam",
+      "Tamu Sopan"
+    ],
+    "lastLesson": {
+      "lessonId": 4,
+      "answered": "culture-connection",
+      "correct": true,
+      "score": 120,
+      "xp": 30,
+      "completedAt": "2026-10-24T06:48:51.227Z"
+    },
+    "lastStudyDate": "2026-10-24",
     "cultureConnectionClaimed": true
   }
 }

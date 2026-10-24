@@ -11,11 +11,12 @@ import {
   Settings,
   ShieldAlert,
   LogOut,
+  HelpCircle,
 } from "lucide-react";
 import { getSession } from "../auth/authClient";
 
 const navItems = [
-  { path: "/dashboard", Icon: Compass, label: "Belajar" },
+  { path: "/dashboard", Icon: Compass, label: "Beranda" },
   { path: "/dashboard/arcade", Icon: Gamepad2, label: "Arcade" },
   { path: "/dashboard/paspor", Icon: Trophy, label: "Paspor" },
   { path: "/dashboard/profil", Icon: User, label: "Profil" },
@@ -86,6 +87,7 @@ export default function DuolingoSidebar() {
               <Link
                 key={item.path}
                 href={item.path}
+                id={item.path === "/dashboard/paspor" ? "tour-paspor-nav" : undefined}
                 className={`flex items-center gap-4 px-4 py-3 rounded-2xl font-black text-sm uppercase tracking-wider transition-all ${
                   isActive
                     ? "bg-primary-fixed text-primary border-2 border-primary/40 shadow-[0_3px_0_0_#ca4a28]"
@@ -102,6 +104,15 @@ export default function DuolingoSidebar() {
 
       {/* Bottom utility & User Area */}
       <div className="flex flex-col gap-2 pt-4 border-t-2 border-outline-variant/20">
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("laras-start-tour"))}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-2xl text-on-surface-variant hover:bg-surface-container font-extrabold text-sm uppercase tracking-wider transition-all cursor-pointer text-left"
+          title="Buka Panduan Belajar"
+        >
+          <HelpCircle className="w-5 h-5 text-primary" />
+          <span>Panduan</span>
+        </button>
         <Link
           href="/dashboard/pengaturan"
           className="flex items-center gap-3 px-4 py-2.5 rounded-2xl text-on-surface-variant hover:bg-surface-container font-extrabold text-sm uppercase tracking-wider transition-all"

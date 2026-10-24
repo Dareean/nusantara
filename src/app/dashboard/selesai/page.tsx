@@ -323,10 +323,10 @@ function SelesaiContent() {
                 Kembali ke Beranda
               </Link>
               <Link
-                href="/dashboard/belajar"
+                href="/dashboard"
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-full font-label-lg bg-primary text-on-primary shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_2px_0_0_#881f00] transition-all cursor-pointer font-bold"
               >
-                <span>Lanjut Pelajaran Berikutnya</span>
+                <span>Lanjutkan</span>
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
@@ -340,7 +340,7 @@ function SelesaiContent() {
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
                   <Trophy className="w-3.5 h-3.5 text-secondary-container" />
-                  Lencana &ldquo;{badgeTitle}&rdquo; Tersemat
+                  Cap Paspor &ldquo;{badgeTitle}&rdquo; Tersemat
                 </span>
                 <span>•</span>
                 <span>Laras Nusantara ID: LR-KL-2024</span>

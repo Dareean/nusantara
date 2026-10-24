@@ -546,7 +546,7 @@ export default function CulturalGameEngine({
                 href={onExitHref}
                 className="flex-1 py-3.5 rounded-2xl bg-primary text-on-primary font-black uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 text-center text-sm"
               >
-                Selesai &amp; Lanjut
+                Lanjutkan
               </Link>
             )}
           </div>
@@ -1216,6 +1216,14 @@ export default function CulturalGameEngine({
                     <h4 className="text-lg font-black text-[#ea2b2b] leading-none">
                       Kurang Tepat (-1 Nyawa)
                     </h4>
+                    {currentQ.options?.find((o) => o.isCorrect) && (
+                      <p className="text-xs text-on-surface font-extrabold mt-1">
+                        Jawaban yang benar:{" "}
+                        <span className="text-[#881f00] underline">
+                          {currentQ.options.find((o) => o.isCorrect)?.title}
+                        </span>
+                      </p>
+                    )}
                     {currentQ.curatorNote && (
                       <p className="text-xs text-[#c62828] mt-1 font-bold">
                         {currentQ.curatorNote}
@@ -1254,10 +1262,10 @@ export default function CulturalGameEngine({
                     {currentQ.type === "scenario" &&
                     (currentQ.steps?.length || 0) > 1 &&
                     scenarioStepIdx < (currentQ.steps?.length || 0) - 1
-                      ? "Lanjut ke Langkah Berikutnya"
+                      ? "Berikutnya"
                       : currentIdx + 1 === totalQuestions
-                      ? "Selesai & Lihat Reward"
-                      : "Lanjut"}
+                      ? "Lanjutkan"
+                      : "Berikutnya"}
                   </span>
                 </button>
               )}
@@ -1285,7 +1293,7 @@ export default function CulturalGameEngine({
                 onClick={() => setShowExitModal(false)}
                 className="w-full py-2.5 sm:py-3 rounded-full bg-surface-container text-on-surface font-extrabold text-xs sm:text-sm hover:bg-surface-container-high transition cursor-pointer"
               >
-                Lanjut Belajar
+                Lanjutkan Belajar
               </button>
               {onExit ? (
                 <button

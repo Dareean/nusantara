@@ -214,7 +214,7 @@ export default function ProfilPage() {
               )}
             </div>
             <div className="rounded-[20px] bg-surface-container-lowest p-3.5 shadow-xs ring-1 ring-outline-variant/25">
-              <div className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Streak</div>
+              <div className="text-[9px] uppercase tracking-[0.18em] text-on-surface-variant">Hari beruntun</div>
               {isLoaded ? (
                 <div className="mt-2 text-2xl font-black text-on-surface">{progress.streak} hari</div>
               ) : (
@@ -226,7 +226,7 @@ export default function ProfilPage() {
           <section className="rounded-[24px] bg-surface-container-lowest p-4 shadow-xs ring-1 ring-outline-variant/25">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-extrabold text-on-surface">Jalur belajar</h2>
-              <Link href="/dashboard/belajar" className="text-sm font-bold text-primary">Lihat path</Link>
+              <Link href="/dashboard" className="text-sm font-bold text-primary">Lihat peta</Link>
             </div>
 
             <div className="space-y-3">
@@ -255,7 +255,7 @@ export default function ProfilPage() {
                     />
                   </div>
                   <div className="mt-2 text-[11px] font-bold uppercase tracking-[0.12em] text-on-surface-variant">
-                    Progress {track.progress}%
+                    Progres {track.progress}%
                   </div>
                 </div>
               ))}
@@ -264,7 +264,7 @@ export default function ProfilPage() {
 
           <section className="rounded-[24px] bg-surface-container-lowest p-4 shadow-xs ring-1 ring-outline-variant/25">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-extrabold text-on-surface">Achievement</h2>
+              <h2 className="text-lg font-extrabold text-on-surface">Cap Paspor</h2>
               <Link href="/dashboard/paspor" className="text-sm font-bold text-primary">Lihat semua</Link>
             </div>
 

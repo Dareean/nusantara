@@ -416,7 +416,7 @@ export default function EvaluasiJawabanPage() {
                     onClick={() => router.push(lessonResult?.lessonId ? `/dashboard/selesai?lesson=${lessonResult.lessonId}` : "/dashboard/selesai")}
                     className="w-full sm:w-auto px-7 py-3 rounded-full bg-primary text-on-primary font-label-md font-bold shadow-[0_3px_0_0_#881f00] hover:bg-primary-container active:translate-y-0.5 active:shadow-[0_1px_0_0_#881f00] transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
                   >
-                    <span>Lanjut ke Perayaan Selesai</span>
+                    <span>Lanjutkan</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>

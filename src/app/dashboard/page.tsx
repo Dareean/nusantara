@@ -19,6 +19,9 @@ import {
   Star,
   Trophy,
   Zap,
+  HelpCircle,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { getCachedSessionSync, getSession } from "../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "./progress";
@@ -45,7 +48,7 @@ const pathNodes: PathNode[] = [
   { id: 3, title: "Peti Budaya", subtitle: "Reward Bab 1", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "center" },
   { id: 4, title: "Skenario Souraja", subtitle: "Pelajaran 3 • Rumah adat", type: "lesson", href: "/dashboard/latihan/3", xp: 30, offset: "right" },
   { id: 5, title: "Culture Connection: Upacara Adat", subtitle: "Simulasi • Pernikahan adat Kaili", type: "review", href: "/dashboard/culture-connection", xp: 30, offset: "center" },
-  { id: 6, title: "Lencana Tamu Sopan", subtitle: "Penutup Bab 1", type: "review", href: "/dashboard/paspor", xp: 50, offset: "left" },
+  { id: 6, title: "Cap Paspor Tamu Sopan", subtitle: "Penutup Bab 1", type: "review", href: "/dashboard/paspor", xp: 50, offset: "left" },
 ];
 
 function getNodeStatus(node: PathNode, progress: UserProgress): NodeStatus {
@@ -93,12 +96,45 @@ function NodeIcon({ node, status }: { node: PathNode; status: NodeStatus }) {
   return <Star className="h-8 w-8 fill-current text-on-primary" />;
 }
 
-const AMPLITUDE_DESKTOP = [0, 56, 88, 56, 0, -56, -88, -56];
-const AMPLITUDE_MOBILE = [0, 22, 35, 22, 0, -22, -35, -22];
+// Offset horizontal meliuk simetris kiri–kanan berirama tanpa drift diagonal
+const SINE_OFFSETS_DESKTOP = [0, 40, 70, 40, 0, -40, -70, -40];
+const SINE_OFFSETS_MOBILE = [0, 24, 42, 24, 0, -24, -42, -24];
+
+/**
+ * Konversi rangkaian titik tengah node menjadi segmen kurva Bézier kubik Catmull-Rom mulus.
+ * Menghasilkan kurva C1 kontinu tanpa sudut patah di setiap node.
+ */
+function getCatmullRomSegments(pts: { x: number; y: number }[]): string[] {
+  if (pts.length < 2) return [];
+  const segments: string[] = [];
+
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+
+    const p0 = i > 0 ? pts[i - 1] : { x: p1.x - (p2.x - p1.x) * 0.5, y: p1.y - (p2.y - p1.y) * 0.5 };
+    const p3 = i < pts.length - 2 ? pts[i + 2] : { x: p2.x + (p2.x - p1.x) * 0.5, y: p2.y + (p2.y - p1.y) * 0.5 };
+
+    const k = 1 / 6;
+    const cp1x = p1.x + (p2.x - p0.x) * k;
+    const cp1y = p1.y + (p2.y - p0.y) * k;
+    const cp2x = p2.x - (p3.x - p1.x) * k;
+    const cp2y = p2.y - (p3.y - p1.y) * k;
+
+    segments.push(
+      `C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`
+    );
+  }
+  return segments;
+}
+
 
 export default function DashboardPage() {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   const [email, setEmail] = useState("");
+  const [userName, setUserName] = useState("");
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(true);
+  const [tourStep, setTourStep] = useState<number | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [curatorNodes, setCuratorNodes] = useState<PathNode[]>([]);
   const [hoveredNodeId, setHoveredNodeId] = useState<number | string | null>(null);
@@ -119,7 +155,10 @@ export default function DashboardPage() {
     let activeEmail = cached?.email || "";
     if (cached) {
       setEmail(cached.email);
+      setUserName(cached.name || "");
       setProgress(readProgress(cached.email));
+      const seen = typeof window !== "undefined" && window.localStorage.getItem(`laras.onboarding.${cached.email}`) === "done";
+      setHasSeenOnboarding(seen);
       setIsLoaded(true);
     }
 
@@ -130,6 +169,9 @@ export default function DashboardPage() {
       }
       activeEmail = session.email;
       setEmail(session.email);
+      setUserName(session.name || "");
+      const seen = typeof window !== "undefined" && window.localStorage.getItem(`laras.onboarding.${session.email}`) === "done";
+      setHasSeenOnboarding(seen);
       // Immediate local render
       const local = readProgress(session.email);
       setProgress(local);
@@ -194,6 +236,56 @@ export default function DashboardPage() {
     return () => window.removeEventListener("laras-progress-updated", refresh);
   }, [email]);
 
+  const handleDismissOnboarding = () => {
+    if (typeof window !== "undefined") {
+      const key = email ? `laras.onboarding.${email}` : "laras.onboarding.default";
+      window.localStorage.setItem(key, "done");
+    }
+    setHasSeenOnboarding(true);
+  };
+
+  const handleStartTour = () => {
+    setTourStep(1);
+  };
+
+  const handleCloseTour = () => {
+    handleDismissOnboarding();
+    setTourStep(null);
+  };
+
+  const handleStartFirstLesson = () => {
+    handleDismissOnboarding();
+    setTourStep(null);
+    window.location.href = "/dashboard/latihan/1";
+  };
+
+  useEffect(() => {
+    const startTourHandler = () => {
+      setTourStep(1);
+    };
+    window.addEventListener("laras-start-tour", startTourHandler);
+    return () => window.removeEventListener("laras-start-tour", startTourHandler);
+  }, []);
+
+  useEffect(() => {
+    if (tourStep === null) return;
+    const timer = setTimeout(() => {
+      if (tourStep === 1) {
+        const el = document.getElementById("tour-roadmap");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else if (tourStep === 2) {
+        const el = document.getElementById("tour-first-lesson");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else if (tourStep === 3) {
+        const el =
+          document.getElementById("tour-paspor-nav") ||
+          document.getElementById("tour-paspor-mobile");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [tourStep]);
+
   const baseNodes = pathNodes.map((node) => {
     let title = node.title;
     let xp = node.xp;
@@ -220,18 +312,73 @@ export default function DashboardPage() {
   const activeNode = nodes.find((node) => node.status === "active") ?? nodes[nodes.length - 1];
   const dailyXp = Math.min(progress.xp, 50);
 
-  // Perhitungan layout sinusoidal jalur & koordinat node
-  const containerWidth = isMobile ? 340 : 540;
+  // Perhitungan layout sinusoidal jalur & geometri berirama konsisten
+  const containerWidth = isMobile ? 320 : 480;
   const centerX = containerWidth / 2;
-  const stepY = 126;
-  const startY = 72;
-  const offsets = isMobile ? AMPLITUDE_MOBILE : AMPLITUDE_DESKTOP;
-  const totalRoadmapHeight = startY + nodes.length * stepY + 40;
+  const stepY = 104; // Jarak vertikal seragam konsisten (96-112px)
+  const startY = 68;
+  const offsets = isMobile ? SINE_OFFSETS_MOBILE : SINE_OFFSETS_DESKTOP;
 
-  const activeIndex = nodes.findIndex((node) => node.status === "active");
-  const effectiveActiveIdx = activeIndex !== -1 ? activeIndex : 0;
-  const activeNodeY = startY + effectiveActiveIdx * stepY;
-  const activeOffset = offsets[effectiveActiveIdx % offsets.length];
+  // Node rujukan untuk artefak budaya (Souraja / Bab 1)
+  const sourajaIdx = nodes.findIndex(
+    (n) => n.id === 4 || n.title.toLowerCase().includes("souraja")
+  );
+  const cultureNodeIdx = sourajaIdx !== -1 ? sourajaIdx : 3;
+
+  // Hitung koordinat final setiap node secara dinamis
+  const mobileCardGap = isMobile ? 64 : 0;
+  const nodesWithCoords = nodes.map((node, i) => {
+    const offset = offsets[i % offsets.length];
+    const x = centerX + offset;
+    const extraY = isMobile && i > cultureNodeIdx ? mobileCardGap : 0;
+    const y = startY + i * stepY + extraY;
+    return {
+      ...node,
+      x,
+      y,
+      offsetVal: offset,
+    };
+  });
+
+  const totalRoadmapHeight =
+    nodesWithCoords.length > 0
+      ? nodesWithCoords[nodesWithCoords.length - 1].y + 64
+      : 700;
+
+  // Satu kurva mulus utuh melewati semua titik tengah node
+  const pts = nodesWithCoords.map((n) => ({ x: n.x, y: n.y }));
+  const segments = getCatmullRomSegments(pts);
+  const fullPathD =
+    pts.length >= 2
+      ? `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)} ` + segments.join(" ")
+      : "";
+
+  // Lapisan progres: dari awal sampai node aktif / node terakhir selesai
+  const activeIdx = nodes.findIndex((node) => node.status === "active");
+  const lastCompIdx = nodes.map((n) => n.status).lastIndexOf("completed");
+  let progressLimit = 0;
+  if (lastCompIdx >= 0) {
+    progressLimit = activeIdx > lastCompIdx ? activeIdx : lastCompIdx + 1;
+  } else if (activeIdx > 0) {
+    progressLimit = activeIdx;
+  }
+  progressLimit = Math.max(0, Math.min(segments.length, progressLimit));
+
+  const progressSegments = segments.slice(0, progressLimit);
+  const progressPathD =
+    progressSegments.length > 0
+      ? `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)} ` + progressSegments.join(" ")
+      : "";
+
+  const cultureNode = nodesWithCoords[cultureNodeIdx] || nodesWithCoords[0];
+  const cultureNodeY = cultureNode ? cultureNode.y : startY + 3 * stepY;
+  const cultureOffset = cultureNode ? cultureNode.offsetVal : 40;
+  // Pada desktop: jika offset positif (geser kanan), kartu diletakkan di sisi kiri; jika negatif, di kanan
+  const cardLeft =
+    cultureOffset >= 0
+      ? cultureNode.x - 38 - 14 - 170
+      : cultureNode.x + 38 + 14;
+
   const completedBaseCount = progress.completedLessons.filter((id) => [1, 2, 3].includes(id)).length;
   const isUnit1Complete = completedBaseCount >= 3 && progress.completedLessons.includes(4);
   const progressRatio = Math.min(1, Math.max(0, completedBaseCount / 3));
@@ -244,72 +391,176 @@ export default function DashboardPage() {
           {/* Kolom Tengah (Terpusat, Maksimal 560px) */}
           <div className="w-full flex flex-col items-center">
             <div className="w-full max-w-[560px]">
-              {/* Sticky Unit Banner — Berfungsi sebagai Header Bab Utama yang Elegan */}
-              <div className="sticky top-20 z-20 pt-1 pb-4 bg-surface/90 backdrop-blur-md">
-                <div className="rounded-2xl bg-surface-container-lowest p-4 sm:p-5 border-2 border-outline-variant/30 shadow-[0_4px_0_0_#e8ded8] flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[11px] font-black uppercase tracking-[0.16em] text-primary truncate">
-                        Unit 1 • Sulawesi Tengah
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-md shrink-0">
-                        <MapPin className="h-3 w-3 text-primary" />
-                        Kaili
-                      </span>
-                    </div>
-                    <h1 className="text-xl sm:text-2xl font-black tracking-tight text-on-surface truncate">
-                      Salam, Sapaan &amp; Busana Kaili
-                    </h1>
-                    <p className="text-xs text-on-surface-variant font-medium mt-1 truncate hidden sm:block">
-                      Satu misi kecil setiap hari. Pelajari bahasanya, rasakan konteksnya.
-                    </p>
+
+
+              {/* 1. KARTU HEADER & STATUS UNIT TERPADU (Gaya Duolingo: Bersih, Manusiawi, Gamified) */}
+              <div className="mb-6 rounded-3xl bg-surface-container-lowest p-5 border-2 border-outline-variant/30 shadow-[0_4px_0_0_#e8ded8]">
+                {/* Baris Atas: Identitas Bab & Aksi */}
+                <div className="flex items-center justify-between gap-3 mb-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+                      Unit 1 • Sulawesi Tengah
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-md">
+                      <MapPin className="h-3 w-3 text-primary" />
+                      Kaili
+                    </span>
                   </div>
-                  <div className="shrink-0 flex items-center">
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black shadow-xs min-h-[28px]">
-                      {isLoaded ? (
-                        `${completedBaseCount}/3 selesai`
-                      ) : (
-                        <span className="inline-block w-10 h-3 rounded bg-primary/20 animate-pulse" />
-                      )}
+
+                  <div className="shrink-0 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTourStep(1)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold transition cursor-pointer"
+                      title="Buku Panduan Unit"
+                    >
+                      <BookOpen className="w-3.5 h-3.5 text-primary" />
+                      <span>Panduan</span>
+                    </button>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-surface-container-high text-on-surface font-extrabold text-xs">
+                      {isLoaded ? `${completedBaseCount}/3 selesai` : "--"}
                     </span>
                   </div>
                 </div>
-              </div>
 
-              {/* Mobile Accent Card: Hanya tampil di layar kecil (< sm) di bawah banner unit */}
-              <div className="sm:hidden mb-5 rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-xs flex items-center gap-3 p-2.5">
-                <img
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
-                  alt="Souraja Rumah Adat Kaili"
-                  className="w-14 h-14 rounded-xl object-cover shrink-0"
-                />
-                <div className="min-w-0">
-                  <span className="text-[9px] font-black text-primary uppercase tracking-wider">
-                    Artefak Budaya
-                  </span>
-                  <p className="text-xs font-black text-on-surface truncate">
-                    Souraja — rumah adat Kaili
-                  </p>
-                  <p className="text-[10px] text-on-surface-variant truncate">
-                    Pusat adab &amp; diplomasi Banua Oge
-                  </p>
+                {/* Judul Bab Utama */}
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-on-surface">
+                  Salam, Sapaan &amp; Busana Kaili
+                </h1>
+
+                {/* Garis Pemisah Halus */}
+                <div className="my-3.5 h-px w-full bg-outline-variant/15" />
+
+                {/* Baris Bawah: Status Belajar (Game HUD Bersih: Ikon + Angka yang Intuitif) */}
+                <div className="flex items-center gap-4 sm:gap-6 flex-wrap text-xs font-extrabold text-on-surface">
+                  {/* Hari Beruntun */}
+                  <div className="inline-flex items-center gap-1.5 text-orange-600 dark:text-orange-400" title="Hari beruntun">
+                    <Flame className="w-4 h-4 fill-orange-500 text-orange-500" />
+                    <span>{progress?.streak || 0} hari beruntun</span>
+                  </div>
+
+                  <span className="text-outline/30 hidden sm:inline">•</span>
+
+                  {/* XP */}
+                  <div className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400" title="XP">
+                    <Zap className="w-4 h-4 fill-amber-500 text-amber-500" />
+                    <span>{progress?.xp || 0} XP</span>
+                  </div>
+
+                  <span className="text-outline/30 hidden sm:inline">•</span>
+
+                  {/* Target Hari Ini */}
+                  <div className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400" title="Target harian">
+                    <Check className="w-4 h-4 stroke-[3]" />
+                    <span>{completedBaseCount > 0 ? 1 : 0}/1 target hari ini</span>
+                  </div>
+
+                  <span className="text-outline/30 hidden sm:inline">•</span>
+
+                  {/* Level */}
+                  <div className="inline-flex items-center gap-1.5 text-secondary" title="Level">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Level {Math.floor((progress?.xp || 0) / 100) + 1}</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Misi Berikutnya Hero Banner */}
+              {/* 2. SATU KARTU DOMINAN (Hanya Satu Tombol Utama di Layar Ini) */}
               {!isLoaded ? (
-                <section className="relative overflow-hidden rounded-2xl bg-surface-container-high px-5 py-5 mb-8 animate-pulse border-2 border-outline-variant/30">
+                <section className="relative overflow-hidden rounded-3xl bg-surface-container-high px-5 py-5 mb-8 animate-pulse border-2 border-outline-variant/30">
                   <div className="flex items-center justify-between gap-4">
                     <div className="space-y-2">
                       <div className="h-3 w-24 rounded bg-outline-variant/50" />
-                      <div className="h-5 w-44 rounded bg-outline-variant/60" />
-                      <div className="h-3 w-56 rounded bg-outline-variant/40" />
+                      <div className="h-5 w-48 rounded bg-outline-variant/60" />
+                      <div className="h-3 w-64 rounded bg-outline-variant/40" />
                     </div>
-                    <div className="h-9 w-24 rounded-full bg-outline-variant/50" />
+                    <div className="h-10 w-28 rounded-full bg-outline-variant/50" />
+                  </div>
+                </section>
+              ) : progress.completedLessons.length === 0 ? (
+                /* Pengguna Baru: Kartu Pelajaran Pertama */
+                <section className="relative overflow-hidden rounded-3xl border-2 border-primary/30 bg-gradient-to-br from-primary-fixed/40 via-surface-container-lowest to-surface-container-lowest p-5 sm:p-6 shadow-md mb-8 transition-all">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          <span className="text-[11px] font-black uppercase tracking-[0.16em] text-primary">
+                            Unit 1 • Sulawesi Tengah
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-md shrink-0">
+                            <MapPin className="h-3 w-3 text-primary" />
+                            Kaili
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-wider">
+                            <Sparkles className="w-3 h-3 fill-current" />
+                            <span>Pelajaran Pertama</span>
+                          </span>
+                        </div>
+                        <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">
+                          Salam &amp; Adab Tabe
+                        </h2>
+                        <p className="mt-1.5 text-xs sm:text-sm text-on-surface-variant font-semibold leading-relaxed">
+                          Tujuan: Setelah pelajaran ini, kamu bisa menyapa dan mempraktikkan adab santun Tabe dalam budaya Kaili.
+                        </p>
+                        <p className="mt-1 text-xs text-primary font-bold">
+                          ±3 menit · 5 soal · +20 XP
+                        </p>
+                      </div>
+
+                      {!hasSeenOnboarding && (
+                        <button
+                          type="button"
+                          onClick={handleDismissOnboarding}
+                          className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer shrink-0"
+                          title="Tutup Panduan"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {!hasSeenOnboarding && (
+                      <p className="text-xs text-on-surface-variant font-medium pt-2 border-t border-outline-variant/20">
+                        Selamat datang di LARAS, {userName || "Sahabat Budaya"}! Ini peta belajarmu. Tekan Mulai Pelajaran untuk langsung membuka soal pertama.
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                      {/* SATU TOMBOL DOMINAN */}
+                      <Link
+                        href="/dashboard/latihan/1"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary text-on-primary font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_4px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
+                      >
+                        <Play className="h-4 w-4 fill-current" />
+                        <span>Mulai Pelajaran</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+
+                      {!hasSeenOnboarding && (
+                        <div className="flex items-center gap-2 ml-auto">
+                          <button
+                            type="button"
+                            onClick={handleStartTour}
+                            className="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold text-xs transition cursor-pointer"
+                          >
+                            <HelpCircle className="w-3.5 h-3.5 text-primary" />
+                            <span>Panduan singkat</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDismissOnboarding}
+                            className="text-xs font-bold text-on-surface-variant hover:text-primary transition underline cursor-pointer"
+                          >
+                            Lewati
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </section>
               ) : isUnit1Complete ? (
-                <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary-container px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
+                /* Pengguna yang Sudah Menyelesaikan Seluruh Bab 1 */
+                <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary to-primary-container px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
                   <div className="relative z-10 flex items-center justify-between gap-4">
                     <div className="min-w-0">
                       <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary-fixed">
@@ -324,21 +575,22 @@ export default function DashboardPage() {
                     </div>
                     <Link
                       href="/dashboard/paspor"
-                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-5 py-2.5 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
                     >
                       <Award className="h-3.5 w-3.5" />
-                      <span>Lihat Paspor</span>
+                      <span>Buka Paspor</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
                   <div className="absolute -right-8 -top-12 h-32 w-32 rounded-full bg-primary-container/40 pointer-events-none" />
                 </section>
               ) : (
-                <section className="relative overflow-hidden rounded-2xl bg-primary px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
+                /* Pengguna yang Sedang Berprogres: Kartu Lanjutkan */
+                <section className="relative overflow-hidden rounded-3xl bg-primary px-5 py-4 text-on-primary shadow-[0_5px_0_0_#881f00] mb-8">
                   <div className="relative z-10 flex items-center justify-between gap-4">
                     <div className="min-w-0">
                       <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary-fixed">
-                        Misi berikutnya
+                        Unit 1: Sulawesi Tengah • Lanjutkan dari terakhir: {activeNode.title} · {Math.round(progressRatio * 100)}%
                       </p>
                       <h2 className="text-lg font-black tracking-tight truncate mt-0.5">
                         {activeNode.title}
@@ -347,12 +599,13 @@ export default function DashboardPage() {
                         {activeNode.subtitle} • +{activeNode.xp} XP
                       </p>
                     </div>
+                    {/* SATU TOMBOL DOMINAN */}
                     <Link
                       href={activeNode.href}
-                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-surface px-5 py-2.5 text-xs font-black text-primary shadow-[0_2px_0_0_#ffdbd1] transition hover:bg-surface-container"
                     >
                       <Play className="h-3.5 w-3.5 fill-current" />
-                      <span>Mulai</span>
+                      <span>Lanjutkan</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
@@ -362,96 +615,67 @@ export default function DashboardPage() {
 
               {/* Roadmap Canvas: Jalur Sinusoidal + Node Lingkaran Faux-3D */}
               <div
-                className="relative mx-auto"
+                id="tour-roadmap"
+                className={`relative mx-auto transition-all duration-300 rounded-3xl ${
+                  tourStep === 1 ? "ring-4 ring-primary ring-offset-4 bg-primary-fixed/10" : ""
+                }`}
                 style={{ width: `${containerWidth}px`, height: `${totalRoadmapHeight}px` }}
               >
-                {/* Jalur SVG Melengkung Halus Melewati Titik Pusat Setiap Node */}
+                {/* Jalur SVG Kurva Bézier Mulus (2 Lapis: Rel Dasar & Lapisan Progres) */}
                 <svg
                   className="absolute inset-0 pointer-events-none z-0"
                   viewBox={`0 0 ${containerWidth} ${totalRoadmapHeight}`}
                   style={{ width: `${containerWidth}px`, height: `${totalRoadmapHeight}px` }}
                 >
-                  {nodes.slice(0, -1).map((_, i) => {
-                    const x1 = centerX + offsets[i % offsets.length];
-                    const y1 = startY + i * stepY;
-                    const x2 = centerX + offsets[(i + 1) % offsets.length];
-                    const y2 = startY + (i + 1) * stepY;
-                    const cy1 = y1 + stepY * 0.5;
-                    const cy2 = y2 - stepY * 0.5;
-                    const d = `M ${x1} ${y1} C ${x1} ${cy1}, ${x2} ${cy2}, ${x2} ${y2}`;
-                    const isSegmentCompleted = isLoaded && nodes[i].status === "completed" && nodes[i + 1].status === "completed";
-
-                    return (
-                      <path
-                        key={`seg-${i}`}
-                        d={d}
-                        fill="none"
-                        stroke={isSegmentCompleted ? "#881f00" : "#d8c7be"}
-                        strokeWidth={isSegmentCompleted ? 5 : 4}
-                        strokeDasharray="6 6"
-                        strokeLinecap="round"
-                      />
-                    );
-                  })}
+                  {/* Rel Dasar: Seluruh Jalur Mulus Putus-putus Warna Netral Terang */}
+                  {fullPathD && (
+                    <path
+                      d={fullPathD}
+                      fill="none"
+                      stroke="#d8c7be"
+                      strokeWidth={7}
+                      strokeDasharray="8 9"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  )}
+                  {/* Lapisan Progres: Mengikuti Kurva yang Sama Sampai Node Aktif/Selesai */}
+                  {progressPathD && (
+                    <path
+                      d={progressPathD}
+                      fill="none"
+                      stroke="#881f00"
+                      strokeWidth={7}
+                      strokeDasharray="8 9"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  )}
                 </svg>
-
-                {/* Desktop Accent Card (sejajar dengan node active di sisi berlawanan) */}
-                {isLoaded && (
-                  <div
-                    style={{ top: `${Math.max(16, activeNodeY - 48)}px` }}
-                    className={`absolute z-10 hidden sm:flex flex-col w-[170px] rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-md ${
-                      activeOffset >= 0 ? "left-2" : "right-2"
-                    }`}
-                  >
-                    <div className="relative h-20 w-full overflow-hidden bg-surface-container-high">
-                      <img
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw"
-                        alt="Souraja Rumah Adat Kaili"
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[8px] font-black text-white uppercase tracking-wider">
-                        Kultur Kaili
-                      </span>
-                    </div>
-                    <div className="p-2">
-                      <p className="text-[11px] font-black text-on-surface leading-tight">
-                        Souraja — rumah adat Kaili
-                      </p>
-                      <p className="text-[9px] text-on-surface-variant font-medium mt-0.5 line-clamp-1">
-                        Pusat adab &amp; diplomasi Banua Oge
-                      </p>
-                    </div>
-                  </div>
-                )}
 
                 {/* Node-Node Lingkaran Faux-3D */}
                 {!isLoaded
-                  ? nodes.map((node, i) => {
-                      const x = centerX + offsets[i % offsets.length];
-                      const y = startY + i * stepY;
+                  ? nodesWithCoords.map((node) => {
                       return (
                         <div
                           key={`skel-${node.id}`}
-                          style={{ left: `${x}px`, top: `${y}px` }}
+                          style={{ left: `${node.x}px`, top: `${node.y}px` }}
                           className="absolute -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
                         >
                           <div className="h-[68px] w-[68px] sm:h-[76px] sm:w-[76px] rounded-full bg-surface-container-high animate-pulse border-4 border-surface shadow-[0_5px_0_0_#d8c7be]" />
                         </div>
                       );
                     })
-                  : nodes.map((node, i) => {
+                  : nodesWithCoords.map((node) => {
                   const isActive = node.status === "active";
                   const isPrimaryActive = node.id === activeNode.id;
                   const isLocked = node.status === "locked";
                   const isCompleted = node.status === "completed";
 
-                  const x = centerX + offsets[i % offsets.length];
-                  const y = startY + i * stepY;
-
                   return (
                     <div
                       key={node.id}
-                      style={{ left: `${x}px`, top: `${y}px` }}
+                      style={{ left: `${node.x}px`, top: `${node.y}px` }}
                       className="absolute -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
                       onMouseEnter={() => setHoveredNodeId(node.id)}
                       onMouseLeave={() => setHoveredNodeId(null)}
@@ -509,17 +733,38 @@ export default function DashboardPage() {
                           <NodeIcon node={node} status={node.status} />
                         </div>
                       ) : (
-                        <Link
-                          href={node.href}
-                          aria-label={`${node.title} (${isCompleted ? "Selesai" : "Mulai"})`}
-                          className={`flex h-[68px] w-[68px] sm:h-[76px] sm:w-[76px] items-center justify-center rounded-full border-4 border-surface transition-all select-none active:translate-y-[2px] ${
-                            isCompleted
-                              ? "bg-primary text-on-primary shadow-[0_5px_0_0_#881f00] hover:brightness-105 active:shadow-[0_3px_0_0_#881f00]"
-                              : "bg-primary text-on-primary shadow-[0_6px_0_0_#881f00] hover:brightness-105 active:shadow-[0_4px_0_0_#881f00]"
-                          }`}
-                        >
-                          <NodeIcon node={node} status={node.status} />
-                        </Link>
+                        <div className="relative">
+                          {/* Penanda "Mulai di sini" (Hanya untuk pelajaran pertama sebelum selesai) */}
+                          {node.id === 1 && progress.completedLessons.length === 0 && (
+                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-20 pointer-events-none whitespace-nowrap animate-bounce motion-reduce:animate-none">
+                              <span className="px-2.5 py-1 rounded-full bg-primary text-on-primary text-[10px] font-black uppercase tracking-wider shadow-md flex items-center gap-1 ring-2 ring-surface">
+                                <Sparkles className="w-3 h-3 fill-current" />
+                                Mulai di sini
+                              </span>
+                              <span className="block mx-auto w-0 h-0 border-x-[4px] border-x-transparent border-t-[5px] border-t-primary" />
+                            </div>
+                          )}
+                          <Link
+                            id={node.id === 1 ? "tour-first-lesson" : undefined}
+                            href={node.href}
+                            aria-label={`${node.title} (${isCompleted ? "Selesai" : "Mulai"})`}
+                            className={`flex h-[68px] w-[68px] sm:h-[76px] sm:w-[76px] items-center justify-center rounded-full border-4 border-surface transition-all select-none active:translate-y-[2px] ${
+                              isCompleted
+                                ? "bg-primary text-on-primary shadow-[0_5px_0_0_#881f00] hover:brightness-105 active:shadow-[0_3px_0_0_#881f00]"
+                                : "bg-primary text-on-primary shadow-[0_6px_0_0_#881f00] hover:brightness-105 active:shadow-[0_4px_0_0_#881f00]"
+                            } ${
+                              node.id === 1 && progress.completedLessons.length === 0
+                                ? "ring-4 ring-primary-fixed-dim/80 ring-offset-2 animate-pulse motion-reduce:animate-none"
+                                : ""
+                            } ${
+                              tourStep === 2 && node.id === 1
+                                ? "ring-4 ring-secondary ring-offset-4 scale-105 z-30"
+                                : ""
+                            }`}
+                          >
+                            <NodeIcon node={node} status={node.status} />
+                          </Link>
+                        </div>
                       )}
 
                       {/* Tooltip Hover / Focus Popover */}
@@ -567,6 +812,8 @@ export default function DashboardPage() {
                   );
                 })}
               </div>
+
+
             </div>
           </div>
 
@@ -579,7 +826,7 @@ export default function DashboardPage() {
               </div>
               {isLoaded ? (
                 <p className="mt-5 text-3xl font-black">
-                  {progress.streak} <span className="text-sm text-on-surface-variant">hari streak</span>
+                  {progress.streak} <span className="text-sm text-on-surface-variant">hari beruntun</span>
                 </p>
               ) : (
                 <div className="mt-5 h-9 w-28 rounded bg-surface-container-high animate-pulse" />
@@ -610,7 +857,7 @@ export default function DashboardPage() {
                     ) : (
                       <div className="mt-2 h-6 w-8 rounded bg-surface-container-high animate-pulse" />
                     )}
-                    <p className="text-xs font-bold text-on-surface-variant">hearts</p>
+                    <p className="text-xs font-bold text-on-surface-variant">nyawa</p>
                   </div>
                   <p className="mt-1 text-[10px] text-on-surface-variant leading-tight">Terisi penuh kembali setiap hari baru</p>
                 </div>
@@ -631,9 +878,9 @@ export default function DashboardPage() {
               className="flex items-center justify-between rounded-3xl bg-secondary-fixed p-5 text-on-secondary-fixed transition hover:brightness-95"
             >
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.14em]">Reward berikutnya</p>
+                <p className="text-xs font-black uppercase tracking-[0.14em]">Cap Paspor berikutnya</p>
                 <p className="mt-1 font-black">Tamu Sopan</p>
-                <p className="mt-1 text-xs font-semibold">Buka Paspor Budaya</p>
+                <p className="mt-1 text-xs font-semibold">Buka Paspor</p>
               </div>
               <ArrowRight className="h-5 w-5" />
             </Link>
@@ -654,6 +901,114 @@ export default function DashboardPage() {
           </span>
         </div>
       </div>
+
+      {/* ── TUR MINI PANDUAN PENGGUNA (3 LANGKAH) ── */}
+      {tourStep !== null && (
+        <>
+          {/* Subtle Dimmed Backdrop */}
+          <div
+            onClick={handleCloseTour}
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] transition-opacity duration-200 pointer-events-auto"
+          />
+
+          {/* Floating Tour Card */}
+          <div className="fixed bottom-20 md:bottom-8 left-4 right-4 md:left-auto md:right-8 z-50 max-w-md w-auto rounded-3xl bg-surface-container-lowest p-5 sm:p-6 shadow-2xl border-2 border-primary/30 animate-in fade-in slide-in-from-bottom-4 duration-300 pointer-events-auto">
+            {/* Header: Step Pill + Close Button */}
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-primary-fixed text-primary">
+                Langkah {tourStep} dari 3
+              </span>
+              <button
+                type="button"
+                onClick={handleCloseTour}
+                className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
+                title="Tutup Panduan"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Content for each step */}
+            {tourStep === 1 && (
+              <div>
+                <h3 className="text-lg font-black text-on-surface tracking-tight">Peta Belajar</h3>
+                <p className="mt-1.5 text-xs sm:text-sm text-on-surface-variant font-medium leading-relaxed">
+                  Ini jalur belajarmu. Pelajaran terbuka satu per satu — mulai dari yang paling atas.
+                </p>
+                <div className="mt-4 flex items-center justify-between gap-3 pt-3 border-t border-outline-variant/20">
+                  <button
+                    type="button"
+                    onClick={handleCloseTour}
+                    className="text-xs font-bold text-on-surface-variant hover:text-primary transition underline cursor-pointer"
+                  >
+                    Lewati
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTourStep(2)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary font-bold text-xs uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
+                  >
+                    <span>Berikutnya</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {tourStep === 2 && (
+              <div>
+                <h3 className="text-lg font-black text-on-surface tracking-tight">Menjawab Soal</h3>
+                <p className="mt-1.5 text-xs sm:text-sm text-on-surface-variant font-medium leading-relaxed">
+                  Tekan pelajaran untuk masuk sesi dan menjawab soal. Jawaban yang tepat memberimu XP; nyawa berkurang kalau salah, dan terisi lagi keesokan hari.
+                </p>
+                <div className="mt-4 flex items-center justify-between gap-3 pt-3 border-t border-outline-variant/20">
+                  <button
+                    type="button"
+                    onClick={handleCloseTour}
+                    className="text-xs font-bold text-on-surface-variant hover:text-primary transition underline cursor-pointer"
+                  >
+                    Lewati
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTourStep(3)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary font-bold text-xs uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
+                  >
+                    <span>Berikutnya</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {tourStep === 3 && (
+              <div>
+                <h3 className="text-lg font-black text-on-surface tracking-tight">Paspor Budaya</h3>
+                <p className="mt-1.5 text-xs sm:text-sm text-on-surface-variant font-medium leading-relaxed">
+                  Cap Paspor dari pelajaran yang kamu selesaikan terkumpul di Paspor Budaya. Cek isinya kapan saja dari sini.
+                </p>
+                <div className="mt-4 flex items-center justify-between gap-3 pt-3 border-t border-outline-variant/20">
+                  <button
+                    type="button"
+                    onClick={handleCloseTour}
+                    className="text-xs font-bold text-on-surface-variant hover:text-primary transition underline cursor-pointer"
+                  >
+                    Lewati
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleStartFirstLesson}
+                    className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-primary text-on-primary font-black text-xs uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
+                  >
+                    <span>Mulai Pelajaran</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </main>
   );
 }
