@@ -1165,22 +1165,32 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* Tombol Balik ke Atas (Floating Tactile Back-to-Top Button) */}
+      {/* Tombol Balik ke Atas (Floating Tepat di Samping Jalur Soal) */}
       {showScrollTop && (
-        <button
-          type="button"
-          onClick={scrollToTop}
-          className="fixed bottom-20 md:bottom-8 right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-surface-container-lowest border-2 border-outline-variant/60 text-on-surface font-black text-xs uppercase tracking-wider shadow-[0_4px_0_0_#d1d5db] dark:shadow-[0_4px_0_0_#374151] hover:bg-surface-container hover:border-primary/50 hover:text-primary active:translate-y-1 active:shadow-none transition-all cursor-pointer group animate-in fade-in zoom-in-95 duration-200"
-          aria-label="Kembali ke atas"
-          title="Kembali ke atas"
-        >
-          <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-colors">
-            <ArrowUp className="w-4 h-4 stroke-[3]" />
+        <div className="pointer-events-none fixed inset-x-0 bottom-20 md:bottom-8 z-40">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px]">
+              <div className="w-full flex flex-col items-center">
+                <div className="w-full max-w-[560px] flex justify-end pr-2 sm:pr-4">
+                  <button
+                    type="button"
+                    onClick={scrollToTop}
+                    className="pointer-events-auto inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-surface-container-lowest border-2 border-outline-variant/60 text-on-surface font-black text-xs uppercase tracking-wider shadow-[0_4px_0_0_#d1d5db] dark:shadow-[0_4px_0_0_#374151] hover:bg-surface-container hover:border-primary/50 hover:text-primary active:translate-y-1 active:shadow-none transition-all cursor-pointer group animate-in fade-in zoom-in-95 duration-200"
+                    aria-label="Kembali ke atas"
+                    title="Kembali ke atas"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-colors">
+                      <ArrowUp className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                    <span className="font-bold text-xs text-on-surface group-hover:text-primary transition-colors">
+                      Ke Atas
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          <span className="hidden sm:inline font-bold text-xs text-on-surface group-hover:text-primary transition-colors">
-            Ke Atas
-          </span>
-        </button>
+        </div>
       )}
 
       {/* Modal Buku Panduan Unit Ala Duolingo Guidebook */}
