@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, Home, MapPin, Zap } from "lucide-react";
+import { ArrowLeft, HelpCircle, Home, MapPin, Zap } from "lucide-react";
 import { getCachedSessionSync, getSession } from "../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../dashboard/progress";
 
@@ -136,7 +136,17 @@ export default function TopBar({
           )}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("laras-start-tour"))}
+            className="inline-flex items-center gap-1 bg-surface-container-high hover:bg-surface-container-highest px-2 sm:px-2.5 py-1.5 rounded-full text-on-surface font-bold text-label-md shadow-xs min-h-[32px] cursor-pointer transition text-xs"
+            title="Buka Panduan Belajar"
+          >
+            <HelpCircle className="text-primary w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden min-[480px]:inline">Panduan</span>
+          </button>
+
           <div suppressHydrationWarning className="flex items-center gap-1 bg-secondary-fixed px-2.5 py-1.5 rounded-full text-on-secondary-fixed font-bold text-label-md shadow-xs min-h-[32px]">
             <Zap className="text-secondary w-4 h-4 fill-current" />
             {isLoaded ? (

@@ -19,6 +19,9 @@ import {
   Star,
   Trophy,
   Zap,
+  HelpCircle,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { getCachedSessionSync, getSession } from "../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "./progress";
@@ -99,6 +102,9 @@ const AMPLITUDE_MOBILE = [0, 22, 35, 22, 0, -22, -35, -22];
 export default function DashboardPage() {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   const [email, setEmail] = useState("");
+  const [userName, setUserName] = useState("");
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(true);
+  const [tourStep, setTourStep] = useState<number | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [curatorNodes, setCuratorNodes] = useState<PathNode[]>([]);
   const [hoveredNodeId, setHoveredNodeId] = useState<number | string | null>(null);
@@ -119,7 +125,10 @@ export default function DashboardPage() {
     let activeEmail = cached?.email || "";
     if (cached) {
       setEmail(cached.email);
+      setUserName(cached.name || "");
       setProgress(readProgress(cached.email));
+      const seen = typeof window !== "undefined" && window.localStorage.getItem(`laras.onboarding.${cached.email}`) === "done";
+      setHasSeenOnboarding(seen);
       setIsLoaded(true);
     }
 
@@ -130,6 +139,9 @@ export default function DashboardPage() {
       }
       activeEmail = session.email;
       setEmail(session.email);
+      setUserName(session.name || "");
+      const seen = typeof window !== "undefined" && window.localStorage.getItem(`laras.onboarding.${session.email}`) === "done";
+      setHasSeenOnboarding(seen);
       // Immediate local render
       const local = readProgress(session.email);
       setProgress(local);
@@ -193,6 +205,56 @@ export default function DashboardPage() {
     window.addEventListener("laras-progress-updated", refresh);
     return () => window.removeEventListener("laras-progress-updated", refresh);
   }, [email]);
+
+  const handleDismissOnboarding = () => {
+    if (typeof window !== "undefined") {
+      const key = email ? `laras.onboarding.${email}` : "laras.onboarding.default";
+      window.localStorage.setItem(key, "done");
+    }
+    setHasSeenOnboarding(true);
+  };
+
+  const handleStartTour = () => {
+    setTourStep(1);
+  };
+
+  const handleCloseTour = () => {
+    handleDismissOnboarding();
+    setTourStep(null);
+  };
+
+  const handleStartFirstLesson = () => {
+    handleDismissOnboarding();
+    setTourStep(null);
+    window.location.href = "/dashboard/latihan/1";
+  };
+
+  useEffect(() => {
+    const startTourHandler = () => {
+      setTourStep(1);
+    };
+    window.addEventListener("laras-start-tour", startTourHandler);
+    return () => window.removeEventListener("laras-start-tour", startTourHandler);
+  }, []);
+
+  useEffect(() => {
+    if (tourStep === null) return;
+    const timer = setTimeout(() => {
+      if (tourStep === 1) {
+        const el = document.getElementById("tour-roadmap");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else if (tourStep === 2) {
+        const el = document.getElementById("tour-first-lesson");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else if (tourStep === 3) {
+        const el =
+          document.getElementById("tour-paspor-nav") ||
+          document.getElementById("tour-paspor-mobile");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [tourStep]);
 
   const baseNodes = pathNodes.map((node) => {
     let title = node.title;
@@ -264,7 +326,16 @@ export default function DashboardPage() {
                       Satu misi kecil setiap hari. Pelajari bahasanya, rasakan konteksnya.
                     </p>
                   </div>
-                  <div className="shrink-0 flex items-center">
+                  <div className="shrink-0 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTourStep(1)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold transition shadow-xs cursor-pointer"
+                      title="Buka Panduan Belajar"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5 text-primary" />
+                      <span className="hidden sm:inline">Panduan</span>
+                    </button>
                     <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black shadow-xs min-h-[28px]">
                       {isLoaded ? (
                         `${completedBaseCount}/3 selesai`
@@ -275,6 +346,60 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
+
+              {/* KARTU SAMBUTAN INLINE UNTUK PENGGUNA BARU */}
+              {isLoaded && progress.completedLessons.length === 0 && !hasSeenOnboarding && (
+                <div className="mb-6 rounded-3xl border-2 border-primary/25 bg-gradient-to-br from-primary-fixed/40 via-surface-container-lowest to-surface-container-lowest p-5 sm:p-6 shadow-md transition-all">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-black uppercase tracking-wider mb-2">
+                        <Sparkles className="w-3.5 h-3.5 fill-current" />
+                        <span>Panduan Pengguna Baru</span>
+                      </div>
+                      <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">
+                        Selamat datang di LARAS, {userName || "Sahabat Budaya"}!
+                      </h2>
+                      <p className="mt-2 text-sm text-on-surface-variant font-medium leading-relaxed">
+                        Ini peta belajarmu. Ikuti dari pelajaran pertama — jawab soal, kumpulkan XP, dan isi Paspor Budayamu.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDismissOnboarding}
+                      className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer shrink-0"
+                      title="Tutup Panduan"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleStartFirstLesson}
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
+                    >
+                      <span>Mulai Pelajaran Pertama</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleStartTour}
+                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-extrabold text-xs sm:text-sm transition cursor-pointer"
+                    >
+                      <HelpCircle className="w-4 h-4 text-primary" />
+                      <span>Lihat Panduan Singkat</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDismissOnboarding}
+                      className="text-xs font-bold text-on-surface-variant hover:text-primary transition underline underline-offset-4 cursor-pointer ml-auto"
+                    >
+                      Lewati
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Mobile Accent Card: Hanya tampil di layar kecil (< sm) di bawah banner unit */}
               <div className="sm:hidden mb-5 rounded-2xl overflow-hidden bg-surface-container-lowest border-2 border-outline-variant/30 shadow-xs flex items-center gap-3 p-2.5">
@@ -362,7 +487,10 @@ export default function DashboardPage() {
 
               {/* Roadmap Canvas: Jalur Sinusoidal + Node Lingkaran Faux-3D */}
               <div
-                className="relative mx-auto"
+                id="tour-roadmap"
+                className={`relative mx-auto transition-all duration-300 rounded-3xl ${
+                  tourStep === 1 ? "ring-4 ring-primary ring-offset-4 bg-primary-fixed/10" : ""
+                }`}
                 style={{ width: `${containerWidth}px`, height: `${totalRoadmapHeight}px` }}
               >
                 {/* Jalur SVG Melengkung Halus Melewati Titik Pusat Setiap Node */}
@@ -509,17 +637,38 @@ export default function DashboardPage() {
                           <NodeIcon node={node} status={node.status} />
                         </div>
                       ) : (
-                        <Link
-                          href={node.href}
-                          aria-label={`${node.title} (${isCompleted ? "Selesai" : "Mulai"})`}
-                          className={`flex h-[68px] w-[68px] sm:h-[76px] sm:w-[76px] items-center justify-center rounded-full border-4 border-surface transition-all select-none active:translate-y-[2px] ${
-                            isCompleted
-                              ? "bg-primary text-on-primary shadow-[0_5px_0_0_#881f00] hover:brightness-105 active:shadow-[0_3px_0_0_#881f00]"
-                              : "bg-primary text-on-primary shadow-[0_6px_0_0_#881f00] hover:brightness-105 active:shadow-[0_4px_0_0_#881f00]"
-                          }`}
-                        >
-                          <NodeIcon node={node} status={node.status} />
-                        </Link>
+                        <div className="relative">
+                          {/* Penanda "Mulai di sini" (Hanya untuk pelajaran pertama sebelum selesai) */}
+                          {node.id === 1 && progress.completedLessons.length === 0 && (
+                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-20 pointer-events-none whitespace-nowrap animate-bounce motion-reduce:animate-none">
+                              <span className="px-2.5 py-1 rounded-full bg-primary text-on-primary text-[10px] font-black uppercase tracking-wider shadow-md flex items-center gap-1 ring-2 ring-surface">
+                                <Sparkles className="w-3 h-3 fill-current" />
+                                Mulai di sini
+                              </span>
+                              <span className="block mx-auto w-0 h-0 border-x-[4px] border-x-transparent border-t-[5px] border-t-primary" />
+                            </div>
+                          )}
+                          <Link
+                            id={node.id === 1 ? "tour-first-lesson" : undefined}
+                            href={node.href}
+                            aria-label={`${node.title} (${isCompleted ? "Selesai" : "Mulai"})`}
+                            className={`flex h-[68px] w-[68px] sm:h-[76px] sm:w-[76px] items-center justify-center rounded-full border-4 border-surface transition-all select-none active:translate-y-[2px] ${
+                              isCompleted
+                                ? "bg-primary text-on-primary shadow-[0_5px_0_0_#881f00] hover:brightness-105 active:shadow-[0_3px_0_0_#881f00]"
+                                : "bg-primary text-on-primary shadow-[0_6px_0_0_#881f00] hover:brightness-105 active:shadow-[0_4px_0_0_#881f00]"
+                            } ${
+                              node.id === 1 && progress.completedLessons.length === 0
+                                ? "ring-4 ring-primary-fixed-dim/80 ring-offset-2 animate-pulse motion-reduce:animate-none"
+                                : ""
+                            } ${
+                              tourStep === 2 && node.id === 1
+                                ? "ring-4 ring-secondary ring-offset-4 scale-105 z-30"
+                                : ""
+                            }`}
+                          >
+                            <NodeIcon node={node} status={node.status} />
+                          </Link>
+                        </div>
                       )}
 
                       {/* Tooltip Hover / Focus Popover */}
@@ -654,6 +803,114 @@ export default function DashboardPage() {
           </span>
         </div>
       </div>
+
+      {/* ── TUR MINI PANDUAN PENGGUNA (3 LANGKAH) ── */}
+      {tourStep !== null && (
+        <>
+          {/* Subtle Dimmed Backdrop */}
+          <div
+            onClick={handleCloseTour}
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] transition-opacity duration-200 pointer-events-auto"
+          />
+
+          {/* Floating Tour Card */}
+          <div className="fixed bottom-20 md:bottom-8 left-4 right-4 md:left-auto md:right-8 z-50 max-w-md w-auto rounded-3xl bg-surface-container-lowest p-5 sm:p-6 shadow-2xl border-2 border-primary/30 animate-in fade-in slide-in-from-bottom-4 duration-300 pointer-events-auto">
+            {/* Header: Step Pill + Close Button */}
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-primary-fixed text-primary">
+                Langkah {tourStep} dari 3
+              </span>
+              <button
+                type="button"
+                onClick={handleCloseTour}
+                className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
+                title="Tutup Panduan"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Content for each step */}
+            {tourStep === 1 && (
+              <div>
+                <h3 className="text-lg font-black text-on-surface tracking-tight">Peta Belajar</h3>
+                <p className="mt-1.5 text-xs sm:text-sm text-on-surface-variant font-medium leading-relaxed">
+                  Ini jalur belajarmu. Pelajaran terbuka satu per satu — mulai dari yang paling atas.
+                </p>
+                <div className="mt-4 flex items-center justify-between gap-3 pt-3 border-t border-outline-variant/20">
+                  <button
+                    type="button"
+                    onClick={handleCloseTour}
+                    className="text-xs font-bold text-on-surface-variant hover:text-primary transition underline cursor-pointer"
+                  >
+                    Lewati
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTourStep(2)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary font-bold text-xs uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
+                  >
+                    <span>Lanjut</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {tourStep === 2 && (
+              <div>
+                <h3 className="text-lg font-black text-on-surface tracking-tight">Menjawab Soal</h3>
+                <p className="mt-1.5 text-xs sm:text-sm text-on-surface-variant font-medium leading-relaxed">
+                  Tekan pelajaran untuk masuk sesi dan menjawab soal. Jawaban yang tepat memberimu XP; nyawa berkurang kalau salah, dan terisi lagi keesokan hari.
+                </p>
+                <div className="mt-4 flex items-center justify-between gap-3 pt-3 border-t border-outline-variant/20">
+                  <button
+                    type="button"
+                    onClick={handleCloseTour}
+                    className="text-xs font-bold text-on-surface-variant hover:text-primary transition underline cursor-pointer"
+                  >
+                    Lewati
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTourStep(3)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary font-bold text-xs uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
+                  >
+                    <span>Lanjut</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {tourStep === 3 && (
+              <div>
+                <h3 className="text-lg font-black text-on-surface tracking-tight">Paspor Budaya</h3>
+                <p className="mt-1.5 text-xs sm:text-sm text-on-surface-variant font-medium leading-relaxed">
+                  Lencana dari pelajaran yang kamu selesaikan terkumpul di Paspor Budaya. Cek isinya kapan saja dari sini.
+                </p>
+                <div className="mt-4 flex items-center justify-between gap-3 pt-3 border-t border-outline-variant/20">
+                  <button
+                    type="button"
+                    onClick={handleCloseTour}
+                    className="text-xs font-bold text-on-surface-variant hover:text-primary transition underline cursor-pointer"
+                  >
+                    Lewati
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleStartFirstLesson}
+                    className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-primary text-on-primary font-black text-xs uppercase tracking-wider shadow-[0_3px_0_0_#881f00] hover:brightness-105 active:translate-y-0.5 transition cursor-pointer"
+                  >
+                    <span>Mulai Belajar</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </main>
   );
 }

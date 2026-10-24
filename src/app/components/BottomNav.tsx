@@ -27,6 +27,7 @@ export default function BottomNav() {
             <Link
               key={item.path}
               href={item.path}
+              id={item.path === "/dashboard/paspor" ? "tour-paspor-mobile" : undefined}
               className={`flex-1 flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
                 isActive
                   ? "text-primary font-black scale-105"
