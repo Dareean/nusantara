@@ -51,6 +51,41 @@ const pathNodes: PathNode[] = [
   { id: 6, title: "Cap Paspor Tamu Sopan", subtitle: "Penutup Bab 1", type: "review", href: "/dashboard/paspor", xp: 50, offset: "left" },
 ];
 
+export const UNIT_THEMES: Record<
+  number,
+  {
+    label: string;
+    title: string;
+    bgColor: string;
+    shadowColor: string;
+  }
+> = {
+  1: {
+    label: "SECTION 1, UNIT 1",
+    title: "Salam, Sapaan & Busana Kaili",
+    bgColor: "#58cc02", // Duolingo vibrant green (persis Gambar 2)
+    shadowColor: "#46a302",
+  },
+  2: {
+    label: "SECTION 1, UNIT 2",
+    title: "Tenun Donggala & Kerajinan Sutra",
+    bgColor: "#1cb0f6", // Duolingo sky blue
+    shadowColor: "#1899d6",
+  },
+  3: {
+    label: "SECTION 1, UNIT 3",
+    title: "Upacara Adat Souraja & Diplomasi Tutur",
+    bgColor: "#ff9600", // Duolingo warm orange
+    shadowColor: "#d97f00",
+  },
+  4: {
+    label: "SECTION 2, UNIT 1",
+    title: "Arsitektur Tongkonan & Adab Toraja",
+    bgColor: "#ce82ff", // Duolingo purple
+    shadowColor: "#a855f7",
+  },
+};
+
 function getNodeStatus(node: PathNode, progress: UserProgress): NodeStatus {
   if (node.id === 1) return progress.completedLessons.includes(1) ? "completed" : "active";
   if (node.id === 2) return progress.completedLessons.includes(2) ? "completed" : progress.unlockedLessons.includes(2) ? "active" : "locked";
@@ -383,6 +418,9 @@ export default function DashboardPage() {
   const isUnit1Complete = completedBaseCount >= 3 && progress.completedLessons.includes(4);
   const progressRatio = Math.min(1, Math.max(0, completedBaseCount / 3));
 
+  const currentUnitId = 1;
+  const currentUnitTheme = UNIT_THEMES[currentUnitId] || UNIT_THEMES[1];
+
   return (
     <main className="min-h-screen bg-surface px-4 py-4 text-on-surface sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
@@ -393,76 +431,51 @@ export default function DashboardPage() {
             <div className="w-full max-w-[560px]">
 
 
-              {/* 1. KARTU HEADER & STATUS UNIT TERPADU (Gaya Duolingo: Bersih, Manusiawi, Gamified) */}
-              <div className="mb-6 rounded-3xl bg-surface-container-lowest p-5 border-2 border-outline-variant/30 shadow-[0_4px_0_0_#e8ded8]">
-                {/* Baris Atas: Identitas Bab & Aksi */}
-                <div className="flex items-center justify-between gap-3 mb-1.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">
-                      Unit 1 • Sulawesi Tengah
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-md">
-                      <MapPin className="h-3 w-3 text-primary" />
-                      Kaili
-                    </span>
-                  </div>
+              {/* Strip Keadaan Siswa (Ramping, Teratur di Puncak) */}
+              <div className="mb-3 px-1 flex items-center justify-between text-xs font-bold text-on-surface-variant flex-wrap gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-on-surface font-extrabold">Halo, {userName || "Sahabat Budaya"}</span>
+                  <span className="text-outline/40">·</span>
+                  <span>Level {Math.floor((progress?.xp || 0) / 100) + 1}</span>
+                  <span className="text-outline/40">·</span>
+                  <span>{progress?.xp || 0} XP (poin pengalaman)</span>
+                  <span className="text-outline/40">·</span>
+                  <span>Hari beruntun: {progress?.streak || 0}</span>
+                  <span className="text-outline/40">·</span>
+                  <span>Target hari ini: {completedBaseCount > 0 ? 1 : 0} dari 1 pelajaran</span>
+                </div>
+              </div>
 
-                  <div className="shrink-0 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setTourStep(1)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold transition cursor-pointer"
-                      title="Buku Panduan Unit"
-                    >
-                      <BookOpen className="w-3.5 h-3.5 text-primary" />
-                      <span>Panduan</span>
-                    </button>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-surface-container-high text-on-surface font-extrabold text-xs">
-                      {isLoaded ? `${completedBaseCount}/3 selesai` : "--"}
-                    </span>
+              {/* Unit Header Banner Ala Duolingo (Persis Gambar 2, Warna Berganti Tiap Unit) */}
+              <div
+                style={{
+                  backgroundColor: currentUnitTheme.bgColor,
+                  boxShadow: `0 4px 0 0 ${currentUnitTheme.shadowColor}`,
+                }}
+                className="mb-6 rounded-2xl px-5 py-4 text-white flex items-center justify-between gap-4 transition-all duration-300"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-white/90">
+                    <span>{currentUnitTheme.label}</span>
                   </div>
+                  <h1 className="text-lg sm:text-xl font-black tracking-tight text-white mt-0.5 truncate">
+                    {currentUnitTheme.title}
+                  </h1>
                 </div>
 
-                {/* Judul Bab Utama */}
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-on-surface">
-                  Salam, Sapaan &amp; Busana Kaili
-                </h1>
-
-                {/* Garis Pemisah Halus */}
-                <div className="my-3.5 h-px w-full bg-outline-variant/15" />
-
-                {/* Baris Bawah: Status Belajar (Game HUD Bersih: Ikon + Angka yang Intuitif) */}
-                <div className="flex items-center gap-4 sm:gap-6 flex-wrap text-xs font-extrabold text-on-surface">
-                  {/* Hari Beruntun */}
-                  <div className="inline-flex items-center gap-1.5 text-orange-600 dark:text-orange-400" title="Hari beruntun">
-                    <Flame className="w-4 h-4 fill-orange-500 text-orange-500" />
-                    <span>{progress?.streak || 0} hari beruntun</span>
-                  </div>
-
-                  <span className="text-outline/30 hidden sm:inline">•</span>
-
-                  {/* XP */}
-                  <div className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400" title="XP">
-                    <Zap className="w-4 h-4 fill-amber-500 text-amber-500" />
-                    <span>{progress?.xp || 0} XP</span>
-                  </div>
-
-                  <span className="text-outline/30 hidden sm:inline">•</span>
-
-                  {/* Target Hari Ini */}
-                  <div className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400" title="Target harian">
-                    <Check className="w-4 h-4 stroke-[3]" />
-                    <span>{completedBaseCount > 0 ? 1 : 0}/1 target hari ini</span>
-                  </div>
-
-                  <span className="text-outline/30 hidden sm:inline">•</span>
-
-                  {/* Level */}
-                  <div className="inline-flex items-center gap-1.5 text-secondary" title="Level">
-                    <Sparkles className="w-4 h-4" />
-                    <span>Level {Math.floor((progress?.xp || 0) / 100) + 1}</span>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setTourStep(1)}
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                    boxShadow: `0 3px 0 0 ${currentUnitTheme.shadowColor}`,
+                  }}
+                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border-2 border-white/40 text-white font-black text-xs uppercase tracking-wider hover:bg-white/30 active:translate-y-0.5 active:shadow-none transition cursor-pointer"
+                  title="Buku Panduan Unit"
+                >
+                  <BookOpen className="w-4 h-4 stroke-[2.5]" />
+                  <span>PANDUAN</span>
+                </button>
               </div>
 
               {/* 2. SATU KARTU DOMINAN (Hanya Satu Tombol Utama di Layar Ini) */}
