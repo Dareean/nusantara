@@ -2,6 +2,7 @@ export type SessionPayload = {
   email: string;
   name: string;
   isAdmin: boolean;
+  avatarUrl?: string;
   exp: number; // timestamp ms
   iat: number; // timestamp ms
 };

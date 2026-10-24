@@ -23,12 +23,25 @@ const navItems = [
 
 export default function DuolingoSidebar() {
   const pathname = usePathname();
-  const [session, setSession] = useState<{ email: string; name: string } | null>(null);
+  const [session, setSession] = useState<{ email: string; name: string; avatarUrl?: string } | null>(null);
 
   useEffect(() => {
     getSession().then((sess) => {
       if (sess) setSession(sess);
     });
+
+    const onProfileChanged = (e: Event) => {
+      const detail = (e as CustomEvent<{ email: string; name: string; avatarUrl?: string }>).detail;
+      if (detail) {
+        setSession((prev) => ({
+          email: detail.email || prev?.email || "",
+          name: detail.name || prev?.name || "",
+          avatarUrl: detail.avatarUrl !== undefined ? detail.avatarUrl : prev?.avatarUrl,
+        }));
+      }
+    };
+    window.addEventListener("laras-profile-updated", onProfileChanged);
+    return () => window.removeEventListener("laras-profile-updated", onProfileChanged);
   }, []);
 
   const handleLogout = async () => {
@@ -126,8 +139,16 @@ export default function DuolingoSidebar() {
         {session && (
           <div className="mt-2 pt-2 border-t border-outline-variant/30 flex flex-col gap-1.5">
             <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-surface-container-low">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-on-primary">
-                {session.name ? session.name.slice(0, 1).toUpperCase() : "U"}
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-on-primary overflow-hidden border border-outline-variant/40">
+                {session.avatarUrl ? (
+                  <img
+                    src={session.avatarUrl}
+                    alt={session.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  session.name ? session.name.slice(0, 1).toUpperCase() : "U"
+                )}
               </div>
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="text-xs font-bold text-on-surface truncate">{session.name}</span>

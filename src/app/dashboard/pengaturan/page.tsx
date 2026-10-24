@@ -1,19 +1,30 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { LogOut } from "lucide-react";
-import { getSession } from "../../auth/authClient";
+import { LogOut, Edit3 } from "lucide-react";
+import { getSession, type ClientSession } from "../../auth/authClient";
+import EditProfileModal from "../../components/EditProfileModal";
 
 export default function PengaturanPage() {
   const [dailyGoal, setDailyGoal] = useState(true);
   const [pushNotif, setPushNotif] = useState(true);
   const [audioAutoPlay, setAudioAutoPlay] = useState(true);
-  const [session, setSession] = useState<{ email: string; name: string } | null>(null);
+  const [session, setSession] = useState<{ email: string; name: string; avatarUrl?: string } | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     getSession().then((sess) => {
       if (sess) setSession(sess);
     });
+
+    const onProfileChanged = (e: Event) => {
+      const detail = (e as CustomEvent<ClientSession>).detail;
+      if (detail) {
+        setSession(detail);
+      }
+    };
+    window.addEventListener("laras-profile-updated", onProfileChanged);
+    return () => window.removeEventListener("laras-profile-updated", onProfileChanged);
   }, []);
 
   const handleLogout = async () => {
@@ -26,7 +37,8 @@ export default function PengaturanPage() {
   };
 
   return (
-    <main className="relative min-h-screen w-full px-3 pb-20 pt-4 sm:pt-6 sm:px-4 lg:px-6">
+    <>
+      <main className="relative min-h-screen w-full px-3 pb-20 pt-4 sm:pt-6 sm:px-4 lg:px-6">
         <div className="mx-auto max-w-4xl space-y-4">
           <section className="rounded-[24px] bg-surface-container-lowest p-4 shadow-xs ring-1 ring-outline-variant/25">
             <h1 className="text-2xl font-black text-on-surface">Pengaturan</h1>
@@ -92,18 +104,38 @@ export default function PengaturanPage() {
                     Masuk sebagai <strong className="text-on-surface">{session.name}</strong> ({session.email})
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-error-container/30 px-4 py-2.5 text-sm font-bold text-error ring-1 ring-error/25 transition hover:bg-error-container/60 cursor-pointer self-start sm:self-auto"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Keluar
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-on-primary px-4 py-2 text-sm font-black shadow-[0_2px_0_0_#881f00] hover:brightness-105 active:translate-y-[1px] active:shadow-none transition cursor-pointer"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    Ubah Profil
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-error-container/30 px-4 py-2 text-sm font-bold text-error ring-1 ring-error/25 transition hover:bg-error-container/60 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Keluar
+                  </button>
+                </div>
               </div>
             </section>
           )}
         </div>
-    </main>
+      </main>
+
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        currentName={session?.name || ""}
+        currentEmail={session?.email || ""}
+        currentAvatar={session?.avatarUrl || ""}
+        onProfileUpdated={(updated) => setSession(updated)}
+      />
+    </>
   );
 }
