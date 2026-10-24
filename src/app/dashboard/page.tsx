@@ -1242,17 +1242,17 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* Tombol Balik ke Atas (Floating Tepat di Samping Jalur Soal) */}
+      {/* Tombol Balik ke Atas (Sejajar dengan Ujung Kanan Card Section) */}
       {showScrollTop && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-20 md:bottom-8 z-40">
+        <div className="pointer-events-none fixed left-0 md:left-64 right-0 bottom-20 md:bottom-8 z-40">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px]">
               <div className="w-full flex flex-col items-center">
-                <div className="w-full max-w-[560px] flex justify-end pr-2 sm:pr-4">
+                <div className="w-full max-w-[560px] flex justify-end">
                   <button
                     type="button"
                     onClick={scrollToTop}
-                    className="pointer-events-auto inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-surface-container-lowest border-2 border-outline-variant/60 text-on-surface font-black text-xs uppercase tracking-wider shadow-[0_4px_0_0_#d1d5db] dark:shadow-[0_4px_0_0_#374151] hover:bg-surface-container hover:border-primary/50 hover:text-primary active:translate-y-1 active:shadow-none transition-all cursor-pointer group animate-in fade-in zoom-in-95 duration-200"
+                    className="pointer-events-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-surface-container-lowest border-2 border-outline-variant/60 text-on-surface font-black text-xs uppercase tracking-wider shadow-[0_4px_0_0_#d1d5db] dark:shadow-[0_4px_0_0_#374151] hover:bg-surface-container hover:border-primary/50 hover:text-primary active:translate-y-1 active:shadow-none transition-all cursor-pointer group animate-in fade-in zoom-in-95 duration-200"
                     aria-label="Kembali ke atas"
                     title="Kembali ke atas"
                   >
