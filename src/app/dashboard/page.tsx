@@ -433,19 +433,56 @@ export default function DashboardPage() {
               </div>
 
               {/* 1. STRIP KEADAAN (Selalu Terlihat, Termasuk Saat Nilainya 0) */}
-              <div className="mb-4 rounded-2xl bg-surface-container-lowest px-4 py-2.5 border-2 border-outline-variant/30 text-xs font-bold text-on-surface flex items-center justify-between flex-wrap gap-2 shadow-xs">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span>
-                    Halo, <strong className="text-primary">{userName || "Sahabat Budaya"}</strong>
-                  </span>
-                  <span className="text-outline">·</span>
-                  <span>Level {Math.floor((progress?.xp || 0) / 100) + 1}</span>
-                  <span className="text-outline">·</span>
-                  <span>{progress?.xp || 0} XP (poin pengalaman)</span>
-                  <span className="text-outline">·</span>
-                  <span>Hari beruntun: {progress?.streak || 0}</span>
-                  <span className="text-outline">·</span>
-                  <span>Target hari ini: {completedBaseCount > 0 ? 1 : 0} dari 1 pelajaran</span>
+              <div className="mb-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 border-l-4 border-l-primary shadow-xs p-3 transition hover:border-primary/40">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  {/* Sapaan Pengguna */}
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-primary/10 text-primary font-black shrink-0">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    <span>Halo, {userName || "Sahabat Budaya"}</span>
+                  </div>
+
+                  {/* Level */}
+                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-surface-container-high text-on-surface font-bold shrink-0">
+                    <Sparkles className="w-3.5 h-3.5 text-secondary" />
+                    <span>Level {Math.floor((progress?.xp || 0) / 100) + 1}</span>
+                  </div>
+
+                  {/* XP */}
+                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-800 dark:text-amber-200 font-bold shrink-0">
+                    <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                    <span>
+                      {progress?.xp || 0} XP{" "}
+                      <span className="text-[10px] font-semibold text-on-surface-variant">
+                        (poin pengalaman)
+                      </span>
+                    </span>
+                  </div>
+
+                  {/* Hari Beruntun */}
+                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-orange-500/10 text-orange-800 dark:text-orange-200 font-bold shrink-0">
+                    <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
+                    <span>Hari beruntun: {progress?.streak || 0}</span>
+                  </div>
+
+                  {/* Target Hari Ini */}
+                  <div
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl font-bold shrink-0 ${
+                      completedBaseCount > 0
+                        ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-200"
+                        : "bg-surface-container-high text-on-surface-variant"
+                    }`}
+                  >
+                    <Check
+                      className={`w-3.5 h-3.5 ${
+                        completedBaseCount > 0
+                          ? "text-emerald-600 stroke-[3]"
+                          : "text-outline"
+                      }`}
+                    />
+                    <span>
+                      Target hari ini: {completedBaseCount > 0 ? 1 : 0} dari 1 pelajaran
+                    </span>
+                  </div>
                 </div>
               </div>
 
