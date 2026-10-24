@@ -25,6 +25,7 @@ import {
 import SourceCard from "../../../components/SourceCard";
 import { getSession } from "../../../auth/authClient";
 import { loadProgress, readProgress, recordLessonSession, saveProgress } from "../../progress";
+import { isLessonUnlocked } from "@/lib/curriculum";
 import {
   getLessonById,
   type ChoiceQuestionData,
@@ -126,10 +127,12 @@ export default function LessonSessionPage() {
         return;
       }
       const currentProgress = await loadProgress(session.email);
-      if (
-        !currentProgress.unlockedLessons.includes(initialLesson.id) &&
-        initialLesson.id !== 1
-      ) {
+      const unlocked = isLessonUnlocked(
+        initialLesson.id,
+        currentProgress.completedLessons,
+        currentProgress.unlockedLessons
+      );
+      if (!unlocked) {
         router.replace("/dashboard");
         return;
       }

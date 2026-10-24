@@ -15,6 +15,7 @@ import {
 import { getCachedSessionSync, getSession, type ClientSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
 import { CANONICAL_BADGES } from "@/lib/badges";
+import { UNITS, getUnitProgress, isUnitUnlocked, isUnitCompleted } from "@/lib/curriculum";
 import EditProfileModal from "../../components/EditProfileModal";
 
 export default function ProfilPage() {
@@ -87,31 +88,16 @@ export default function ProfilPage() {
     window.location.href = "/auth";
   };
 
-  const learningTracks = [
-    {
-      title: "Salam & Adab Tabe (Kaili Ledo)",
-      progress: progress.completedLessons.includes(1) ? 100 : 0,
-      tag: progress.completedLessons.includes(1) ? "Selesai" : "Aktif",
-    },
-    {
-      title: "Busana Adat Nggembe",
-      progress: progress.completedLessons.includes(2) ? 100 : 0,
-      tag: progress.completedLessons.includes(2)
-        ? "Selesai"
-        : progress.unlockedLessons.includes(2)
-        ? "Aktif"
-        : "Terkunci",
-    },
-    {
-      title: "Skenario Souraja (Rumah Adat)",
-      progress: progress.completedLessons.includes(3) ? 100 : 0,
-      tag: progress.completedLessons.includes(3)
-        ? "Selesai"
-        : progress.unlockedLessons.includes(3)
-        ? "Aktif"
-        : "Terkunci",
-    },
-  ];
+  const learningTracks = Object.values(UNITS).map((unit) => {
+    const isCompleted = isUnitCompleted(unit.id, progress.completedLessons);
+    const isUnlocked = isUnitUnlocked(unit.id, progress.completedLessons);
+    const pct = Math.round(getUnitProgress(unit.id, progress.completedLessons) * 100);
+    return {
+      title: `${unit.label}: ${unit.title}${unit.status === "DATA_DEMO" ? " (DATA DEMO)" : ""}`,
+      progress: pct,
+      tag: isCompleted ? "Selesai" : isUnlocked ? "Aktif" : "Terkunci",
+    };
+  });
 
   return (
     <>
