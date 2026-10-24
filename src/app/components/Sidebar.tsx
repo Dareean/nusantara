@@ -46,7 +46,7 @@ export default function Sidebar() {
               LARAS
             </span>
             <span className="text-label-sm text-secondary uppercase font-bold tracking-wider">
-              NUSANTARA — Before It&apos;s Gone
+              NUSANTARA — Pelestarian Budaya
             </span>
           </div>
         </Link>

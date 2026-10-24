@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { getCachedSessionSync, getSession, type ClientSession } from "../../auth/authClient";
 import { DEFAULT_PROGRESS, loadProgress, readProgress, type UserProgress } from "../progress";
-import { CANONICAL_BADGES } from "@/lib/badges";
+import { ALL_PASSPORT_STAMPS } from "@/lib/badges";
 import { UNITS, getUnitProgress, isUnitUnlocked, isUnitCompleted } from "@/lib/curriculum";
 import EditProfileModal from "../../components/EditProfileModal";
 
@@ -255,7 +255,7 @@ export default function ProfilPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {CANONICAL_BADGES.map((item) => {
+              {ALL_PASSPORT_STAMPS.map((item) => {
                 const isUnlocked =
                   progress.badges.includes(item.title) ||
                   progress.completedLessons.includes(item.lessonId);

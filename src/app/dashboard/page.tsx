@@ -56,6 +56,7 @@ export type PathNode = {
   prereqLessonId?: number;
   badgeTitle?: string;
   status?: NodeStatus;
+  isEnrichment?: boolean;
 };
 
 const BUILTIN_SESSION_IDS = new Set(["SES-KL-MASTER-001", "SES-LALOVE-002", "1", "2", "3"]);
@@ -111,7 +112,7 @@ export const UNIT_NODES: Record<UnitId, PathNode[]> = {
   1: [
     { id: 1, unitId: 1, lessonId: 1, title: "Salam & Adab Tabe", subtitle: "Pelajaran 1 • Kaili Ledo", type: "lesson", href: "/dashboard/latihan/1", xp: 20, offset: "center" },
     { id: 2, unitId: 1, lessonId: 2, title: "Kenali Baju Nggembe", subtitle: "Pelajaran 2 • Busana adat", type: "lesson", href: "/dashboard/latihan/2", xp: 25, offset: "left" },
-    { id: "chest-1", unitId: 1, prereqLessonId: 2, title: "Peti Budaya", subtitle: "Reward Bab 1", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "center" },
+    { id: "chest-1", unitId: 1, prereqLessonId: 2, title: "Peti Budaya", subtitle: "Hadiah Unit 1", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "center" },
     { id: 3, unitId: 1, lessonId: 3, title: "Skenario Souraja", subtitle: "Pelajaran 3 • Rumah adat", type: "lesson", href: "/dashboard/latihan/3", xp: 30, offset: "right" },
     { id: "cc-1", unitId: 1, prereqLessonId: 3, title: "Culture Connection: Upacara Adat", subtitle: "Simulasi • Pernikahan adat Kaili", type: "review", href: "/dashboard/culture-connection", xp: 30, offset: "center" },
     { id: "badge-1", unitId: 1, prereqLessonId: 3, badgeTitle: "Tamu Sopan", title: "Cap Paspor Tamu Sopan", subtitle: "Penutup Unit 1", type: "review", href: "/dashboard/paspor", xp: 50, offset: "left" },
@@ -119,34 +120,34 @@ export const UNIT_NODES: Record<UnitId, PathNode[]> = {
   2: [
     { id: 4, unitId: 2, lessonId: 4, title: "Bilangan Satu sampai Sepuluh", subtitle: "Pelajaran 4 • Hitungan Kaili", type: "lesson", href: "/dashboard/latihan/4", xp: 30, offset: "center" },
     { id: 5, unitId: 2, lessonId: 5, title: "Waktu: Pagi, Malam, Besok, Lusa, Tahun", subtitle: "Pelajaran 5 • Waktu Kaili", type: "lesson", href: "/dashboard/latihan/5", xp: 30, offset: "left" },
-    { id: "chest-2", unitId: 2, prereqLessonId: 5, title: "Peti Kosakata", subtitle: "Reward Kosakata", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "center" },
+    { id: "chest-2", unitId: 2, prereqLessonId: 5, title: "Peti Kosakata", subtitle: "Hadiah Kosakata", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "center" },
     { id: 6, unitId: 2, lessonId: 6, title: "Alam dan Alat Perjalanan", subtitle: "Pelajaran 6 • Kosakata transportasi", type: "lesson", href: "/dashboard/latihan/6", xp: 30, offset: "right" },
-    { id: 16, unitId: 2, lessonId: 16, title: "Latihan Mendengar 1", subtitle: "Latihan Mendengar — Pengayaan", type: "lesson", href: "/dashboard/latihan/16", xp: 25, offset: "center" },
-    { id: 17, unitId: 2, lessonId: 17, title: "Latihan Mendengar 2", subtitle: "Latihan Mendengar — Pengayaan", type: "lesson", href: "/dashboard/latihan/17", xp: 25, offset: "left" },
+    { id: 16, unitId: 2, lessonId: 16, title: "Latihan Mendengar 1", subtitle: "Pelajaran 16 • Pengayaan", isEnrichment: true, type: "lesson", href: "/dashboard/latihan/16", xp: 25, offset: "center" },
+    { id: 17, unitId: 2, lessonId: 17, title: "Latihan Mendengar 2", subtitle: "Pelajaran 17 • Pengayaan", isEnrichment: true, type: "lesson", href: "/dashboard/latihan/17", xp: 25, offset: "left" },
     { id: "badge-2", unitId: 2, prereqLessonId: 6, badgeTitle: "Penjelajah Kosakata", title: "Cap Paspor Penjelajah Kosakata", subtitle: "Penutup Unit 2", type: "review", href: "/dashboard/paspor", xp: 30, offset: "right" },
   ],
   3: [
     { id: 7, unitId: 3, lessonId: 7, title: "Menanyakan Kabar dengan Hormat", subtitle: "Pelajaran 7 • Sapaan santun", type: "lesson", href: "/dashboard/latihan/7", xp: 30, offset: "center" },
-    { id: "chest-3", unitId: 3, prereqLessonId: 7, title: "Peti Tutur Santun", subtitle: "Reward Adab Bertutur", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "left" },
+    { id: "chest-3", unitId: 3, prereqLessonId: 7, title: "Peti Tutur Santun", subtitle: "Hadiah Adab Bertutur", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "left" },
     { id: 8, unitId: 3, lessonId: 8, title: "Tabe, Pue, dan Ngge", subtitle: "Pelajaran 8 • Partikel hormat", type: "lesson", href: "/dashboard/latihan/8", xp: 30, offset: "right" },
     { id: "badge-3", unitId: 3, prereqLessonId: 8, badgeTitle: "Penyapa Hormat", title: "Cap Paspor Penyapa Hormat", subtitle: "Penutup Unit 3", type: "review", href: "/dashboard/paspor", xp: 30, offset: "center" },
   ],
   4: [
     { id: 9, unitId: 4, lessonId: 9, title: "Memadukan Baju Nggembe dan Buya Sabe", subtitle: "Pelajaran 9 • Busana adat", type: "lesson", href: "/dashboard/latihan/9", xp: 30, offset: "center" },
-    { id: "chest-4", unitId: 4, prereqLessonId: 9, title: "Peti Tenun Pusaka", subtitle: "Reward Buya Sabe", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "right" },
+    { id: "chest-4", unitId: 4, prereqLessonId: 9, title: "Peti Tenun Pusaka", subtitle: "Hadiah Buya Sabe", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "right" },
     { id: 10, unitId: 4, lessonId: 10, title: "Mengenal Istilah Siga dan Pua Kora", subtitle: "Pelajaran 10 • Ikat kepala adat", type: "lesson", href: "/dashboard/latihan/10", xp: 30, offset: "left" },
     { id: "badge-4", unitId: 4, prereqLessonId: 10, badgeTitle: "Pemadu Busana", title: "Cap Paspor Pemadu Busana", subtitle: "Penutup Unit 4", type: "review", href: "/dashboard/paspor", xp: 30, offset: "center" },
   ],
   5: [
     { id: 11, unitId: 5, lessonId: 11, title: "Adab Melintas di Depan Tetua", subtitle: "Pelajaran 11 • Tata gerak santun", type: "lesson", href: "/dashboard/latihan/11", xp: 30, offset: "center" },
-    { id: "chest-5", unitId: 5, prereqLessonId: 11, title: "Peti Adab Souraja", subtitle: "Reward Serambi Tetua", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "left" },
+    { id: "chest-5", unitId: 5, prereqLessonId: 11, title: "Peti Adab Souraja", subtitle: "Hadiah Serambi Tetua", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "left" },
     { id: 12, unitId: 5, lessonId: 12, title: "Ruang di Souraja: Serambi dan Ruang Dalam", subtitle: "Pelajaran 12 • Zona rumah panggung", type: "lesson", href: "/dashboard/latihan/12", xp: 30, offset: "right" },
     { id: "badge-5", unitId: 5, prereqLessonId: 12, badgeTitle: "Penjaga Adab Bertamu", title: "Cap Paspor Penjaga Adab Bertamu", subtitle: "Penutup Unit 5", type: "review", href: "/dashboard/paspor", xp: 30, offset: "center" },
   ],
   6: [
     { id: 13, unitId: 6, lessonId: 13, title: "Nosarara Nosabatutu: Bersaudara Bersatu", subtitle: "Pelajaran 13 • Falsafah persaudaraan", type: "lesson", href: "/dashboard/latihan/13", xp: 30, offset: "center" },
     { id: 14, unitId: 6, lessonId: 14, title: "Padungku: Syukur, Kebersamaan, Berbagi", subtitle: "Pelajaran 14 • Tradisi syukur panen", type: "lesson", href: "/dashboard/latihan/14", xp: 30, offset: "right" },
-    { id: "chest-6", unitId: 6, prereqLessonId: 14, title: "Peti Gotong Royong", subtitle: "Reward Nilai Komunitas", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "left" },
+    { id: "chest-6", unitId: 6, prereqLessonId: 14, title: "Peti Gotong Royong", subtitle: "Hadiah Nilai Komunitas", type: "chest", href: "/dashboard/paspor", xp: 0, offset: "left" },
     { id: 15, unitId: 6, lessonId: 15, title: "Hidup Nosarara Sehari-hari", subtitle: "Pelajaran 15 • Aksi nyata kebersamaan", type: "lesson", href: "/dashboard/latihan/15", xp: 30, offset: "right" },
     { id: "badge-6", unitId: 6, prereqLessonId: 15, badgeTitle: "Penjaga Nosarara", title: "Cap Paspor Penjaga Nosarara", subtitle: "Penutup Unit 6", type: "review", href: "/dashboard/paspor", xp: 30, offset: "center" },
   ],
@@ -576,6 +577,14 @@ export default function DashboardPage() {
     setTourStep(1);
   };
 
+  useEffect(() => {
+    const onStartTour = () => {
+      handleStartTour();
+    };
+    window.addEventListener("laras-start-tour", onStartTour);
+    return () => window.removeEventListener("laras-start-tour", onStartTour);
+  }, []);
+
   const handleCloseTour = () => {
     handleDismissOnboarding();
     setTourStep(null);
@@ -694,7 +703,9 @@ export default function DashboardPage() {
     );
   }, [unitRoadmaps]);
 
+  // P5: Prioritaskan pelajaran inti terlebih dahulu, pengayaan jika seluruh inti aktif tidak ada
   const activeNode =
+    allNodesFlat.find((n) => n.status === "active" && !n.isEnrichment) ||
     allNodesFlat.find((n) => n.status === "active") ||
     allNodesFlat[allNodesFlat.length - 1] ||
     unitRoadmaps[1]?.nodes[0];
@@ -703,7 +714,9 @@ export default function DashboardPage() {
   const currentUnitTheme = UNIT_THEMES[visibleUnitId] || UNIT_THEMES[1];
   const activeUnitTheme = UNIT_THEMES[activeUnitId] || UNIT_THEMES[1];
 
-  const dailyXp = Math.min(progress.xp, 50);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const isStudiedToday = progress.lastStudyDate === todayStr;
+  const dailyXp = isStudiedToday ? Math.min((progress.lastLesson?.xp ?? 0) + (progress.lastLesson?.bonusXp ?? 0) || progress.xp, 50) : 0;
   const all15Completed = progress.completedLessons.length >= 15;
   const activeUnitProgress = getUnitProgress(activeUnitId, progress.completedLessons);
 
@@ -1134,6 +1147,17 @@ export default function DashboardPage() {
                                 </div>
                               )}
 
+                              {/* Visible Pill for Touch / Mobile / Accessibility */}
+                              {node.isEnrichment ? (
+                                <div className="mt-1.5 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-900 font-black text-[10px] whitespace-nowrap shadow-2xs select-none">
+                                  P.{node.id} • Pengayaan
+                                </div>
+                              ) : node.type === "lesson" && typeof node.id === "number" ? (
+                                <div className="mt-1 px-1.5 py-0.2 rounded-full text-on-surface-variant font-bold text-[10px] whitespace-nowrap select-none opacity-75">
+                                  Pelajaran {node.id}
+                                </div>
+                              ) : null}
+
                               {/* Tooltip Hover / Focus */}
                               <div
                                 className={`absolute bottom-[calc(100%+16px)] left-1/2 -translate-x-1/2 z-30 transition-all duration-200 pointer-events-none ${
@@ -1261,8 +1285,8 @@ export default function DashboardPage() {
                 <div className="mt-5 h-9 w-28 rounded bg-surface-container-high animate-pulse" />
               )}
               <div className="mt-5 flex items-center justify-between text-xs font-bold text-on-surface-variant">
-                <span>Target XP</span>
-                <span>{isLoaded ? `${dailyXp}/50` : "--/50"}</span>
+                <span>Target Harian</span>
+                <span>{isLoaded ? `${dailyXp}/50 XP` : "--/50 XP"}</span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-high">
                 <div

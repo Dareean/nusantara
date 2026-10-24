@@ -23,10 +23,10 @@ function getRouteHeader(pathname: string): { title: string; subtitle: string } {
     return { title: "Arcade", subtitle: "Tantangan Kilat Pusaka Kaili" };
   }
   if (pathname.startsWith("/dashboard/paspor")) {
-    return { title: "Paspor", subtitle: "Prestasi belajar dan progress budaya" };
+    return { title: "Paspor", subtitle: "Prestasi belajar dan progres budaya" };
   }
   if (pathname.startsWith("/dashboard/profil")) {
-    return { title: "Profile", subtitle: "Jalur belajar dan achievement" };
+    return { title: "Profil", subtitle: "Jalur belajar dan pencapaian prestasi" };
   }
   if (pathname.startsWith("/dashboard/pengaturan")) {
     return { title: "Pengaturan", subtitle: "Atur pengalaman belajar kamu" };

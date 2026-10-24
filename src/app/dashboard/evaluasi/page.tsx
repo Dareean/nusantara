@@ -270,7 +270,7 @@ export default function EvaluasiJawabanPage() {
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-end">
                     <span className="px-2.5 py-1 bg-surface-container-high rounded-full text-on-surface text-label-sm font-bold shadow-2xs">
-                      {lessonResult?.firstAttemptCorrect ?? lessonResult?.correctExercises ?? 0}/{lessonResult?.totalExercises ?? 0} exercise tepat (percobaan pertama)
+                      {lessonResult?.firstAttemptCorrect ?? lessonResult?.correctExercises ?? 0}/{lessonResult?.totalExercises ?? 0} latihan tepat (percobaan pertama)
                     </span>
                   </div>
                   <h2 className="text-headline-md text-on-surface font-extrabold leading-tight mt-1 line-clamp-2">
@@ -388,8 +388,8 @@ export default function EvaluasiJawabanPage() {
                       <p className="text-body-sm text-on-surface-variant">
                         {lessonResult?.correct
                           ? (lessonResult.isRepeat
-                              ? "Semua exercise selesai dengan tepat. Latihan ulang berhasil diselesaikan."
-                              : "Semua exercise selesai. Reward dan unlock sudah dicatat.")
+                              ? "Semua latihan selesai dengan tepat. Latihan ulang berhasil diselesaikan."
+                              : "Semua latihan selesai. Hadiah XP dan materi baru telah dicatat.")
                           : "Tidak apa-apa. Ulangi sesi untuk memperkuat konteks budaya."}
                       </p>
                     </div>

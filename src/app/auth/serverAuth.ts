@@ -29,7 +29,10 @@ export type SessionEntry = {
 
 const STORE_FILENAME = path.join(process.cwd(), 'laras_auth_store.json');
 
-export const ADMIN_EMAILS = ['admin@laras.id'];
+export const ADMIN_EMAILS = [
+  'admin@laras.id',
+  ...(process.env.LARAS_ADMIN_EMAIL ? [process.env.LARAS_ADMIN_EMAIL.toLowerCase().trim()] : []),
+];
 
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;
@@ -40,18 +43,18 @@ export function hashPassword(password: string) {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
-// Seed accounts are hardcoded and deterministic across all serverless instances
+// Seed accounts are deterministic fallbacks across serverless instances, with env override support
 export const SEED_USERS: Record<string, User> = {
   'demo@gmail.com': {
     name: 'Demo User',
     email: 'demo@gmail.com',
-    passwordHash: hashPassword('demo123'),
+    passwordHash: hashPassword(process.env.LARAS_DEMO_PASSWORD || 'demo123'),
     isAdmin: false,
   },
   'admin@laras.id': {
     name: 'Admin LARAS',
     email: 'admin@laras.id',
-    passwordHash: hashPassword('admin123'),
+    passwordHash: hashPassword(process.env.LARAS_ADMIN_PASSWORD || 'admin123'),
     isAdmin: true,
   },
 };
@@ -131,10 +134,14 @@ export function ensureOAuthUser(user: { name: string; email: string }) {
 export function getUserByEmail(email: string | null | undefined): User | undefined {
   if (!email) return undefined;
   const normalized = email.toLowerCase().trim();
+  // Check dynamic store first so user password & profile updates take effect
+  if (users.has(normalized)) {
+    return users.get(normalized);
+  }
   if (SEED_USERS[normalized]) {
     return SEED_USERS[normalized];
   }
-  return users.get(normalized);
+  return undefined;
 }
 
 /**
@@ -206,8 +213,11 @@ export async function updateUserProfile(
     if (updates.newPassword.length < 6) {
       return { success: false, error: 'Kata sandi baru minimal 6 karakter.' };
     }
-    // Jika akun sudah memiliki kata sandi aktif dan memasukkan currentPassword, verifikasi
-    if (existing && existing.passwordHash && updates.currentPassword) {
+    // Jika akun sudah memiliki kata sandi aktif, verifikasi kata sandi saat ini wajib diisi dan cocok
+    if (existing && existing.passwordHash) {
+      if (!updates.currentPassword) {
+        return { success: false, error: 'Kata sandi saat ini wajib diisi untuk mengubah kata sandi.' };
+      }
       const hashedCurrent = hashPassword(updates.currentPassword);
       if (hashedCurrent !== existing.passwordHash) {
         return { success: false, error: 'Kata sandi saat ini keliru.' };

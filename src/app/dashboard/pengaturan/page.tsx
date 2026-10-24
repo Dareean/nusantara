@@ -13,6 +13,17 @@ export default function PengaturanPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
+    try {
+      const dg = localStorage.getItem("laras.setting.dailyGoal");
+      if (dg !== null) setDailyGoal(JSON.parse(dg));
+      const pn = localStorage.getItem("laras.setting.pushNotif");
+      if (pn !== null) setPushNotif(JSON.parse(pn));
+      const ap = localStorage.getItem("laras.setting.audioAutoPlay");
+      if (ap !== null) setAudioAutoPlay(JSON.parse(ap));
+    } catch {
+      // ignore JSON parse or localStorage security errors
+    }
+
     getSession().then((sess) => {
       if (sess) setSession(sess);
     });
@@ -26,6 +37,36 @@ export default function PengaturanPage() {
     window.addEventListener("laras-profile-updated", onProfileChanged);
     return () => window.removeEventListener("laras-profile-updated", onProfileChanged);
   }, []);
+
+  const toggleDailyGoal = () => {
+    setDailyGoal((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("laras.setting.dailyGoal", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const togglePushNotif = () => {
+    setPushNotif((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("laras.setting.pushNotif", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const toggleAudioAutoPlay = () => {
+    setAudioAutoPlay((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("laras.setting.audioAutoPlay", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
 
   const handleLogout = async () => {
     try {
@@ -53,7 +94,7 @@ export default function PengaturanPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setDailyGoal((prev) => !prev)}
+                onClick={toggleDailyGoal}
                 className={`relative h-7 w-12 rounded-full transition ${dailyGoal ? "bg-primary" : "bg-surface-container-high"}`}
               >
                 <span
@@ -69,7 +110,7 @@ export default function PengaturanPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setPushNotif((prev) => !prev)}
+                onClick={togglePushNotif}
                 className={`relative h-7 w-12 rounded-full transition ${pushNotif ? "bg-primary" : "bg-surface-container-high"}`}
               >
                 <span
@@ -85,7 +126,7 @@ export default function PengaturanPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setAudioAutoPlay((prev) => !prev)}
+                onClick={toggleAudioAutoPlay}
                 className={`relative h-7 w-12 rounded-full transition ${audioAutoPlay ? "bg-primary" : "bg-surface-container-high"}`}
               >
                 <span

@@ -24,7 +24,7 @@ const navItems = [
 
 export default function DuolingoSidebar() {
   const pathname = usePathname();
-  const [session, setSession] = useState<{ email: string; name: string; avatarUrl?: string } | null>(null);
+  const [session, setSession] = useState<{ email: string; name: string; avatarUrl?: string; isAdmin?: boolean } | null>(null);
 
   useEffect(() => {
     getSession().then((sess) => {
@@ -120,13 +120,15 @@ export default function DuolingoSidebar() {
           <Settings className="w-5 h-5" />
           <span>Pengaturan</span>
         </Link>
-        <Link
-          href="/admin"
-          className="flex items-center gap-3 px-4 py-2 rounded-2xl text-xs font-bold text-outline hover:text-on-surface transition-all"
-        >
-          <ShieldAlert className="w-4 h-4 text-primary" />
-          <span>Panel Kurator</span>
-        </Link>
+        {session?.isAdmin && (
+          <Link
+            href="/admin"
+            className="flex items-center gap-3 px-4 py-2 rounded-2xl text-xs font-bold text-outline hover:text-on-surface transition-all"
+          >
+            <ShieldAlert className="w-4 h-4 text-primary" />
+            <span>Panel Kurator</span>
+          </Link>
+        )}
 
         {/* Logo Resmi Munas IX & Permikomnas */}
         <div className="mt-1 p-2 rounded-xl bg-surface-container-low border border-outline-variant/30 flex items-center gap-2.5">

@@ -126,6 +126,18 @@ export default function CulturalGameEngine({
     return shuffleArray(currentPairs.map((p) => p.right));
   }, [currentPairs, currentIdx]);
 
+  // P6: Acak pilihan jawaban agar jawaban benar tidak selalu di opsi pertama
+  const shuffledChoiceOptions = useMemo(() => {
+    if (!currentQ.options || currentQ.options.length <= 1) {
+      return currentQ.options || [];
+    }
+    const shuffled = shuffleArray(currentQ.options);
+    return shuffled.map((opt, idx) => ({
+      ...opt,
+      label: opt.label ? String.fromCharCode(65 + idx) : opt.label,
+    }));
+  }, [currentQ.id, currentQ.options, currentIdx]);
+
   // Reset state on step / question change
   useEffect(() => {
     setSelectedOptionId(null);
@@ -636,7 +648,7 @@ export default function CulturalGameEngine({
       </div>
 
       {/* ── MAIN VIEWPORT ── */}
-      <main className="flex-1 flex flex-col items-center justify-start p-3 sm:p-5 pb-32 max-w-xl mx-auto w-full">
+      <main className="flex-1 flex flex-col items-center justify-start p-3 sm:p-5 pt-6 sm:pt-8 pb-32 max-w-xl mx-auto w-full">
         {/* ======================================================== */}
         {/* 1. MATCH (JODOHKAN PASANGAN DUA KOLOM - RONDE 4)          */}
         {/* ======================================================== */}
@@ -967,11 +979,15 @@ export default function CulturalGameEngine({
                   {currentQ.prompt}
                 </h2>
 
-                <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden bg-surface-container-high/40 flex items-center justify-center border border-outline-variant/20">
+                <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-surface-container-high via-surface-container-low to-surface-container-high flex items-center justify-center border border-outline-variant/20 shadow-inner">
+                  <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#A83B10_1px,transparent_1px)] [background-size:16px_16px]" />
                   {currentQ.imageUrl ? (
                     <img
                       src={currentQ.imageUrl}
                       alt={currentQ.prompt}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
                       className="w-full h-full object-contain p-2"
                     />
                   ) : (
@@ -1074,7 +1090,7 @@ export default function CulturalGameEngine({
             </div>
 
             <div className="grid grid-cols-1 gap-2.5 w-full">
-              {currentQ.options?.map((opt) => {
+              {shuffledChoiceOptions.map((opt) => {
                 const isSelected = selectedOptionId === opt.id;
                 const isLocked = feedbackState !== "idle";
                 const isThisCorrect = isLocked && opt.isCorrect;

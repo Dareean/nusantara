@@ -656,15 +656,22 @@ export default function LessonSessionPage() {
     return (
       <div className="mt-6 flex flex-col gap-4">
         {/* Hotspot Image Container with Interactive Pins */}
-        <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden bg-surface-container-high/40 flex items-center justify-center border-2 border-outline-variant/30 shadow-inner group">
+        <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-surface-container-high via-surface-container-low to-surface-container-high flex items-center justify-center border-2 border-outline-variant/30 shadow-inner group">
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#A83B10_1px,transparent_1px)] [background-size:16px_16px]" />
           {data.imageUrl ? (
             <img
               src={data.imageUrl}
               alt={data.imageCaption || currentQuestion?.prompt}
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
               className="w-full h-full object-cover transition-transform duration-500"
             />
           ) : (
-            <div className="text-on-surface-variant font-bold text-sm">[Gambar Artefak Adat]</div>
+            <div className="text-on-surface-variant font-bold text-sm flex items-center gap-2">
+              <Compass className="w-5 h-5 text-primary" />
+              <span>Diagram Artefak Adat</span>
+            </div>
           )}
 
           {/* Interactive Clickable Pins */}
@@ -857,9 +864,9 @@ export default function LessonSessionPage() {
         </div>
       )}
 
-      <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-3xl flex-col px-4 pt-6 sm:px-6 [@media(orientation:landscape)_and_(max-height:450px)]:pl-14">
+      <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-3xl flex-col px-4 pt-8 sm:pt-10 sm:px-6 [@media(orientation:landscape)_and_(max-height:450px)]:pl-14">
         {(screen === "exercise" || screen === "feedback") && currentQuestion && (
-          <section className="my-auto rounded-3xl bg-surface-container-lowest p-6 shadow-xl ring-1 ring-outline-variant/30 sm:p-10">
+          <section className="my-4 sm:my-8 scroll-mt-28 rounded-3xl bg-surface-container-lowest p-6 shadow-xl ring-1 ring-outline-variant/30 sm:p-10">
             {/* Objective Banner */}
             <div className="mb-4 rounded-2xl bg-primary-fixed/20 p-3 sm:p-3.5 border border-primary/20 flex items-start gap-2.5">
               <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
@@ -893,7 +900,7 @@ export default function LessonSessionPage() {
                 </button>
               </div>
             )}
-            <h1 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">{currentQuestion.prompt}</h1>
+            <h1 className="mt-3 text-2xl font-black tracking-tight leading-snug sm:text-3xl">{currentQuestion.prompt}</h1>
             {renderExercise()}
 
             {screen === "feedback" && (

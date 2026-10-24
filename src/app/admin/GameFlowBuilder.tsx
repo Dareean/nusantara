@@ -281,12 +281,16 @@ export default function GameFlowBuilder() {
   const [listFilter, setListFilter] = useState<"all" | "published" | "draft">("all");
   const [listSearch, setListSearch] = useState<string>("");
 
+  const isSessionDraft = (s: GameSession) =>
+    s.status === "draft" || Boolean(s.status && s.status.toLowerCase().includes("draft"));
+  const isSessionPublished = (s: GameSession) => !isSessionDraft(s);
+
   const publishedCount = useMemo(
-    () => sessions.filter((s) => s.status === "published").length,
+    () => sessions.filter(isSessionPublished).length,
     [sessions]
   );
   const draftCount = useMemo(
-    () => sessions.filter((s) => s.status === "draft").length,
+    () => sessions.filter(isSessionDraft).length,
     [sessions]
   );
 
@@ -296,8 +300,8 @@ export default function GameFlowBuilder() {
         listFilter === "all"
           ? true
           : listFilter === "published"
-          ? s.status === "published"
-          : s.status === "draft";
+          ? isSessionPublished(s)
+          : isSessionDraft(s);
       if (!matchFilter) return false;
 
       if (!listSearch.trim()) return true;
@@ -340,6 +344,7 @@ export default function GameFlowBuilder() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
 
   const isInitialMount = useRef(true);
+  const lastSavedSnapshot = useRef<string>("");
 
   // -------------------------------------------------------------------
   // INITIAL LOAD & PERSISTENCE
@@ -377,6 +382,7 @@ export default function GameFlowBuilder() {
     if (targetSessionId) {
       const found = list.find((s) => s.id === targetSessionId);
       if (found) {
+        lastSavedSnapshot.current = JSON.stringify(found);
         setActiveSessionId(found.id);
         setActiveSession(found);
         setSessionStatus(found.status || "published");
@@ -413,6 +419,7 @@ export default function GameFlowBuilder() {
           // If activeSession was loaded, update with merged server content
           if (targetSessionId && map.has(targetSessionId)) {
             const merged = map.get(targetSessionId)!;
+            lastSavedSnapshot.current = JSON.stringify(merged);
             setActiveSession(merged);
             setSessionStatus(merged.status || "published");
           }
@@ -449,7 +456,14 @@ export default function GameFlowBuilder() {
     }
     if (!activeSession) return;
 
+    // Hanya simpan jika terdapat perbedaan nyata pada sesi (bukan sekadar membuka editor)
+    const currentStr = JSON.stringify(activeSession);
+    if (lastSavedSnapshot.current && currentStr === lastSavedSnapshot.current) {
+      return;
+    }
+
     const timer = setTimeout(() => {
+      lastSavedSnapshot.current = currentStr;
       const currentOrDraftStatus =
         activeSession.status === "published" ? "published" : "draft";
       saveSingleSession({ ...activeSession, status: currentOrDraftStatus });
@@ -468,6 +482,7 @@ export default function GameFlowBuilder() {
   const handleOpenBuilder = (sessionId: string, initialStep: 1 | 2 | 3 | 4 = 2) => {
     const s = sessions.find((item) => item.id === sessionId);
     if (s) {
+      lastSavedSnapshot.current = JSON.stringify(s);
       setActiveSessionId(s.id);
       setActiveSession(s);
       setSessionStatus(s.status || "published");
@@ -1204,7 +1219,7 @@ export default function GameFlowBuilder() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredSessions.map((session) => {
               const validation = validateSessionForPublish(session);
-              const isPublished = session.status === "published";
+              const isPublished = isSessionPublished(session);
 
               return (
                 <div
