@@ -432,36 +432,38 @@ export default function DashboardPage() {
 
 
 
-              {/* Unit Header Banner Ala Duolingo (Persis Gambar 2, Warna Berganti Tiap Unit) */}
-              <div
-                style={{
-                  backgroundColor: currentUnitTheme.bgColor,
-                  boxShadow: `0 4px 0 0 ${currentUnitTheme.shadowColor}`,
-                }}
-                className="mb-6 rounded-2xl px-5 py-4 text-white flex items-center justify-between gap-4 transition-all duration-300"
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-white/90">
-                    <span>{currentUnitTheme.label}</span>
-                  </div>
-                  <h1 className="text-lg sm:text-xl font-black tracking-tight text-white mt-0.5 truncate">
-                    {currentUnitTheme.title}
-                  </h1>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setTourStep(1)}
+              {/* Unit Header Banner Ala Duolingo (Sticky Saat Scroll) */}
+              <div className="sticky top-20 z-20 pt-2 pb-4 bg-surface/95 backdrop-blur-sm -mt-2">
+                <div
                   style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.2)",
-                    boxShadow: `0 3px 0 0 ${currentUnitTheme.shadowColor}`,
+                    backgroundColor: currentUnitTheme.bgColor,
+                    boxShadow: `0 4px 0 0 ${currentUnitTheme.shadowColor}`,
                   }}
-                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border-2 border-white/40 text-white font-black text-xs uppercase tracking-wider hover:bg-white/30 active:translate-y-0.5 active:shadow-none transition cursor-pointer"
-                  title="Buku Panduan Unit"
+                  className="rounded-2xl px-5 py-4 text-white flex items-center justify-between gap-4 transition-all duration-300"
                 >
-                  <BookOpen className="w-4 h-4 stroke-[2.5]" />
-                  <span>PANDUAN</span>
-                </button>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-white/90">
+                      <span>{currentUnitTheme.label}</span>
+                    </div>
+                    <h1 className="text-lg sm:text-xl font-black tracking-tight text-white mt-0.5 truncate">
+                      {currentUnitTheme.title}
+                    </h1>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setTourStep(1)}
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.2)",
+                      boxShadow: `0 3px 0 0 ${currentUnitTheme.shadowColor}`,
+                    }}
+                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border-2 border-white/40 text-white font-black text-xs uppercase tracking-wider hover:bg-white/30 active:translate-y-0.5 active:shadow-none transition cursor-pointer"
+                    title="Buku Panduan Unit"
+                  >
+                    <BookOpen className="w-4 h-4 stroke-[2.5]" />
+                    <span>PANDUAN</span>
+                  </button>
+                </div>
               </div>
 
               {/* 2. SATU KARTU DOMINAN (Hanya Satu Tombol Utama di Layar Ini) */}
