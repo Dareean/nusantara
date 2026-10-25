@@ -135,15 +135,38 @@ const initialEntries: CulturalEntry[] = [
 ];
 
 const CMS_STORAGE_KEY = "laras_cms_entries";
+const CMS_DELETED_KEY = "laras_deleted_corpus_ids";
+
+function getDeletedCorpusIds(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CMS_DELETED_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function addDeletedCorpusId(id: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const list = getDeletedCorpusIds();
+    if (!list.includes(id)) {
+      list.push(id);
+      localStorage.setItem(CMS_DELETED_KEY, JSON.stringify(list));
+    }
+  } catch {}
+}
 
 function loadCmsEntries(): CulturalEntry[] {
   if (typeof window === "undefined") return initialEntries;
   try {
+    const deleted = new Set(getDeletedCorpusIds());
     const raw = localStorage.getItem(CMS_STORAGE_KEY);
-    if (!raw) return initialEntries;
+    if (!raw) return initialEntries.filter((e) => !deleted.has(e.id));
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
+      return parsed.filter((e: CulturalEntry) => !deleted.has(e.id));
     }
   } catch (err) {
     console.warn("Gagal membaca laras_cms_entries dari localStorage:", err);
@@ -153,6 +176,7 @@ function loadCmsEntries(): CulturalEntry[] {
 
 export default function AdminPage() {
   const [entries, setEntries] = useState<CulturalEntry[]>(initialEntries);
+  const [entryToDelete, setEntryToDelete] = useState<CulturalEntry | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [adminTab, setAdminTab] = useState<"summary" | "builder" | "corpus">("summary");
   const [sessionCount, setSessionCount] = useState<number>(4);
@@ -187,13 +211,19 @@ export default function AdminPage() {
         }
       })
       .catch(() => {});
+
+    const deletedIds = new Set(getDeletedCorpusIds());
     try {
       const raw = localStorage.getItem(CMS_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setEntries(parsed);
+          setEntries(parsed.filter((e: CulturalEntry) => !deletedIds.has(e.id)));
+        } else {
+          setEntries(initialEntries.filter((e) => !deletedIds.has(e.id)));
         }
+      } else {
+        setEntries(initialEntries.filter((e) => !deletedIds.has(e.id)));
       }
     } catch (err) {
       console.warn("Gagal membaca laras_cms_entries dari localStorage:", err);
@@ -204,23 +234,30 @@ export default function AdminPage() {
     fetch("/api/content/entries?all=1", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))
       .then((serverEntries) => {
-        if (Array.isArray(serverEntries) && serverEntries.length > 0) {
-          const map = new Map<string, CulturalEntry>();
-          initialEntries.forEach((e) => map.set(e.id, e));
-          const raw = localStorage.getItem(CMS_STORAGE_KEY);
-          if (raw) {
-            try {
-              const parsed = JSON.parse(raw);
-              if (Array.isArray(parsed)) parsed.forEach((e: CulturalEntry) => map.set(e.id, e));
-            } catch {}
-          }
+        const currentDeleted = new Set(getDeletedCorpusIds());
+        const map = new Map<string, CulturalEntry>();
+        initialEntries.forEach((e) => {
+          if (!currentDeleted.has(e.id)) map.set(e.id, e);
+        });
+        const raw = localStorage.getItem(CMS_STORAGE_KEY);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              parsed.forEach((e: CulturalEntry) => {
+                if (!currentDeleted.has(e.id)) map.set(e.id, e);
+              });
+            }
+          } catch {}
+        }
+        if (Array.isArray(serverEntries)) {
           serverEntries.forEach((row: { id: string; payload: CulturalEntry }) => {
-            if (row.payload && row.id) {
+            if (row.payload && row.id && !currentDeleted.has(row.id)) {
               map.set(row.id, { ...(row.payload as CulturalEntry), id: row.id });
             }
           });
-          setEntries(Array.from(map.values()));
         }
+        setEntries(Array.from(map.values()));
       })
       .catch(() => {});
   }, []);
@@ -364,16 +401,26 @@ export default function AdminPage() {
     });
   };
 
-  const handleDeleteEntry = async (id: string, e?: React.MouseEvent) => {
+  const handleDeleteEntry = (entry: CulturalEntry, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (!window.confirm("Yakin ingin menghapus entri korpus ini? Tindakan ini tidak dapat dibatalkan.")) {
+    if (adminUser.isJury) {
+      alert("Mode Juri hanya memiliki akses baca (read-only).");
       return;
     }
+    setEntryToDelete(entry);
+  };
+
+  const confirmDeleteEntry = async () => {
+    if (!entryToDelete) return;
+    const id = entryToDelete.id;
+    addDeletedCorpusId(id);
+
     const nextEntries = entries.filter((item) => item.id !== id);
     setEntries(nextEntries);
     if (selectedEntry?.id === id) {
       setSelectedEntry(null);
     }
+    setEntryToDelete(null);
 
     try {
       localStorage.setItem(CMS_STORAGE_KEY, JSON.stringify(nextEntries));
@@ -572,7 +619,7 @@ export default function AdminPage() {
               </span>
             )}
 
-            {adminTab === "corpus" && (
+            {adminTab === "corpus" && !adminUser.isJury && (
               <button
                 type="button"
                 onClick={() => setIsModalOpen(true)}
@@ -831,7 +878,7 @@ export default function AdminPage() {
                             onClick={() => setSelectedEntry(entry)}
                             className="px-2.5 py-1 rounded-md bg-primary text-on-primary text-[11px] font-bold hover:bg-primary-container transition-colors cursor-pointer"
                           >
-                            Tinjau
+                            {adminUser.isJury ? "Lihat Detail" : "Tinjau"}
                           </button>
                         </div>
                       </div>
@@ -858,7 +905,7 @@ export default function AdminPage() {
           {/* ── SEKSI 2: PENYUSUN ALUR & SOAL ── */}
           {adminTab === "builder" && (
             <div className="max-w-7xl mx-auto">
-              <GameFlowBuilder />
+              <GameFlowBuilder isReadOnly={Boolean(adminUser.isJury)} />
             </div>
           )}
 
@@ -955,14 +1002,16 @@ export default function AdminPage() {
                       <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-outline w-3.5 h-3.5 pointer-events-none" />
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setIsModalOpen(true)}
-                      className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-[12px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer shrink-0"
-                    >
-                      <PlusCircle className="w-3.5 h-3.5" />
-                      <span>+ Entri Baru</span>
-                    </button>
+                    {!adminUser.isJury && (
+                      <button
+                        type="button"
+                        onClick={() => setIsModalOpen(true)}
+                        className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-[12px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer shrink-0"
+                      >
+                        <PlusCircle className="w-3.5 h-3.5" />
+                        <span>+ Entri Baru</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1129,16 +1178,18 @@ export default function AdminPage() {
                                 }}
                                 className="px-2.5 py-1 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface text-[11px] font-bold transition-colors cursor-pointer"
                               >
-                                Tinjau
+                                {adminUser.isJury ? "Lihat Detail" : "Tinjau"}
                               </button>
-                              <button
-                                type="button"
-                                onClick={(e) => handleDeleteEntry(entry.id, e)}
-                                className="p-1 rounded-md hover:bg-red-50 text-outline hover:text-red-700 transition-colors cursor-pointer"
-                                title="Hapus entri korpus"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              {!adminUser.isJury && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleDeleteEntry(entry, e)}
+                                  className="p-1 rounded-md hover:bg-red-50 text-outline hover:text-red-700 transition-colors cursor-pointer"
+                                  title="Hapus entri korpus"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -1379,13 +1430,22 @@ export default function AdminPage() {
               <span className="text-[11px] uppercase font-bold text-on-surface-variant mb-2 block">
                 Ubah Status Konten &amp; Transisi
               </span>
+              {adminUser.isJury && (
+                <div className="mb-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                  <span>Mode Juri — Hanya Lihat (perubahan status &amp; penghapusan dinonaktifkan)</span>
+                </div>
+              )}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
                   type="button"
+                  disabled={Boolean(adminUser.isJury)}
                   onClick={() =>
                     handleUpdateStatus(selectedEntry.id, "draft", "blocked")
                   }
-                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 ${
+                    adminUser.isJury ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                  } ${
                     selectedEntry.status === "draft"
                       ? "bg-surface-container-highest text-on-surface ring-2 ring-primary"
                       : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
@@ -1396,10 +1456,13 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="button"
+                  disabled={Boolean(adminUser.isJury)}
                   onClick={() =>
                     handleUpdateStatus(selectedEntry.id, "pending", "blocked")
                   }
-                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 ${
+                    adminUser.isJury ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                  } ${
                     selectedEntry.status === "pending"
                       ? "bg-primary text-on-primary ring-2 ring-primary/40 shadow-xs"
                       : "bg-primary-fixed/50 text-on-primary-fixed hover:bg-primary-fixed"
@@ -1410,10 +1473,13 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="button"
+                  disabled={Boolean(adminUser.isJury)}
                   onClick={() =>
                     handleUpdateStatus(selectedEntry.id, "disputed", "educational_note")
                   }
-                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 ${
+                    adminUser.isJury ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                  } ${
                     selectedEntry.status === "disputed"
                       ? "bg-tertiary text-on-tertiary ring-2 ring-tertiary/40 shadow-xs"
                       : "bg-tertiary-fixed/50 text-on-tertiary-fixed hover:bg-tertiary-fixed"
@@ -1424,10 +1490,13 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="button"
+                  disabled={Boolean(adminUser.isJury)}
                   onClick={() =>
                     handleUpdateStatus(selectedEntry.id, "verified", "published")
                   }
-                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 ${
+                    adminUser.isJury ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                  } ${
                     selectedEntry.status === "verified"
                       ? "bg-secondary text-on-secondary ring-2 ring-secondary/40 shadow-xs"
                       : "bg-secondary-fixed/50 text-on-secondary-fixed hover:bg-secondary-fixed"
@@ -1440,20 +1509,75 @@ export default function AdminPage() {
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20">
-              <button
-                type="button"
-                onClick={() => handleDeleteEntry(selectedEntry.id)}
-                className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Hapus Entri</span>
-              </button>
+              {!adminUser.isJury ? (
+                <button
+                  type="button"
+                  onClick={() => handleDeleteEntry(selectedEntry)}
+                  className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[12px] flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Hapus Entri</span>
+                </button>
+              ) : (
+                <span className="text-[11px] text-on-surface-variant font-medium italic">
+                  Hanya lihat
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => setSelectedEntry(null)}
                 className="px-4 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold text-[12px] transition-all shadow-xs cursor-pointer"
               >
-                Selesai Tinjauan
+                {adminUser.isJury ? "Tutup" : "Selesai Tinjauan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Dialog Konfirmasi Hapus Entri Korpus */}
+      {entryToDelete && (
+        <div
+          onClick={() => setEntryToDelete(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm rounded-2xl bg-surface-container-lowest border border-outline-variant/40 shadow-2xl p-5 space-y-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-100 text-red-700 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-on-surface">
+                  Hapus Entri Korpus?
+                </h3>
+                <p className="text-xs text-on-surface-variant mt-0.5">
+                  Konfirmasi penghapusan permanen
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-on-surface-variant leading-relaxed">
+              Apakah kamu yakin ingin menghapus entri{" "}
+              <strong className="text-on-surface">&quot;{entryToDelete.term}&quot;</strong> ({entryToDelete.id})? Entri ini akan dihapus dari korpus dan Buku Panduan murid secara permanen.
+            </p>
+
+            <div className="flex items-center gap-2 pt-2 border-t border-outline-variant/20">
+              <button
+                type="button"
+                onClick={() => setEntryToDelete(null)}
+                className="flex-1 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-xs font-bold text-on-surface transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteEntry}
+                className="flex-1 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-xs font-black text-white transition-colors cursor-pointer shadow-xs"
+              >
+                Ya, Hapus Entri
               </button>
             </div>
           </div>

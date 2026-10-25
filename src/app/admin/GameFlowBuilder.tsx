@@ -265,7 +265,7 @@ export function validateSessionForPublish(session: GameSession | null) {
 // =====================================================================
 // MAIN COMPONENT
 // =====================================================================
-export default function GameFlowBuilder() {
+export default function GameFlowBuilder({ isReadOnly = false }: { isReadOnly?: boolean } = {}) {
   // Navigation & View Mode: "list" (Layar 0) | "builder" (Layar 1-4)
   const [viewMode, setViewMode] = useState<"list" | "builder">("list");
   // Steps: 1 Atur Pelajaran | 2 Isi Soal | 3 Coba sebagai Murid | 4 Terbitkan
@@ -1118,14 +1118,21 @@ export default function GameFlowBuilder() {
               <span>Panduan</span>
             </button>
 
-            <button
-              type="button"
-              onClick={handleCreateNewLesson}
-              className="px-5 py-2.5 rounded-2xl bg-primary text-on-primary text-xs sm:text-sm font-black shadow-xs hover:bg-primary-container active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <Plus className="w-4 h-4 stroke-[3]" />
-              <span>+ Pelajaran Baru</span>
-            </button>
+            {!isReadOnly ? (
+              <button
+                type="button"
+                onClick={handleCreateNewLesson}
+                className="px-5 py-2.5 rounded-2xl bg-primary text-on-primary text-xs sm:text-sm font-black shadow-xs hover:bg-primary-container active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>+ Pelajaran Baru</span>
+              </button>
+            ) : (
+              <span className="px-3.5 py-2 rounded-2xl bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+                <Eye className="w-4 h-4 text-amber-800" />
+                <span>Mode Juri — Hanya Lihat</span>
+              </span>
+            )}
           </div>
         </div>
 
@@ -1314,8 +1321,8 @@ export default function GameFlowBuilder() {
                       onClick={() => handleOpenBuilder(session.id, 2)}
                       className="flex-1 py-2 px-3 rounded-xl bg-primary text-on-primary text-xs font-black hover:bg-primary-container active:scale-95 transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                     >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span>Ubah Soal</span>
+                      {isReadOnly ? <Eye className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
+                      <span>{isReadOnly ? "Lihat Soal" : "Ubah Soal"}</span>
                     </button>
 
                     <div className="flex items-center gap-1 shrink-0">
@@ -1332,28 +1339,32 @@ export default function GameFlowBuilder() {
                         type="button"
                         onClick={() => handleOpenBuilder(session.id, 1)}
                         className="p-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
-                        title="Atur Judul, Bab & Status"
+                        title={isReadOnly ? "Lihat Metadata & Pengaturan" : "Atur Judul, Bab & Status"}
                       >
                         <Layers className="w-4 h-4" />
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDuplicateSession(session)}
-                        className="p-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
-                        title="Duplikat pelajaran"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </button>
+                      {!isReadOnly && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleDuplicateSession(session)}
+                            className="p-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                            title="Duplikat pelajaran"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
 
-                      <button
-                        type="button"
-                        onClick={() => setDeleteConfirmSession(session)}
-                        className="p-2 rounded-xl bg-surface-container hover:bg-red-50 text-on-surface-variant hover:text-red-700 transition-colors cursor-pointer"
-                        title="Hapus pelajaran"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteConfirmSession(session)}
+                            className="p-2 rounded-xl bg-surface-container hover:bg-red-50 text-on-surface-variant hover:text-red-700 transition-colors cursor-pointer"
+                            title="Hapus pelajaran"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1548,8 +1559,14 @@ export default function GameFlowBuilder() {
           </div>
         </div>
 
-        {/* Kanan: Tombol Bantuan / Panduan */}
+        {/* Kanan: Mode Juri & Tombol Bantuan / Panduan */}
         <div className="flex items-center gap-2 ml-auto">
+          {isReadOnly && (
+            <span className="px-3 py-1 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+              <Eye className="w-3.5 h-3.5 text-amber-800" />
+              <span>Mode Juri — Hanya Lihat</span>
+            </span>
+          )}
           <button
             type="button"
             onClick={() => setIsGuideOpen(true)}
@@ -1641,14 +1658,16 @@ export default function GameFlowBuilder() {
                 </select>
               </div>
 
-              <button
-                type="button"
-                onClick={handleCreateNewLesson}
-                className="px-3.5 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-xs font-bold text-on-surface shrink-0 flex items-center gap-1.5 border border-outline-variant/30 transition-all cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>+ Pelajaran Baru</span>
-              </button>
+              {!isReadOnly && (
+                <button
+                  type="button"
+                  onClick={handleCreateNewLesson}
+                  className="px-3.5 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-xs font-bold text-on-surface shrink-0 flex items-center gap-1.5 border border-outline-variant/30 transition-all cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Pelajaran Baru</span>
+                </button>
+              )}
             </div>
 
             {/* Form Inti Saja */}
@@ -1659,12 +1678,15 @@ export default function GameFlowBuilder() {
                 </label>
                 <input
                   type="text"
+                  readOnly={isReadOnly}
                   value={activeSession.title || ""}
                   onChange={(e) =>
-                    setActiveSession({ ...activeSession, title: e.target.value })
+                    !isReadOnly && setActiveSession({ ...activeSession, title: e.target.value })
                   }
                   placeholder="Misal: Salam & Adab Tabe"
-                  className="w-full px-4 py-2.5 rounded-2xl bg-surface-container-low text-sm font-bold text-on-surface border border-outline-variant/20 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className={`w-full px-4 py-2.5 rounded-2xl bg-surface-container-low text-sm font-bold text-on-surface border border-outline-variant/20 focus:outline-none focus:ring-2 focus:ring-primary ${
+                    isReadOnly ? "opacity-75 cursor-not-allowed" : ""
+                  }`}
                 />
                 <p className="text-[11px] text-on-surface-variant mt-1">
                   Nama ini yang dilihat murid di peta belajar.
@@ -1677,12 +1699,15 @@ export default function GameFlowBuilder() {
                 </label>
                 <input
                   type="text"
+                  readOnly={isReadOnly}
                   value={activeSession.chapter || ""}
                   onChange={(e) =>
-                    setActiveSession({ ...activeSession, chapter: e.target.value })
+                    !isReadOnly && setActiveSession({ ...activeSession, chapter: e.target.value })
                   }
                   placeholder="Misal: Bab 1: Sapaan Harian & Kehormatan"
-                  className="w-full px-4 py-2.5 rounded-2xl bg-surface-container-low text-sm font-bold text-on-surface border border-outline-variant/20 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className={`w-full px-4 py-2.5 rounded-2xl bg-surface-container-low text-sm font-bold text-on-surface border border-outline-variant/20 focus:outline-none focus:ring-2 focus:ring-primary ${
+                    isReadOnly ? "opacity-75 cursor-not-allowed" : ""
+                  }`}
                 />
                 <p className="text-[11px] text-on-surface-variant mt-1">
                   Kelompok materi di roadmap belajar murid.
@@ -1694,11 +1719,20 @@ export default function GameFlowBuilder() {
                 <label className="text-xs font-black text-on-surface block mb-2">
                   Status Pelajaran
                 </label>
+                {isReadOnly && (
+                  <div className="mb-2 p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold flex items-center gap-1.5">
+                    <Eye className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                    <span>Mode Juri — Hanya Lihat (perubahan status pelajaran dinonaktifkan)</span>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => handleUpdateSessionStatus("draft")}
-                    className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 ${
+                    disabled={isReadOnly}
+                    onClick={() => !isReadOnly && handleUpdateSessionStatus("draft")}
+                    className={`p-4 rounded-2xl border-2 text-left transition-all flex items-start gap-3 ${
+                      isReadOnly ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                    } ${
                       sessionStatus === "draft"
                         ? "border-amber-500 bg-amber-50/70 shadow-xs"
                         : "border-outline-variant/30 bg-surface-container-lowest hover:bg-surface-container-low"
@@ -1719,8 +1753,11 @@ export default function GameFlowBuilder() {
 
                   <button
                     type="button"
-                    onClick={() => handleUpdateSessionStatus("published")}
-                    className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 ${
+                    disabled={isReadOnly}
+                    onClick={() => !isReadOnly && handleUpdateSessionStatus("published")}
+                    className={`p-4 rounded-2xl border-2 text-left transition-all flex items-start gap-3 ${
+                      isReadOnly ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                    } ${
                       sessionStatus === "published"
                         ? "border-emerald-600 bg-emerald-50/70 shadow-xs"
                         : "border-outline-variant/30 bg-surface-container-lowest hover:bg-surface-container-low"
@@ -1794,14 +1831,16 @@ export default function GameFlowBuilder() {
                     </div>
 
                     <div className="pt-2 border-t border-outline-variant/20 flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleDuplicateSession()}
-                        className="px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-xs font-bold text-on-surface flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>Duplikat Pelajaran</span>
-                      </button>
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          onClick={() => handleDuplicateSession()}
+                          className="px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-xs font-bold text-on-surface flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Duplikat Pelajaran</span>
+                        </button>
+                      )}
 
                       <button
                         type="button"
@@ -1812,14 +1851,16 @@ export default function GameFlowBuilder() {
                         <span>Export JSON</span>
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => setDeleteConfirmSession(activeSession)}
-                        className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700 ml-auto flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Hapus Pelajaran</span>
-                      </button>
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirmSession(activeSession)}
+                          className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700 ml-auto flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Hapus Pelajaran</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1954,14 +1995,21 @@ export default function GameFlowBuilder() {
               </div>
 
               {/* Tombol Besar + Soal Baru */}
-              <button
-                type="button"
-                onClick={() => setIsTypeGalleryOpen(true)}
-                className="w-full py-3 rounded-2xl bg-primary text-on-primary text-xs font-black shadow-xs hover:bg-primary-container active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Plus className="w-4 h-4 stroke-[3]" />
-                <span>+ Soal Baru</span>
-              </button>
+              {!isReadOnly ? (
+                <button
+                  type="button"
+                  onClick={() => setIsTypeGalleryOpen(true)}
+                  className="w-full py-3 rounded-2xl bg-primary text-on-primary text-xs font-black shadow-xs hover:bg-primary-container active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <span>+ Soal Baru</span>
+                </button>
+              ) : (
+                <div className="w-full py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold text-center flex items-center justify-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Mode Juri — Penambahan Soal Dinonaktifkan</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -2024,6 +2072,13 @@ export default function GameFlowBuilder() {
                   </button>
                 </div>
 
+                {isReadOnly && (
+                  <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-amber-700 shrink-0" />
+                    <span>Mode Juri — Hanya Lihat (penyuntingan soal, opsi, dan media dinonaktifkan)</span>
+                  </div>
+                )}
+
                 {/* ── BAGIAN A: TIPE SOAL ── */}
                 <div className="p-3.5 rounded-2xl bg-surface-container-low border border-outline-variant/20 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
@@ -2039,13 +2094,15 @@ export default function GameFlowBuilder() {
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setIsTypeGalleryOpen(true)}
-                    className="px-3 py-1.5 rounded-xl bg-surface-container-lowest hover:bg-surface-container text-xs font-bold text-primary border border-outline-variant/30 transition-all cursor-pointer"
-                  >
-                    Ganti Format Soal
-                  </button>
+                  {!isReadOnly && (
+                    <button
+                      type="button"
+                      onClick={() => setIsTypeGalleryOpen(true)}
+                      className="px-3 py-1.5 rounded-xl bg-surface-container-lowest hover:bg-surface-container text-xs font-bold text-primary border border-outline-variant/30 transition-all cursor-pointer"
+                    >
+                      Ganti Format Soal
+                    </button>
+                  )}
                 </div>
 
                 {/* ── BAGIAN B: PERTANYAAN / INSTRUKSI UTAMA ── */}
@@ -2055,8 +2112,10 @@ export default function GameFlowBuilder() {
                   </label>
                   <textarea
                     rows={3}
+                    readOnly={isReadOnly}
                     value={currentQ.prompt || ""}
                     onChange={(e) => {
+                      if (isReadOnly) return;
                       const updated = [...activeSession.questions];
                       updated[selectedQuestionIdx] = {
                         ...currentQ,
@@ -2066,6 +2125,8 @@ export default function GameFlowBuilder() {
                     }}
                     placeholder="Tuliskan pertanyaan seperti bertanya langsung ke murid..."
                     className={`w-full p-3.5 rounded-2xl bg-surface-container-low text-sm font-semibold text-on-surface border transition-all focus:outline-none focus:ring-2 focus:ring-primary ${
+                      isReadOnly ? "opacity-75 cursor-not-allowed" : ""
+                    } ${
                       focusedFieldId === "field-prompt"
                         ? "ring-2 ring-amber-500 border-amber-500 animate-pulse"
                         : "border-outline-variant/20"
@@ -2088,7 +2149,7 @@ export default function GameFlowBuilder() {
                       </p>
                     </div>
 
-                    {currentQ.imageUrl && (
+                    {currentQ.imageUrl && !isReadOnly && (
                       <button
                         type="button"
                         onClick={() => {
@@ -2124,7 +2185,7 @@ export default function GameFlowBuilder() {
                         </p>
                       </div>
                     </div>
-                  ) : (
+                  ) : !isReadOnly ? (
                     <div className="flex flex-wrap items-center gap-2">
                       <label className="px-3 py-1.5 rounded-xl bg-surface-container-lowest hover:bg-surface-container text-xs font-bold text-on-surface border border-outline-variant/30 cursor-pointer flex items-center gap-1.5">
                         <ImageIcon className="w-3.5 h-3.5 text-primary" />
@@ -2159,6 +2220,10 @@ export default function GameFlowBuilder() {
                         ))}
                       </div>
                     </div>
+                  ) : (
+                    <p className="text-xs text-on-surface-variant italic">
+                      Tidak ada media terlampir.
+                    </p>
                   )}
                 </div>
 
@@ -3050,24 +3115,28 @@ export default function GameFlowBuilder() {
                       </div>
 
                       <div className="pt-2 border-t border-outline-variant/20 flex items-center justify-between gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleDuplicateQuestion(selectedQuestionIdx)}
-                          className="px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-xs font-bold text-on-surface flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Duplikat Soal Ini</span>
-                        </button>
+                        {!isReadOnly && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleDuplicateQuestion(selectedQuestionIdx)}
+                              className="px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-xs font-bold text-on-surface flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Duplikat Soal Ini</span>
+                            </button>
 
-                        <button
-                          type="button"
-                          disabled={activeSession.questions.length <= 1}
-                          onClick={() => setDeleteQuestionConfirmIdx(selectedQuestionIdx)}
-                          className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700 disabled:opacity-20 flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Hapus Soal</span>
-                        </button>
+                            <button
+                              type="button"
+                              disabled={activeSession.questions.length <= 1}
+                              onClick={() => setDeleteQuestionConfirmIdx(selectedQuestionIdx)}
+                              className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700 disabled:opacity-20 flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Hapus Soal</span>
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
@@ -3473,25 +3542,32 @@ export default function GameFlowBuilder() {
 
           {currentStep === 4 && (
             <div className="flex flex-col items-end">
-              <button
-                type="button"
-                disabled={!publishValidation.isValid || saveState.status === "saving"}
-                onClick={handlePublishSession}
-                className={`px-7 py-2.5 rounded-2xl text-xs sm:text-sm font-black shadow-sm flex items-center gap-2 transition-all cursor-pointer ${
-                  !publishValidation.isValid
-                    ? "bg-surface-container-highest text-on-surface-variant/40 cursor-not-allowed shadow-none"
-                    : "bg-primary text-on-primary hover:bg-primary-container active:scale-95"
-                }`}
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>
-                  {activeSession.status === "published"
-                    ? "Terbitkan Ulang Perubahan"
-                    : "Terbitkan ke Murid"}
-                </span>
-              </button>
+              {isReadOnly ? (
+                <div className="px-5 py-2.5 rounded-2xl bg-amber-100 text-amber-900 border border-amber-300 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-2xs">
+                  <Eye className="w-4 h-4 text-amber-800" />
+                  <span>Mode Juri — Hanya Lihat (Penerbitan Dinonaktifkan)</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  disabled={!publishValidation.isValid || saveState.status === "saving"}
+                  onClick={handlePublishSession}
+                  className={`px-7 py-2.5 rounded-2xl text-xs sm:text-sm font-black shadow-sm flex items-center gap-2 transition-all cursor-pointer ${
+                    !publishValidation.isValid
+                      ? "bg-surface-container-highest text-on-surface-variant/40 cursor-not-allowed shadow-none"
+                      : "bg-primary text-on-primary hover:bg-primary-container active:scale-95"
+                  }`}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>
+                    {activeSession.status === "published"
+                      ? "Terbitkan Ulang Perubahan"
+                      : "Terbitkan ke Murid"}
+                  </span>
+                </button>
+              )}
 
-              {!publishValidation.isValid && (
+              {!isReadOnly && !publishValidation.isValid && (
                 <span className="text-[10px] font-bold text-amber-800 mt-1">
                   Masih ada {publishValidation.errors.length} soal yang belum lengkap.
                 </span>

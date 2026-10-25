@@ -443,12 +443,21 @@ export default function DashboardPage() {
 
   const reloadCorpusEntries = () => {
     if (typeof window === "undefined") return;
+    let deletedIds = new Set<string>();
+    try {
+      const delRaw = localStorage.getItem("laras_deleted_corpus_ids");
+      if (delRaw) {
+        const parsedDel = JSON.parse(delRaw);
+        if (Array.isArray(parsedDel)) deletedIds = new Set(parsedDel);
+      }
+    } catch {}
+
     try {
       const raw = localStorage.getItem("laras_cms_entries");
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setCorpusEntries(parsed);
+          setCorpusEntries(parsed.filter((e: any) => !deletedIds.has(e.id)));
           return;
         }
       }
@@ -457,7 +466,7 @@ export default function DashboardPage() {
     fetch("/api/content/entries", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (Array.isArray(data)) setCorpusEntries(data);
+        if (Array.isArray(data)) setCorpusEntries(data.filter((e: any) => !deletedIds.has(e.id)));
       })
       .catch(() => {});
   };

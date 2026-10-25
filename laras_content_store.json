@@ -930,6 +930,25 @@
       },
       "status": "draft",
       "updated_at": "2026-10-24T17:53:47.301+00:00"
+    },
+    "ENT-008": {
+      "id": "ENT-008",
+      "kind": "budaya",
+      "payload": {
+        "id": "ENT-008",
+        "icon": "draft",
+        "term": "UJI DARURAT 25OKT",
+        "type": "Bahasa",
+        "gating": "blocked",
+        "module": "Modul Baru",
+        "source": "Pengajuan Admin",
+        "status": "draft",
+        "chapter": "Bab 1: Sapaan Harian",
+        "category": "Bahasa & Dialek (Ledo/Tara/Da'a)",
+        "informant": "Uji darurat admin"
+      },
+      "status": "draft",
+      "updated_at": "2026-10-25T02:32:33.272+00:00"
     }
   }
 }
