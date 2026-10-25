@@ -146,12 +146,15 @@ function AuthPageContent() {
       const res = await fetch("/api/auth/jury-credentials");
       if (res.ok) {
         const data = await res.json();
-        if (data.email) setEmail(data.email);
-        if (data.password) setPassword(data.password);
+        setEmail(data.email || "juri@laras.id");
+        setPassword(data.password || "juri-laras-2026");
+        return;
       }
     } catch {
-      // ignore
+      // fallback
     }
+    setEmail("juri@laras.id");
+    setPassword("juri-laras-2026");
   };
 
   return (

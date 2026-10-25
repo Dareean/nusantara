@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByEmail, verifyAndMigratePassword, createSessionForUser, isAdminEmail, isJuryEmail } from '../../../auth/serverAuth';
+import { getUserByEmailAsync, verifyAndMigratePassword, createSessionForUser, isAdminEmail, isJuryEmail } from '../../../auth/serverAuth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
 
-    const user = getUserByEmail(email);
+    const user = await getUserByEmailAsync(email);
     if (!user) return NextResponse.json({ error: 'Pengguna tidak ditemukan' }, { status: 404 });
 
     const isValid = verifyAndMigratePassword(user, password);

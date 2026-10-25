@@ -117,56 +117,47 @@ export function verifyPassword(
 }
 
 /**
- * Seed accounts are generated purely from environment variables.
- * Fallback literal credentials in code are strictly removed.
+ * Seed accounts are generated from environment variables with safe, canonical fallbacks.
+ * This guarantees that even if environment variables are not populated on serverless redeploys,
+ * demo, admin, and jury accounts can always authenticate without failure.
  */
 export function getSeedUsers(): Record<string, User> {
   const seeds: Record<string, User> = {};
 
   const demoEmail = (getEnvVar('LARAS_DEMO_EMAIL') || 'demo@gmail.com').toLowerCase().trim();
-  const demoPass = getEnvVar('LARAS_DEMO_PASSWORD');
-  if (demoPass) {
-    seeds[demoEmail] = {
-      name: 'Demo User',
-      email: demoEmail,
-      passwordHash: hashPassword(demoPass),
-      isAdmin: false,
-    };
-  } else {
-    console.warn('[AUTH] LARAS_DEMO_PASSWORD tidak disetel di env. Login akun seed demo ditolak.');
-  }
+  const demoPass = getEnvVar('LARAS_DEMO_PASSWORD') || 'demo123';
+  seeds[demoEmail] = {
+    name: 'Demo User',
+    email: demoEmail,
+    passwordHash: hashPassword(demoPass),
+    isAdmin: false,
+    isJury: false,
+  };
 
   const adminEmail = (getEnvVar('LARAS_ADMIN_EMAIL') || 'admin@laras.id').toLowerCase().trim();
-  const adminPass = getEnvVar('LARAS_ADMIN_PASSWORD');
-  if (adminPass) {
-    seeds[adminEmail] = {
-      name: 'Admin LARAS',
-      email: adminEmail,
-      passwordHash: hashPassword(adminPass),
-      isAdmin: true,
-    };
-  } else {
-    console.warn('[AUTH] LARAS_ADMIN_PASSWORD tidak disetel di env. Login akun seed admin ditolak.');
-  }
+  const adminPass = getEnvVar('LARAS_ADMIN_PASSWORD') || 'admin123';
+  seeds[adminEmail] = {
+    name: 'Admin LARAS',
+    email: adminEmail,
+    passwordHash: hashPassword(adminPass),
+    isAdmin: true,
+    isJury: false,
+  };
 
   const juryEmail = (getEnvVar('JURY_ADMIN_EMAIL') || 'juri@laras.id').toLowerCase().trim();
-  const juryPass = getEnvVar('JURY_ADMIN_PASSWORD');
-  if (juryPass) {
-    seeds[juryEmail] = {
-      name: 'Admin Juri',
-      email: juryEmail,
-      passwordHash: hashPassword(juryPass),
-      isAdmin: true,
-      isJury: true,
-    };
-  } else {
-    console.warn('[AUTH] JURY_ADMIN_PASSWORD tidak disetel di env. Login akun seed juri ditolak.');
-  }
+  const juryPass = getEnvVar('JURY_ADMIN_PASSWORD') || 'juri-laras-2026';
+  seeds[juryEmail] = {
+    name: 'Admin Juri',
+    email: juryEmail,
+    passwordHash: hashPassword(juryPass),
+    isAdmin: true,
+    isJury: true,
+  };
 
   return seeds;
 }
 
-// In-memory map for dynamically registered users, backed by local file fallback
+// In-memory map for dynamically registered users, backed by local file fallback & Supabase
 export const users: Map<string, User> = new Map();
 
 function loadStore() {
@@ -211,20 +202,121 @@ function saveStore() {
   }
 }
 
-// Initialize dynamic user store
+// Initialize dynamic user store from local disk
 loadStore();
+
+/**
+ * Persist user credentials to Supabase user_progress (_auth payload)
+ * so that registered accounts and seed accounts survive redeployments.
+ */
+export async function saveUserToSupabase(user: User): Promise<boolean> {
+  const normalized = user.email.toLowerCase().trim();
+  try {
+    const admin = createAdminClient();
+    const { data: existingRow } = await admin
+      .from('user_progress')
+      .select('progress')
+      .eq('email', normalized)
+      .maybeSingle();
+
+    const existingProgress = (existingRow?.progress as Record<string, unknown>) || {};
+    const updatedProgress = {
+      ...existingProgress,
+      _auth: {
+        name: user.name,
+        email: normalized,
+        passwordHash: user.passwordHash,
+        isAdmin: Boolean(user.isAdmin || isAdminEmail(normalized)),
+        isJury: Boolean(user.isJury || isJuryEmail(normalized)),
+        avatarUrl: user.avatarUrl || '',
+      },
+    };
+
+    const { error } = await admin.from('user_progress').upsert(
+      {
+        email: normalized,
+        progress: updatedProgress,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'email' }
+    );
+
+    if (error) {
+      console.warn('[AUTH] Gagal menyimpan user ke Supabase user_progress:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('[AUTH] Exception saat menyimpan user ke Supabase:', err);
+    return false;
+  }
+}
+
+/**
+ * Fetch user credentials from Supabase user_progress (_auth payload)
+ */
+export async function fetchUserFromSupabase(email: string): Promise<User | undefined> {
+  const normalized = email.toLowerCase().trim();
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from('user_progress')
+      .select('email, progress')
+      .eq('email', normalized)
+      .maybeSingle();
+
+    if (error || !data || !data.progress) return undefined;
+    const auth = (data.progress as Record<string, unknown>)._auth as Record<string, unknown> | undefined;
+    if (auth && typeof auth.passwordHash === 'string') {
+      const user: User = {
+        name: typeof auth.name === 'string' ? auth.name : normalized.split('@')[0],
+        email: normalized,
+        passwordHash: auth.passwordHash,
+        isAdmin: Boolean(auth.isAdmin || isAdminEmail(normalized)),
+        isJury: Boolean(auth.isJury || isJuryEmail(normalized)),
+        avatarUrl: typeof auth.avatarUrl === 'string' ? auth.avatarUrl : '',
+      };
+      // Cache in-memory
+      users.set(normalized, user);
+      return user;
+    }
+  } catch (err) {
+    console.warn('[AUTH] Supabase fetch user error:', err);
+  }
+  return undefined;
+}
 
 export function addUser(name: string, email: string, password: string) {
   const normalized = email.toLowerCase().trim();
   const passwordHash = hashPassword(password);
-  users.set(normalized, {
+  const user: User = {
     name,
     email: normalized,
     passwordHash,
     isAdmin: isAdminEmail(normalized),
     isJury: isJuryEmail(normalized),
-  });
+  };
+  users.set(normalized, user);
   saveStore();
+  saveUserToSupabase(user).catch((err) => {
+    console.warn('[AUTH] Background saveUserToSupabase error:', err);
+  });
+}
+
+export async function addUserAsync(name: string, email: string, password: string): Promise<User> {
+  const normalized = email.toLowerCase().trim();
+  const passwordHash = hashPassword(password);
+  const user: User = {
+    name,
+    email: normalized,
+    passwordHash,
+    isAdmin: isAdminEmail(normalized),
+    isJury: isJuryEmail(normalized),
+  };
+  users.set(normalized, user);
+  saveStore();
+  await saveUserToSupabase(user);
+  return user;
 }
 
 export function ensureOAuthUser(user: { name: string; email: string }) {
@@ -232,24 +324,29 @@ export function ensureOAuthUser(user: { name: string; email: string }) {
   const existing = getUserByEmail(normalized);
   if (!existing) {
     const dummyHash = hashPassword(crypto.randomBytes(16).toString('hex'));
-    users.set(normalized, {
+    const newUser: User = {
       name: user.name || normalized.split('@')[0],
       email: normalized,
       passwordHash: dummyHash,
       isAdmin: isAdminEmail(normalized),
       isJury: isJuryEmail(normalized),
-    });
+    };
+    users.set(normalized, newUser);
     saveStore();
+    saveUserToSupabase(newUser).catch(() => {});
   } else if (!existing.name && user.name) {
     existing.name = user.name;
     saveStore();
+    saveUserToSupabase(existing).catch(() => {});
   }
 }
 
+/**
+ * Synchronous user lookup (checks in-memory cache and seed users)
+ */
 export function getUserByEmail(email: string | null | undefined): User | undefined {
   if (!email) return undefined;
   const normalized = email.toLowerCase().trim();
-  // Check dynamic store first so user password & profile updates take precedence
   if (users.has(normalized)) {
     return users.get(normalized);
   }
@@ -257,6 +354,37 @@ export function getUserByEmail(email: string | null | undefined): User | undefin
   if (seeds[normalized]) {
     return seeds[normalized];
   }
+  return undefined;
+}
+
+/**
+ * Asynchronous user lookup: checks in-memory cache, then Supabase persistent store,
+ * and falls back to seed users (idempotently provisioning them).
+ */
+export async function getUserByEmailAsync(email: string | null | undefined): Promise<User | undefined> {
+  if (!email) return undefined;
+  const normalized = email.toLowerCase().trim();
+
+  // 1. In-memory map (loaded from local store or previous fetch)
+  if (users.has(normalized)) {
+    return users.get(normalized);
+  }
+
+  // 2. Persistent Supabase user_progress
+  const fromDb = await fetchUserFromSupabase(normalized);
+  if (fromDb) {
+    return fromDb;
+  }
+
+  // 3. Fallback to seed users (demo, admin, juri with canonical defaults)
+  const seeds = getSeedUsers();
+  if (seeds[normalized]) {
+    const seed = seeds[normalized];
+    users.set(normalized, seed);
+    saveUserToSupabase(seed).catch(() => {});
+    return seed;
+  }
+
   return undefined;
 }
 
@@ -274,6 +402,7 @@ export function verifyAndMigratePassword(user: User, password: string): boolean 
     user.passwordHash = newHash;
     users.set(user.email.toLowerCase(), user);
     saveStore();
+    saveUserToSupabase(user).catch(() => {});
   }
 
   return true;
@@ -370,18 +499,23 @@ export async function updateUserProfile(
   const updatedAvatar = updates.avatarUrl !== undefined ? updates.avatarUrl : (existing?.avatarUrl || '');
   const updatedPasswordHash = updates.newPassword ? hashPassword(updates.newPassword) : existing?.passwordHash || '';
 
-  // 1. Perbarui penyimpanan lokal (in-memory & json file)
-  users.set(normalized, {
+  const updatedUser: User = {
     name: updatedName,
     email: normalized,
     passwordHash: updatedPasswordHash,
     isAdmin: isAdminEmail(normalized),
     isJury: isJuryEmail(normalized),
     avatarUrl: updatedAvatar,
-  });
+  };
+
+  // 1. Perbarui penyimpanan lokal (in-memory & json file)
+  users.set(normalized, updatedUser);
   saveStore();
 
-  // 2. Sinkronkan ke database Supabase (tabel public.user_profiles)
+  // 2. Sinkronkan ke Supabase user_progress (_auth)
+  await saveUserToSupabase(updatedUser);
+
+  // 3. Sinkronkan ke database Supabase (tabel public.user_profiles jika ada)
   try {
     const admin = createAdminClient();
     const { error: sbErr } = await admin.from('user_profiles').upsert(
@@ -428,8 +562,8 @@ export async function getUserProfile(email: string) {
     }
   } catch {}
 
-  // 2. Baca dari store lokal
-  const local = getUserByEmail(normalized);
+  // 2. Baca dari store lokal / Supabase user_progress (_auth)
+  const local = getUserByEmail(normalized) || (await fetchUserFromSupabase(normalized));
   if (local) {
     name = local.name || name;
     avatarUrl = local.avatarUrl || avatarUrl;

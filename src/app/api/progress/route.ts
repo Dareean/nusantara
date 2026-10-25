@@ -152,6 +152,8 @@ export function mergeProgressAntiRegression(
     mergedDailyLog[d] = Math.max(mergedDailyLog[d] || 0, Number(val) || 0);
   }
 
+  const authPayload = (serverData as Record<string, unknown>)?._auth || (incoming as Record<string, unknown>)?._auth;
+
   return {
     xp,
     streak,
@@ -163,6 +165,7 @@ export function mergeProgressAntiRegression(
     lastStudyDate,
     cultureConnectionClaimed,
     dailyXpLog: mergedDailyLog,
+    ...(authPayload ? { _auth: authPayload } : {}),
   };
 }
 

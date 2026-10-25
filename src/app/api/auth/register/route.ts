@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByEmail, addUser, createSessionForUser, isAdminEmail } from '../../../auth/serverAuth';
+import { getUserByEmailAsync, addUserAsync, createSessionForUser, isAdminEmail } from '../../../auth/serverAuth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,11 +9,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
 
-    if (getUserByEmail(email)) {
+    if (await getUserByEmailAsync(email)) {
       return NextResponse.json({ error: 'Email sudah terdaftar' }, { status: 409 });
     }
 
-    addUser(name, email, password);
+    await addUserAsync(name, email, password);
     const sessionId = createSessionForUser({ name, email });
     const isUserAdmin = isAdminEmail(email);
 

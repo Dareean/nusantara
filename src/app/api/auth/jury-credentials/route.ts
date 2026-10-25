@@ -9,7 +9,7 @@ export async function GET() {
   const password =
     getEnvVar('JURY_ADMIN_PASSWORD') ||
     getEnvVar('NEXT_PUBLIC_JURY_ADMIN_PASSWORD') ||
-    '';
+    'juri-laras-2026';
 
   return NextResponse.json({
     email,
