@@ -132,29 +132,11 @@ function AuthPageContent() {
     setErrorMessage("");
   };
 
-  const handleFillJury = async () => {
+  const handleFillJury = () => {
     setAuthMode("login");
+    setEmail("admin@laras.id");
+    setPassword("admin123");
     setErrorMessage("");
-    const clientEmail = process.env.NEXT_PUBLIC_JURY_ADMIN_EMAIL;
-    const clientPass = process.env.NEXT_PUBLIC_JURY_ADMIN_PASSWORD;
-    if (clientEmail && clientPass) {
-      setEmail(clientEmail);
-      setPassword(clientPass);
-      return;
-    }
-    try {
-      const res = await fetch("/api/auth/jury-credentials");
-      if (res.ok) {
-        const data = await res.json();
-        setEmail(data.email || "juri@laras.id");
-        setPassword(data.password || "juri-laras-2026");
-        return;
-      }
-    } catch {
-      // fallback
-    }
-    setEmail("juri@laras.id");
-    setPassword("juri-laras-2026");
   };
 
   return (
