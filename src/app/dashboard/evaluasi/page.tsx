@@ -133,7 +133,7 @@ export default function EvaluasiJawabanPage() {
                   <img
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     alt="Pelataran Souraja"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBL3GhtQRWPzykvIVNWr2V35NhJTe_dCVIIrRtyBVfZEEj3XqYhEOJv_SEbk1PTWX0c31bxzkMEw4gOh7sN-WlcJNaV67h505nMT6eV4hEBOjXkJ6KJwhuR9O1EtZUS6Z3a5-anWincRSwsEM6Cd1eIcoTaILOCLMI3NIxB7VqVikEobrcT0CoVvKVVkAc_aFxEbqVUD4ypGJjz4ltJB0RE8BCXz7x3pKJC2QF3wSnftvmW7hDh7y67iQ"
+                    src="/images/artefak-souraja.jpg"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/85 via-inverse-surface/20 to-transparent flex flex-col justify-end p-3.5">
                     <span className="px-2 py-0.5 bg-primary text-on-primary rounded text-[10px] font-bold w-fit mb-1">

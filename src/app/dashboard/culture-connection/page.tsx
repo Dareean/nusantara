@@ -46,7 +46,7 @@ const decisions: Decision[] = [
       "Kamu tiba di pelataran Souraja mewakili keluargamu. Di muka beranda rumah panggung, para dewan tetua adat (Pue) sedang berbincang menyambut para tamu kehormatan.",
     prompt: "Tetua adat sedang berbincang di muka serambi. Apa tindakan dan tutur sapa yang kamu lakukan?",
     image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBnqzf4AUY4GtDvGFESMzw5vK14-0xCr_-CqqKyHzgObssX2HonjZALyMHyv39OWxApYxC7Qh-I_QL8HUz0P49aJ6BzYjxVwjXJHDsRyqGQ94Fcy6GzwgtD7xsDzDMpUvUCL8cjccCPgdt2Y3tLKFkDkPWH3ofPYJMVw67VqH8tQ8M2Lij3qg990UKy62hGgrC7qGw0SSgnFIpN5YHUA0es_BtlcATm5jgXKQfrCE10dXoeDE-lLZQMbw",
+      "/images/culture-scenario-bertamu.jpg",
     choices: [
       {
         id: "tabe",
@@ -81,7 +81,7 @@ const decisions: Decision[] = [
       "Kamu melangkah masuk ke ruang utama upacara adat perkawinan. Seluruh keluarga besar dan tamu dewan adat mengenakan busana tradisi bernuansa khidmat.",
     prompt: "Pilihan busana apa yang kamu kenakan untuk menghormati majelis dewan adat ini?",
     image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAGGe6e5vP1nGlX2ZvT-UWV9U5KAgLs72Sx27pc9mWuqPe01VmMKmx0DY8XbKA_r787_92pwgfiNumLz4-iEx6Nq6vvyfNc4N2LM7ruBRvLAOih6SWFuROZCbgCyVmTQAuyl2CMFa2elMsDv2JbxdEeaCSXjUqCi9G3Wj0aeNXHmvef-hwkOzESw41KdPVLaaSgxbbKPPlqGPfNa2_DJN29ozR1Xvy4rPWtQLsRBJj8QzLNr5yBMJcbaQ",
+      "/images/culture-scenario-upacara.jpg",
     choices: [
       {
         id: "nggembe",
@@ -116,7 +116,7 @@ const decisions: Decision[] = [
       "Tuan rumah (Pue Rumah) tersenyum ramah dan secara khusus mempersilakanmu menempati tikar anyaman kehormatan di dekat dewan adat.",
     prompt: "Bagaimana gestur dan tutur katamu saat menerima penghormatan tempat duduk ini?",
     image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBL3GhtQRWPzykvIVNWr2V35NhJTe_dCVIIrRtyBVfZEEj3XqYhEOJv_SEbk1PTWX0c31bxzkMEw4gOh7sN-WlcJNaV67h505nMT6eV4hEBOjXkJ6KJwhuR9O1EtZUS6Z3a5-anWincRSwsEM6Cd1eIcoTaILOCLMI3NIxB7VqVikEobrcT0CoVvKVVkAc_aFxEbqVUD4ypGJjz4ltJB0RE8BCXz7x3pKJC2QF3wSnftvmW7hDh7y67iQ",
+      "/images/artefak-souraja.jpg",
     choices: [
       {
         id: "lower",

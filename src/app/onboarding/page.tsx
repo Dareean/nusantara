@@ -90,7 +90,7 @@ export default function OnboardingPage() {
                 <img
                   className="w-full h-full object-cover"
                   alt="Selamat Datang di LARAS"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkOZOv0GDEWk4IMFp792zU39KD8AYSpgq8ccW7iXA5xFmh437opfrrBhzmV4eGyuqMMYoMcFuT5E8WQy2LoKHTUNUc23QVrC1WZkV21cKjeZCShE7t-9nfRBlmoourVAgUrLEtWXOlRvYZR5kl7YNb84BGRvAVvkyQHjyqUHRKKAtnk1SVK7c3ayugUpWP_I8l07BQbqX_8aH8l82NzsLjKTm9ruqggo0N2DVRyGqyIAmgsEG71Y6vNQ"
+                  src="/images/onboarding-hero.jpg"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/80 via-inverse-surface/20 to-transparent flex flex-col justify-end p-4">
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-label-sm font-bold self-start mb-1 shadow-xs">
@@ -341,7 +341,7 @@ export default function OnboardingPage() {
                         <img
                           className="w-full h-full object-cover"
                           alt="Suku Kaili"
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvFLvRF65loMr_Vczn19v_1F3Z73sE1BylGOZ0bDTh4uBktuj2TGd3sxPbtWoGpu9k5OXH9z4CU0g9TBNAwMmLvd0mT66jSfeMjrsBP6H0PHZJqbsFaSjAwODjlu-Luey63YVKrh4BawxtIKHgL2iiP0N9CK7lbHU-R-QgIy_NVo-FvBwiHxFswYtmycPNU7WeoczfqDsa9001ySZNvNDuvDqolG7dHFLZDCB9bdOtYDRydxRWrQ6HMg"
+                          src="/images/onboarding-nggembe.jpg"
                         />
                       </div>
                       <div className="text-left">
