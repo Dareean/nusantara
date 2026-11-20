@@ -2,10 +2,14 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifySessionToken } from './lib/auth/sessionToken';
 
-// Daftar email admin (selaras dengan ADMIN_EMAILS di src/app/auth/serverAuth.ts)
+// Daftar email juri dan admin terpisah (selaras dengan serverAuth.ts)
+const JURY_EMAILS = [
+  ...(process.env.JURY_ADMIN_EMAIL ? [process.env.JURY_ADMIN_EMAIL.toLowerCase().trim()] : []),
+];
+
 const ADMIN_EMAILS = [
   ...(process.env.LARAS_ADMIN_EMAIL ? [process.env.LARAS_ADMIN_EMAIL.toLowerCase().trim()] : []),
-  ...(process.env.JURY_ADMIN_EMAIL ? [process.env.JURY_ADMIN_EMAIL.toLowerCase().trim()] : []),
+  ...JURY_EMAILS,
 ];
 
 export async function middleware(req: NextRequest) {

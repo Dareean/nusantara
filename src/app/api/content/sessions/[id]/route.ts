@@ -57,7 +57,7 @@ export async function PUT(
   }
   if (isJury) {
     return NextResponse.json(
-      { error: "Mode Juri hanya memiliki akses baca (read-only)." },
+      { error: "Mode demo juri: hanya lihat" },
       { status: 403 }
     );
   }
@@ -113,7 +113,7 @@ export async function DELETE(
   }
   if (isJury) {
     return NextResponse.json(
-      { error: "Mode Juri hanya memiliki akses baca (read-only)." },
+      { error: "Mode demo juri: hanya lihat" },
       { status: 403 }
     );
   }

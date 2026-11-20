@@ -1719,63 +1719,63 @@ export default function GameFlowBuilder({ isReadOnly = false }: { isReadOnly?: b
                 <label className="text-xs font-black text-on-surface block mb-2">
                   Status Pelajaran
                 </label>
-                {isReadOnly && (
-                  <div className="mb-2 p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold flex items-center gap-1.5">
-                    <Eye className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                    <span>Mode Juri — Hanya Lihat (perubahan status pelajaran dinonaktifkan)</span>
+                {isReadOnly ? (
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center justify-between shadow-2xs">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-amber-700 shrink-0" />
+                      <span>Status: {sessionStatus === "published" ? "Terbit — tampil untuk murid" : "Draf — hanya admin"}</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-[10px] uppercase font-black tracking-wide border border-amber-300">
+                      Mode Juri — Hanya Lihat
+                    </span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateSessionStatus("draft")}
+                      className={`p-4 rounded-2xl border-2 text-left transition-all flex items-start gap-3 cursor-pointer ${
+                        sessionStatus === "draft"
+                          ? "border-amber-500 bg-amber-50/70 shadow-xs"
+                          : "border-outline-variant/30 bg-surface-container-lowest hover:bg-surface-container-low"
+                      }`}
+                    >
+                      <div className="p-2.5 rounded-xl bg-amber-100 text-amber-800 shrink-0">
+                        <Lock className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-on-surface">
+                          Draf — hanya admin
+                        </h4>
+                        <p className="text-[11px] text-on-surface-variant mt-0.5 leading-snug">
+                          Hanya saya yang bisa lihat, murid belum bisa memainkan.
+                        </p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateSessionStatus("published")}
+                      className={`p-4 rounded-2xl border-2 text-left transition-all flex items-start gap-3 cursor-pointer ${
+                        sessionStatus === "published"
+                          ? "border-emerald-600 bg-emerald-50/70 shadow-xs"
+                          : "border-outline-variant/30 bg-surface-container-lowest hover:bg-surface-container-low"
+                      }`}
+                    >
+                      <div className="p-2.5 rounded-xl bg-emerald-600 text-white shrink-0">
+                        <Globe className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-on-surface">
+                          Terbit — tampil untuk murid
+                        </h4>
+                        <p className="text-[11px] text-on-surface-variant mt-0.5 leading-snug">
+                          Murid bisa memainkan pelajaran ini di peta belajar.
+                        </p>
+                      </div>
+                    </button>
                   </div>
                 )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    disabled={isReadOnly}
-                    onClick={() => !isReadOnly && handleUpdateSessionStatus("draft")}
-                    className={`p-4 rounded-2xl border-2 text-left transition-all flex items-start gap-3 ${
-                      isReadOnly ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-                    } ${
-                      sessionStatus === "draft"
-                        ? "border-amber-500 bg-amber-50/70 shadow-xs"
-                        : "border-outline-variant/30 bg-surface-container-lowest hover:bg-surface-container-low"
-                    }`}
-                  >
-                    <div className="p-2.5 rounded-xl bg-amber-100 text-amber-800 shrink-0">
-                      <Lock className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black text-on-surface">
-                        Draf — hanya admin
-                      </h4>
-                      <p className="text-[11px] text-on-surface-variant mt-0.5 leading-snug">
-                        Hanya saya yang bisa lihat, murid belum bisa memainkan.
-                      </p>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={isReadOnly}
-                    onClick={() => !isReadOnly && handleUpdateSessionStatus("published")}
-                    className={`p-4 rounded-2xl border-2 text-left transition-all flex items-start gap-3 ${
-                      isReadOnly ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-                    } ${
-                      sessionStatus === "published"
-                        ? "border-emerald-600 bg-emerald-50/70 shadow-xs"
-                        : "border-outline-variant/30 bg-surface-container-lowest hover:bg-surface-container-low"
-                    }`}
-                  >
-                    <div className="p-2.5 rounded-xl bg-emerald-600 text-white shrink-0">
-                      <Globe className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black text-on-surface">
-                        Terbit — tampil untuk murid
-                      </h4>
-                      <p className="text-[11px] text-on-surface-variant mt-0.5 leading-snug">
-                        Murid bisa memainkan pelajaran ini di peta belajar.
-                      </p>
-                    </div>
-                  </button>
-                </div>
               </div>
 
               {/* Accordion Pengaturan Lanjutan */}

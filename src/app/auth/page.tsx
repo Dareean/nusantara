@@ -127,8 +127,8 @@ function AuthPageContent() {
 
   const handleFillDemo = () => {
     setAuthMode("login");
-    setEmail("demo@gmail.com");
-    setPassword("demo123");
+    setEmail(process.env.NEXT_PUBLIC_DEMO_EMAIL || "demo@gmail.com");
+    setPassword(process.env.NEXT_PUBLIC_DEMO_PASSWORD || "demo123");
     setErrorMessage("");
   };
 

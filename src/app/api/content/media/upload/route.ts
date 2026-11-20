@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   }
   if (isJury) {
     return NextResponse.json(
-      { error: "Mode Juri hanya memiliki akses baca (read-only)." },
+      { error: "Mode demo juri: hanya lihat" },
       { status: 403 }
     );
   }

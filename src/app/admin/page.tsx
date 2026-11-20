@@ -1450,84 +1450,78 @@ export default function AdminPage() {
             {/* Quick Actions Decision */}
             <div>
               <span className="text-[11px] uppercase font-bold text-on-surface-variant mb-2 block">
-                Ubah Status Konten &amp; Transisi
+                Status Konten
               </span>
-              {adminUser.isJury && (
-                <div className="mb-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold flex items-center gap-1.5">
-                  <Eye className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                  <span>Mode Juri — Hanya Lihat (perubahan status &amp; penghapusan dinonaktifkan)</span>
+              {adminUser.isJury ? (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center justify-between shadow-2xs">
+                  <div className="flex items-center gap-1.5">
+                    <Eye className="w-4 h-4 text-amber-700 shrink-0" />
+                    <span>Status: {selectedEntry.status.toUpperCase()}</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-[10px] uppercase font-black tracking-wide border border-amber-300">
+                    Mode Juri — Hanya Lihat
+                  </span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleUpdateStatus(selectedEntry.id, "draft", "blocked")
+                    }
+                    className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                      selectedEntry.status === "draft"
+                        ? "bg-surface-container-highest text-on-surface ring-2 ring-primary"
+                        : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+                    }`}
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Draf</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleUpdateStatus(selectedEntry.id, "pending", "blocked")
+                    }
+                    className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                      selectedEntry.status === "pending"
+                        ? "bg-primary text-on-primary ring-2 ring-primary/40 shadow-xs"
+                        : "bg-primary-fixed/50 text-on-primary-fixed hover:bg-primary-fixed"
+                    }`}
+                  >
+                    <Timer className="w-3.5 h-3.5" />
+                    <span>Menunggu</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleUpdateStatus(selectedEntry.id, "disputed", "educational_note")
+                    }
+                    className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                      selectedEntry.status === "disputed"
+                        ? "bg-tertiary text-on-tertiary ring-2 ring-tertiary/40 shadow-xs"
+                        : "bg-tertiary-fixed/50 text-on-tertiary-fixed hover:bg-tertiary-fixed"
+                    }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>Catatan Varian</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleUpdateStatus(selectedEntry.id, "verified", "published")
+                    }
+                    className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                      selectedEntry.status === "verified"
+                        ? "bg-secondary text-on-secondary ring-2 ring-secondary/40 shadow-xs"
+                        : "bg-secondary-fixed/50 text-on-secondary-fixed hover:bg-secondary-fixed"
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Terverifikasi</span>
+                  </button>
                 </div>
               )}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <button
-                  type="button"
-                  disabled={Boolean(adminUser.isJury)}
-                  onClick={() =>
-                    handleUpdateStatus(selectedEntry.id, "draft", "blocked")
-                  }
-                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 ${
-                    adminUser.isJury ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-                  } ${
-                    selectedEntry.status === "draft"
-                      ? "bg-surface-container-highest text-on-surface ring-2 ring-primary"
-                      : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
-                  }`}
-                >
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>Draf</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={Boolean(adminUser.isJury)}
-                  onClick={() =>
-                    handleUpdateStatus(selectedEntry.id, "pending", "blocked")
-                  }
-                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 ${
-                    adminUser.isJury ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-                  } ${
-                    selectedEntry.status === "pending"
-                      ? "bg-primary text-on-primary ring-2 ring-primary/40 shadow-xs"
-                      : "bg-primary-fixed/50 text-on-primary-fixed hover:bg-primary-fixed"
-                  }`}
-                >
-                  <Timer className="w-3.5 h-3.5" />
-                  <span>Menunggu</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={Boolean(adminUser.isJury)}
-                  onClick={() =>
-                    handleUpdateStatus(selectedEntry.id, "disputed", "educational_note")
-                  }
-                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 ${
-                    adminUser.isJury ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-                  } ${
-                    selectedEntry.status === "disputed"
-                      ? "bg-tertiary text-on-tertiary ring-2 ring-tertiary/40 shadow-xs"
-                      : "bg-tertiary-fixed/50 text-on-tertiary-fixed hover:bg-tertiary-fixed"
-                  }`}
-                >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>Catatan Varian</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={Boolean(adminUser.isJury)}
-                  onClick={() =>
-                    handleUpdateStatus(selectedEntry.id, "verified", "published")
-                  }
-                  className={`py-2 px-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-1 ${
-                    adminUser.isJury ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-                  } ${
-                    selectedEntry.status === "verified"
-                      ? "bg-secondary text-on-secondary ring-2 ring-secondary/40 shadow-xs"
-                      : "bg-secondary-fixed/50 text-on-secondary-fixed hover:bg-secondary-fixed"
-                  }`}
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Terverifikasi</span>
-                </button>
-              </div>
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20">

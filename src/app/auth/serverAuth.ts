@@ -48,12 +48,17 @@ export function getEnvVar(key: string): string | undefined {
   return undefined;
 }
 
+export function getJuryEmails(): string[] {
+  const juryEnv = getEnvVar('JURY_ADMIN_EMAIL');
+  return juryEnv ? [juryEnv.toLowerCase().trim()] : [];
+}
+
 export function getAdminEmails(): string[] {
   const adminEnv = getEnvVar('LARAS_ADMIN_EMAIL');
-  const juryEnv = getEnvVar('JURY_ADMIN_EMAIL');
   const list: string[] = [];
   if (adminEnv) list.push(adminEnv.toLowerCase().trim());
-  if (juryEnv) list.push(juryEnv.toLowerCase().trim());
+  const juryEmails = getJuryEmails();
+  list.push(...juryEmails);
   return list;
 }
 
@@ -394,6 +399,10 @@ export function getUserByEmail(email: string | null | undefined): User | undefin
   if (users.has(normalized)) {
     return users.get(normalized);
   }
+  loadStore();
+  if (users.has(normalized)) {
+    return users.get(normalized);
+  }
   const seeds = getSeedUsers();
   if (seeds[normalized]) {
     return seeds[normalized];
@@ -410,6 +419,10 @@ export async function getUserByEmailAsync(email: string | null | undefined): Pro
   const normalized = email.toLowerCase().trim();
 
   // 1. In-memory map (loaded from local store or previous fetch)
+  if (users.has(normalized)) {
+    return users.get(normalized);
+  }
+  loadStore();
   if (users.has(normalized)) {
     return users.get(normalized);
   }
