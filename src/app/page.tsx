@@ -23,6 +23,17 @@ export default function LandingPage() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [attireMatched, setAttireMatched] = useState(false);
   const [showFloatingCta, setShowFloatingCta] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Bersihkan audio saat unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   // Parallax ref for Medan Budaya section
   const refMedan = useRef<HTMLElement>(null);
@@ -45,10 +56,28 @@ export default function LandingPage() {
   const yNear = useTransform(scrollYProgress, [0, 1], [58, -58]);
 
   const handlePlayAudio = () => {
-    setIsPlayingAudio(true);
-    setTimeout(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      const audio = new Audio("/audio/latihan-mendengar-1/komiu.mp3");
+      audioRef.current = audio;
+      setIsPlayingAudio(true);
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+      };
+      audio.onerror = () => {
+        setIsPlayingAudio(false);
+      };
+      audio.play().catch((err) => {
+        console.warn("Gagal memutar rekaman audio:", err);
+        setIsPlayingAudio(false);
+      });
+    } catch {
       setIsPlayingAudio(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -213,14 +242,14 @@ export default function LandingPage() {
 
                 <div className="bg-surface-container-low rounded-2xl p-5 border-2 border-outline-variant/20 flex items-center justify-between">
                   <div>
-                    <p className="text-3xl font-black text-on-surface">&ldquo;Tabe&rdquo;</p>
+                    <p className="text-3xl font-black text-on-surface">&ldquo;Komiu&rdquo;</p>
                     <p className="text-sm font-semibold text-on-surface-variant mt-1">
-                      Permisi / Maaf sopan
+                      Kamu / Anda
                     </p>
                   </div>
                   <button
                     onClick={handlePlayAudio}
-                    aria-label="Putar audio pengucapan"
+                    aria-label="Putar audio pengucapan kata Komiu"
                     className="w-14 h-14 rounded-2xl bg-primary text-on-primary flex items-center justify-center shadow-[0_4px_0_0_#881f00] active:translate-y-1 active:shadow-none hover:bg-primary-container transition-all cursor-pointer"
                   >
                     {isPlayingAudio ? (
@@ -233,7 +262,7 @@ export default function LandingPage() {
 
                 <div className="mt-4 flex items-center gap-2 p-3 bg-primary-fixed/40 rounded-xl text-xs font-bold text-on-primary-fixed">
                   <CheckCircle2 className="text-primary w-4 h-4 shrink-0" />
-                  <span>Aksen santun kepada orang tua &amp; kerabat</span>
+                  <span>Sapaan santun kepada orang tua &amp; kerabat</span>
                 </div>
               </div>
             </motion.div>
