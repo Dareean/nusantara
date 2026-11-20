@@ -845,19 +845,29 @@ export default function DashboardPage() {
                     backgroundColor: currentUnitTheme.bgColor,
                     boxShadow: `0 4px 0 0 ${currentUnitTheme.shadowColor}`,
                   }}
-                  className="rounded-2xl px-5 py-4 text-white flex items-center justify-between gap-4 transition-all duration-300 cursor-pointer select-none"
+                  className="rounded-2xl px-4 sm:px-5 py-3 sm:py-4 text-white flex items-center justify-between gap-3 sm:gap-4 transition-all duration-300 cursor-pointer select-none"
                   title="Klik untuk ke posisi unit ini"
                 >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-white/90">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap text-[11px] font-black uppercase tracking-[0.14em] text-white/90">
                       <span>{currentUnitTheme.label}</span>
+                      {(() => {
+                        const curUnit = UNITS[visibleUnitId as UnitId];
+                        const comp = curUnit?.lessonIds ? curUnit.lessonIds.filter((id) => progress.completedLessons.includes(id)).length : 0;
+                        const tot = curUnit?.lessonIds ? curUnit.lessonIds.length : 3;
+                        return (
+                          <span className="px-2 py-0.5 rounded-md bg-white/20 text-white text-[10px] font-extrabold whitespace-nowrap shrink-0">
+                            {comp}/{tot} selesai
+                          </span>
+                        );
+                      })()}
                       {UNITS[visibleUnitId as UnitId]?.status === "DATA_DEMO" && (
-                        <span className="px-1.5 py-0.2 rounded bg-white/20 text-[10px] font-bold">
+                        <span className="px-1.5 py-0.2 rounded bg-white/20 text-[10px] font-bold shrink-0">
                           DATA DEMO
                         </span>
                       )}
                     </div>
-                    <h1 className="text-lg sm:text-xl font-black tracking-tight text-white mt-0.5 truncate">
+                    <h1 className="text-base sm:text-xl font-black tracking-tight text-white mt-0.5 truncate">
                       {currentUnitTheme.title}
                     </h1>
                   </div>
@@ -872,11 +882,11 @@ export default function DashboardPage() {
                       backgroundColor: "rgba(255, 255, 255, 0.2)",
                       boxShadow: `0 3px 0 0 ${currentUnitTheme.shadowColor}`,
                     }}
-                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border-2 border-white/40 text-white font-black text-xs uppercase tracking-wider hover:bg-white/30 active:translate-y-0.5 active:shadow-none transition cursor-pointer"
+                    className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl border-2 border-white/40 text-white font-black text-xs uppercase tracking-wider hover:bg-white/30 active:translate-y-0.5 active:shadow-none transition cursor-pointer"
                     title={`Buku Panduan Unit ${visibleUnitId}`}
                   >
                     <BookOpen className="w-4 h-4 stroke-[2.5]" />
-                    <span>PANDUAN</span>
+                    <span className="hidden sm:inline">PANDUAN</span>
                   </button>
                 </div>
               </div>
@@ -1143,32 +1153,41 @@ export default function DashboardPage() {
                             backgroundColor: isUnlocked ? unitTheme.bgColor : "#6b7280",
                             boxShadow: `0 4px 0 0 ${isUnlocked ? unitTheme.shadowColor : "#4b5563"}`,
                           }}
-                          className={`rounded-2xl px-5 py-4 text-white flex items-center justify-between gap-4 transition-all duration-300 select-none mb-6 mt-10 ${
+                          className={`rounded-2xl px-4 sm:px-5 py-3.5 sm:py-4 text-white flex items-center justify-between gap-3 sm:gap-4 transition-all duration-300 select-none mb-6 mt-10 ${
                             !isUnlocked ? "opacity-90 grayscale-[0.2]" : ""
                           }`}
                         >
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap text-[11px] font-black uppercase tracking-[0.14em] text-white/90">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap text-[11px] font-black uppercase tracking-[0.14em] text-white/90">
                               <span>{unit.label}</span>
+                              {(() => {
+                                const comp = unit.lessonIds ? unit.lessonIds.filter((id) => progress.completedLessons.includes(id)).length : 0;
+                                const tot = unit.lessonIds ? unit.lessonIds.length : 3;
+                                return (
+                                  <span className="px-2 py-0.5 rounded-md bg-white/20 text-white text-[10px] font-extrabold whitespace-nowrap shrink-0">
+                                    {comp}/{tot} selesai
+                                  </span>
+                                );
+                              })()}
                               {unit.status === "DATA_DEMO" && (
-                                <span className="px-2 py-0.5 rounded-md bg-white/20 text-white text-[10px] font-extrabold">
+                                <span className="px-2 py-0.5 rounded-md bg-white/20 text-white text-[10px] font-extrabold shrink-0">
                                   DATA DEMO
                                 </span>
                               )}
                               {!isUnlocked && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/30 text-white text-[10px] font-extrabold">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/30 text-white text-[10px] font-extrabold shrink-0">
                                   <Lock className="w-3 h-3" />
                                   Terkunci
                                 </span>
                               )}
                               {isCompleted && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/20 text-white text-[10px] font-extrabold">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/20 text-white text-[10px] font-extrabold shrink-0">
                                   <Check className="w-3 h-3 stroke-[3]" />
                                   Tuntas
                                 </span>
                               )}
                             </div>
-                            <h2 className="text-lg sm:text-xl font-black tracking-tight text-white mt-0.5">
+                            <h2 className="text-base sm:text-xl font-black tracking-tight text-white mt-0.5">
                               {unit.title}
                             </h2>
                             <p className="text-xs text-white/90 font-medium mt-0.5 line-clamp-1">
@@ -1185,7 +1204,7 @@ export default function DashboardPage() {
                               backgroundColor: "rgba(255, 255, 255, 0.2)",
                               boxShadow: `0 3px 0 0 ${isUnlocked ? unitTheme.shadowColor : "#4b5563"}`,
                             }}
-                            className="shrink-0 inline-flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-2xl border-2 border-white/40 text-white font-black text-xs uppercase tracking-wider hover:bg-white/30 active:translate-y-0.5 active:shadow-none transition cursor-pointer"
+                            className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl border-2 border-white/40 text-white font-black text-xs uppercase tracking-wider hover:bg-white/30 active:translate-y-0.5 active:shadow-none transition cursor-pointer"
                             title={`Buku Panduan Unit ${unitId}`}
                           >
                             <BookOpen className="w-4 h-4 stroke-[2.5]" />

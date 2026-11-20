@@ -287,14 +287,14 @@ export default function GameFlowBuilder({ isReadOnly = false }: { isReadOnly?: b
     [sessions]
   );
   const draftCount = useMemo(
-    () => sessions.filter((s) => s.status === "draft").length,
+    () => sessions.filter((s) => s.status !== "published").length,
     [sessions]
   );
 
   const filteredSessions = useMemo(() => {
     return sessions.filter((s) => {
-      const isDraft = s.status === "draft";
       const isPublished = s.status === "published";
+      const isDraft = !isPublished;
       if (listFilter === "published" && !isPublished) return false;
       if (listFilter === "draft" && !isDraft) return false;
 
