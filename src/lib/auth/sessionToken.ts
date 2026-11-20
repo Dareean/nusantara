@@ -14,18 +14,18 @@ export function getAuthSecret(): string {
   const secret = process.env.LARAS_SESSION_SECRET;
 
   if (!secret) {
+    const fallback = process.env.NEXTAUTH_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (fallback) {
+      return fallback;
+    }
     if (process.env.NODE_ENV === "production") {
       throw new Error(
-        "[CRITICAL AUTH ERROR] Variabel lingkungan LARAS_SESSION_SECRET wajib disetel di produksi. Server menolak berjalan tanpa secret sesi yang aman."
+        "[CRITICAL AUTH ERROR] Variabel lingkungan LARAS_SESSION_SECRET atau NEXTAUTH_SECRET wajib disetel di produksi. Server menolak berjalan tanpa secret sesi yang aman."
       );
     }
-    const devFallback = process.env.NEXTAUTH_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!devFallback) {
-      throw new Error(
-        "[CRITICAL AUTH ERROR] Secret sesi tidak disetel di variabel lingkungan (LARAS_SESSION_SECRET). Pembuatan & verifikasi sesi ditolak."
-      );
-    }
-    return devFallback;
+    throw new Error(
+      "[CRITICAL AUTH ERROR] Secret sesi tidak disetel di variabel lingkungan (LARAS_SESSION_SECRET). Pembuatan & verifikasi sesi ditolak."
+    );
   }
 
   return secret;

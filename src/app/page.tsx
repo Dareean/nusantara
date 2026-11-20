@@ -173,14 +173,15 @@ export default function LandingPage() {
               </motion.div>
 
               {/* Mascot Center Card */}
-              <div className="relative z-10 w-56 h-56 ani rounded-3xl bg-surface-container-lowest border-4 border-outline-variant/40 shadow-xl flex flex-col items-center justify-center p-5 text-center">
-                <div className="relative w-110 h-100 mb-1 select-none">
+              <div className="relative z-10 w-56 h-56 rounded-3xl bg-surface-container-lowest border-4 border-outline-variant/40 shadow-xl flex flex-col items-center justify-center p-4 text-center">
+                <div className="relative w-36 h-32 mb-1 select-none">
                   <Image
                     src="/images/maskot.webp"
                     alt="Maskot LARAS"
                     fill
-                    sizes="112px"
-                    className="object-contain drop-shadow-md"
+                    sizes="(max-width: 768px) 200px, 256px"
+                    quality={95}
+                    className="object-contain"
                     priority
                   />
                 </div>
@@ -438,43 +439,6 @@ export default function LandingPage() {
                 Bahasa bersanding erat dengan busana. Pasangkan Sambolo dan Baju
                 Koje sesuai konteks acara adat untuk raih skor harmoni budaya penuh.
               </p>
-            </motion.div>
-
-            {/* Interactive Attire Puzzle */}
-            <motion.div
-              initial={{ opacity: 0, y: 22 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.6, delay: 0.08, ease: "easeOut" }}
-              className="md:col-span-6 flex justify-center order-1 md:order-2 motion-reduce:animate-none motion-reduce:transition-none"
-            >
-              <div className="w-full max-w-sm bg-surface-container-lowest border-2 border-outline-variant/40 rounded-3xl p-6 shadow-xl text-center backdrop-blur-xs">
-                <div className="text-xs uppercase tracking-wider font-extrabold text-secondary mb-3">
-                  Uji Cocok Pasang Busana
-                </div>
-
-                <div className="bg-surface-container-low rounded-2xl p-4 border-2 border-outline-variant/20 mb-4">
-                  <div className="text-5xl mb-2">
-                    {attireMatched ? "✨ 👔 🪢" : "👔 ❓"}
-                  </div>
-                  <p className="font-extrabold text-sm text-on-surface">
-                    {attireMatched
-                      ? "Harmoni 100%! Baju Koje + Sambolo"
-                      : "Pilih pelengkap kepala untuk Baju Koje"}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setAttireMatched(!attireMatched)}
-                  className={`w-full py-3 px-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all cursor-pointer ${
-                    attireMatched
-                      ? "bg-secondary text-on-secondary shadow-[0_4px_0_0_#653e00]"
-                      : "bg-surface-container border-2 border-outline-variant text-on-surface hover:bg-surface-container-high"
-                  }`}
-                >
-                  {attireMatched ? "✓ Pasangan Sempurna" : "Coba Pasang Sambolo"}
-                </button>
-              </div>
             </motion.div>
           </div>
         </div>

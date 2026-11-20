@@ -244,14 +244,7 @@ export default function LessonSessionPage() {
     }
     if (q.type === "truefalse") {
       const data = q.data as TrueFalseQuestionData;
-      const isBenarSalah =
-        q.prompt.toLowerCase().includes("benar") ||
-        q.prompt.toLowerCase().includes("salah") ||
-        data.statement.toLowerCase().includes("adalah");
-      if (isBenarSalah) {
-        return data.answer ? "Benar" : "Salah";
-      }
-      return data.answer ? "Fakta" : "Mitos";
+      return data.answer ? "Benar" : "Salah";
     }
     if (q.type === "match") {
       const data = q.data as MatchQuestionData;
@@ -903,14 +896,9 @@ export default function LessonSessionPage() {
     if (!currentQuestion) return null;
     if (currentQuestion.type === "choice") return renderChoices(shuffledChoiceOptions);
     if (currentQuestion.type === "truefalse") {
-      const tfData = currentQuestion.data as TrueFalseQuestionData;
-      const isBenarSalah =
-        currentQuestion.prompt.toLowerCase().includes("benar") ||
-        currentQuestion.prompt.toLowerCase().includes("salah") ||
-        tfData.statement.toLowerCase().includes("adalah");
       return renderChoices([
-        { id: "true", label: isBenarSalah ? "Benar" : "Fakta" },
-        { id: "false", label: isBenarSalah ? "Salah" : "Mitos" },
+        { id: "true", label: "Benar" },
+        { id: "false", label: "Salah" },
       ]);
     }
     if (currentQuestion.type === "hotspot") return renderHotspotExercise(currentQuestion.data as HotspotQuestionData);

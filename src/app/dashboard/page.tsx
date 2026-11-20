@@ -61,7 +61,7 @@ export type PathNode = {
 
 const BUILTIN_SESSION_IDS = new Set(["SES-KL-MASTER-001", "SES-LALOVE-002", "1", "2", "3"]);
 
-export const UNIT_THEMES: Record<
+const UNIT_THEMES: Record<
   number,
   {
     label: string;
@@ -1265,7 +1265,7 @@ export default function DashboardPage() {
                             <div
                               key={String(node.id)}
                               style={{ left: `${node.x}px`, top: `${node.y}px` }}
-                              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
+                              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 w-[68px] h-[68px] sm:w-[76px] sm:h-[76px] flex items-center justify-center"
                               onMouseEnter={() => setHoveredNodeId(node.id)}
                               onMouseLeave={() => setHoveredNodeId(null)}
                               onFocus={() => setHoveredNodeId(node.id)}
@@ -1273,7 +1273,7 @@ export default function DashboardPage() {
                             >
                               {/* Balon Mengambang "MULAI" */}
                               {isPrimaryActive && (
-                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-20 animate-bounce motion-reduce:animate-none">
+                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-20 animate-bounce motion-reduce:animate-none pointer-events-none">
                                   <div
                                     style={{
                                       backgroundColor: unitTheme.bgColor,
@@ -1294,7 +1294,7 @@ export default function DashboardPage() {
                               {/* Cincin Progres Aktif */}
                               {isPrimaryActive && (
                                 <svg
-                                  className="absolute -inset-2.5 w-[calc(100%+20px)] h-[calc(100%+20px)] -rotate-90 pointer-events-none"
+                                  className="absolute -inset-2.5 w-[calc(100%+20px)] h-[calc(100%+20px)] -rotate-90 pointer-events-none z-0"
                                   viewBox="0 0 100 100"
                                 >
                                   <circle
@@ -1326,12 +1326,12 @@ export default function DashboardPage() {
                                 <div
                                   tabIndex={0}
                                   aria-label={`${node.title} (Terkunci)`}
-                                  className="flex h-[68px] w-[68px] sm:h-[76px] sm:w-[76px] items-center justify-center rounded-full bg-surface-container-high text-outline shadow-[0_5px_0_0_#c0b8c4] cursor-not-allowed select-none border-4 border-surface"
+                                  className="relative z-10 flex h-[68px] w-[68px] sm:h-[76px] sm:w-[76px] items-center justify-center rounded-full bg-surface-container-high text-outline shadow-[0_5px_0_0_#c0b8c4] cursor-not-allowed select-none border-4 border-surface"
                                 >
                                   <NodeIcon node={node} status={node.status} />
                                 </div>
                               ) : (
-                                <div className="relative">
+                                <div className="relative z-10 w-full h-full flex items-center justify-center">
                                   <Link
                                     id={node.id === 1 ? "tour-first-lesson" : undefined}
                                     href={node.href}
@@ -1357,11 +1357,11 @@ export default function DashboardPage() {
 
                               {/* Visible Pill for Touch / Mobile / Accessibility */}
                               {node.isEnrichment ? (
-                                <div className="mt-1.5 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-900 font-black text-[10px] whitespace-nowrap shadow-2xs select-none">
+                                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-900 font-black text-[10px] whitespace-nowrap shadow-2xs select-none pointer-events-none z-10">
                                   P.{node.id} • Pengayaan
                                 </div>
                               ) : node.type === "lesson" && typeof node.id === "number" ? (
-                                <div className="mt-1 px-1.5 py-0.2 rounded-full text-on-surface-variant font-bold text-[10px] whitespace-nowrap select-none opacity-75">
+                                <div className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full text-on-surface-variant font-bold text-[10px] whitespace-nowrap select-none opacity-75 pointer-events-none z-10">
                                   Pelajaran {node.id}
                                 </div>
                               ) : null}

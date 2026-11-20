@@ -140,7 +140,7 @@ export const lessons: Lesson[] = [
       {
         id: "tabe-fact",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Tabe hanya digunakan untuk mengucapkan selamat tinggal.",
+        prompt: "Benar atau salah? Tabe hanya digunakan untuk mengucapkan selamat tinggal.",
         data: { statement: "Tabe hanya digunakan untuk mengucapkan selamat tinggal.", answer: false },
         why: "Tabe dapat digunakan untuk meminta izin, menyapa, atau melewati seseorang dengan hormat.",
         xp: 5,
@@ -248,7 +248,7 @@ export const lessons: Lesson[] = [
       {
         id: "nggembe-fact",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Buya Sabe adalah kain tenun Donggala yang dapat melengkapi busana adat.",
+        prompt: "Benar atau salah? Buya Sabe adalah kain tenun Donggala yang dapat melengkapi busana adat.",
         data: { statement: "Buya Sabe adalah kain tenun Donggala.", answer: true },
         why: "Buya Sabe dikenal sebagai kain tenun Donggala yang menjadi bagian penting dari konteks busana.",
         xp: 5,
@@ -340,7 +340,7 @@ export const lessons: Lesson[] = [
       {
         id: "souraja-fact",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Sapaan dan gesture memiliki peran yang sama pentingnya dalam situasi adat.",
+        prompt: "Benar atau salah? Sapaan dan gesture memiliki peran yang sama pentingnya dalam situasi adat.",
         data: { statement: "Sapaan dan gesture sama-sama penting.", answer: true },
         why: "Makna sapaan diperkuat oleh cara tubuh dan timing saat menyampaikannya.",
         xp: 5,
@@ -459,7 +459,7 @@ export const lessons: Lesson[] = [
       {
         id: "u2-p1-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Kata 'Sapulu' dalam bahasa Kaili Ledo berarti sepuluh (10).",
+        prompt: "Benar atau salah? Kata 'Sapulu' dalam bahasa Kaili Ledo berarti sepuluh (10).",
         data: { statement: "Kata 'Sapulu' bermakna sepuluh.", answer: true },
         why: "Sapulu merupakan kata baku Kaili Ledo untuk bilangan sepuluh.",
         xp: 5,
@@ -585,7 +585,7 @@ export const lessons: Lesson[] = [
       {
         id: "u2-p2-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Kata 'Mamiang' bermakna besok dalam bahasa Kaili Ledo.",
+        prompt: "Benar atau salah? Kata 'Mamiang' bermakna besok dalam bahasa Kaili Ledo.",
         data: { statement: "Mamiang berarti besok.", answer: true },
         why: "Mamiang digunakan untuk merujuk pada hari esok.",
         xp: 5,
@@ -714,7 +714,7 @@ export const lessons: Lesson[] = [
       {
         id: "u2-p3-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Kelompok kata Motoro, Oto, Sakaya, dan Sapeda merujuk pada sarana mobilitas perjalanan.",
+        prompt: "Benar atau salah? Kelompok kata Motoro, Oto, Sakaya, dan Sapeda merujuk pada sarana mobilitas perjalanan.",
         data: { statement: "Kelompok kata tersebut merupakan sarana perjalanan.", answer: true },
         why: "Seluruh kata tersebut tercantum dalam kelompok alat transportasi pada materi rujukan.",
         xp: 5,
@@ -848,7 +848,7 @@ export const lessons: Lesson[] = [
       {
         id: "u3-p1-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Ungkapan formal 'Komi mambura kareba' masih memerlukan verifikasi bentuk baku oleh penutur jati.",
+        prompt: "Benar atau salah? Ungkapan formal 'Komi mambura kareba' masih memerlukan verifikasi bentuk baku oleh penutur jati.",
         data: { statement: "Ungkapan tersebut memerlukan verifikasi bentuk baku.", answer: true },
         why: "Sesuai catatan integritas, ungkapan formal ini berstatus wajib diverifikasi sebelum menjadi standar final.",
         xp: 5,
@@ -976,7 +976,7 @@ export const lessons: Lesson[] = [
       {
         id: "u3-p2-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Kata 'Ngge' dikenalkan sebagai salah satu sapaan dalam daftar materi rujukan Aslitah.",
+        prompt: "Benar atau salah? Kata 'Ngge' dikenalkan sebagai salah satu sapaan dalam daftar materi rujukan Aslitah.",
         data: { statement: "Ngge tercatat sebagai sapaan dalam materi rujukan.", answer: true },
         why: "Ngge tercantum dalam daftar materi sapaan pada modul bahasa daerah rujukan.",
         xp: 5,
@@ -1106,7 +1106,7 @@ export const lessons: Lesson[] = [
       {
         id: "u4-p1-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Materi pemaduan busana ini disajikan sebagai prototipe DATA DEMO yang masih dalam proses validasi.",
+        prompt: "Benar atau salah? Materi pemaduan busana ini disajikan sebagai prototipe DATA DEMO yang masih dalam proses validasi.",
         data: { statement: "Materi ini berstatus DATA DEMO dalam proses validasi.", answer: true },
         why: "Unit 4 secara transparan ditandai sebagai data demo edukasi yang menanti validasi dewan adat.",
         xp: 5,
@@ -1235,7 +1235,7 @@ export const lessons: Lesson[] = [
       {
         id: "u4-p2-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Istilah 'Pua Kora' dalam materi ini telah diverifikasi bentuk, bahan, dan fungsinya oleh dewan adat.",
+        prompt: "Benar atau salah? Istilah 'Pua Kora' dalam materi ini telah diverifikasi bentuk, bahan, dan fungsinya oleh dewan adat.",
         data: { statement: "Pua Kora telah diverifikasi lengkap.", answer: false },
         why: "Pua Kora dikenalkan hanya sebagai istilah yang masih memerlukan riset dan validasi dewan adat.",
         xp: 5,
@@ -1365,7 +1365,7 @@ export const lessons: Lesson[] = [
       {
         id: "u5-p1-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Saat melintas di depan tetua, kita dianjurkan berjalan cepat sambil berbisik kencang.",
+        prompt: "Benar atau salah? Saat melintas di depan tetua, kita dianjurkan berjalan cepat sambil berbisik kencang.",
         data: { statement: "Melintas di depan tetua dianjurkan berjalan cepat.", answer: false },
         why: "Langkah harus tenang dan terukur, bukan tergesa-gesa atau menimbulkan kegaduhan.",
         xp: 5,
@@ -1490,7 +1490,7 @@ export const lessons: Lesson[] = [
       {
         id: "u5-p2-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Tamu diperbolehkan langsung melangkah ke ruang dalam tanpa menunggu dipersilakan.",
+        prompt: "Benar atau salah? Tamu diperbolehkan langsung melangkah ke ruang dalam tanpa menunggu dipersilakan.",
         data: { statement: "Tamu boleh langsung masuk tanpa izin.", answer: false },
         why: "Ruang dalam bersifat privat dan sakral, wajib menunggu izin tuan rumah sebelum memasukinya.",
         xp: 5,
@@ -1620,7 +1620,7 @@ export const lessons: Lesson[] = [
       {
         id: "u6-p1-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Falsafah Nosarara Nosabatutu hanya berlaku untuk keluarga sedarah saja.",
+        prompt: "Benar atau salah? Falsafah Nosarara Nosabatutu hanya berlaku untuk keluarga sedarah saja.",
         data: { statement: "Falsafah ini hanya untuk keluarga sedarah.", answer: false },
         why: "Falsafah ini menjadi payung persatuan bagi seluruh masyarakat dan pendatang di tanah Kaili.",
         xp: 5,
@@ -1748,7 +1748,7 @@ export const lessons: Lesson[] = [
       {
         id: "u6-p2-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Tradisi Padungku dirayakan dengan menutup pintu rumah rapat-rapat agar makanan tidak habis.",
+        prompt: "Benar atau salah? Tradisi Padungku dirayakan dengan menutup pintu rumah rapat-rapat agar makanan tidak habis.",
         data: { statement: "Padungku dirayakan dengan menutup pintu rumah rapat-rapat.", answer: false },
         why: "Sebaliknya, warga dengan lapang hati membuka pintu dan mengundang tetangga serta tamu untuk bersantap bersama.",
         xp: 5,
@@ -1873,7 +1873,7 @@ export const lessons: Lesson[] = [
       {
         id: "u6-p3-truefalse",
         type: "truefalse",
-        prompt: "Mitos atau fakta? Membantu warga yang berbeda suku tetap sejalan dengan falsafah Nosarara Nosabatutu.",
+        prompt: "Benar atau salah? Membantu warga yang berbeda suku tetap sejalan dengan falsafah Nosarara Nosabatutu.",
         data: { statement: "Membantu warga beda suku sejalan dengan Nosarara.", answer: true },
         why: "Nosarara merangkul segenap umat manusia dalam persaudaraan yang tulus.",
         xp: 5,

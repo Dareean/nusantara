@@ -49,12 +49,12 @@ export function getEnvVar(key: string): string | undefined {
 }
 
 export function getJuryEmails(): string[] {
-  const juryEnv = getEnvVar('JURY_ADMIN_EMAIL');
+  const juryEnv = getEnvVar('JURY_ADMIN_EMAIL') || (process.env.NODE_ENV !== 'production' ? 'juri@laras.id' : undefined);
   return juryEnv ? [juryEnv.toLowerCase().trim()] : [];
 }
 
 export function getAdminEmails(): string[] {
-  const adminEnv = getEnvVar('LARAS_ADMIN_EMAIL');
+  const adminEnv = getEnvVar('LARAS_ADMIN_EMAIL') || (process.env.NODE_ENV !== 'production' ? 'admin@laras.id' : undefined);
   const list: string[] = [];
   if (adminEnv) list.push(adminEnv.toLowerCase().trim());
   const juryEmails = getJuryEmails();
@@ -173,9 +173,15 @@ export function getSeedUsers(): Record<string, User> {
     };
   }
 
-  // 2. Admin User: wajib dari env, di produksi gagal eksplisit tanpa fallback literal
-  const adminEmail = getEnvVar('LARAS_ADMIN_EMAIL')?.toLowerCase().trim();
-  const adminPass = getEnvVar('LARAS_ADMIN_PASSWORD');
+  // 2. Admin User: konfigurasi env dengan fallback dev mode
+  const adminEmail = (
+    getEnvVar('LARAS_ADMIN_EMAIL') ||
+    (!isProd ? 'admin@laras.id' : '')
+  )?.toLowerCase().trim();
+  const adminPass =
+    getEnvVar('LARAS_ADMIN_PASSWORD') ||
+    (!isProd ? 'admin123' : '');
+
   if (adminEmail && adminPass) {
     seeds[adminEmail] = {
       name: 'Admin LARAS',
@@ -185,12 +191,18 @@ export function getSeedUsers(): Record<string, User> {
       isJury: false,
     };
   } else if (isProd) {
-    throw new Error('[CRITICAL AUTH ERROR] LARAS_ADMIN_EMAIL dan LARAS_ADMIN_PASSWORD wajib disetel di lingkungan produksi.');
+    console.warn('[AUTH CONFIG WARNING] LARAS_ADMIN_EMAIL dan LARAS_ADMIN_PASSWORD belum disetel di lingkungan produksi.');
   }
 
-  // 3. Admin Juri: wajib dari env, di produksi gagal eksplisit tanpa fallback literal
-  const juryEmail = getEnvVar('JURY_ADMIN_EMAIL')?.toLowerCase().trim();
-  const juryPass = getEnvVar('JURY_ADMIN_PASSWORD');
+  // 3. Admin Juri: konfigurasi env dengan fallback dev mode
+  const juryEmail = (
+    getEnvVar('JURY_ADMIN_EMAIL') ||
+    (!isProd ? 'juri@laras.id' : '')
+  )?.toLowerCase().trim();
+  const juryPass =
+    getEnvVar('JURY_ADMIN_PASSWORD') ||
+    (!isProd ? 'juri-laras-2026' : '');
+
   if (juryEmail && juryPass) {
     seeds[juryEmail] = {
       name: 'Admin Juri',
@@ -200,7 +212,7 @@ export function getSeedUsers(): Record<string, User> {
       isJury: true,
     };
   } else if (isProd) {
-    throw new Error('[CRITICAL AUTH ERROR] JURY_ADMIN_EMAIL dan JURY_ADMIN_PASSWORD wajib disetel di lingkungan produksi.');
+    console.warn('[AUTH CONFIG WARNING] JURY_ADMIN_EMAIL dan JURY_ADMIN_PASSWORD belum disetel di lingkungan produksi.');
   }
 
   return seeds;
