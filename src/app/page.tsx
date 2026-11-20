@@ -173,10 +173,19 @@ export default function LandingPage() {
               </motion.div>
 
               {/* Mascot Center Card */}
-              <div className="relative z-10 w-56 h-56 rounded-3xl bg-surface-container-lowest border-4 border-outline-variant/40 shadow-xl flex flex-col items-center justify-center p-6 text-center">
-                <span className="text-6xl mb-2 select-none animate-bounce">🦜</span>
+              <div className="relative z-10 w-56 h-56 ani rounded-3xl bg-surface-container-lowest border-4 border-outline-variant/40 shadow-xl flex flex-col items-center justify-center p-5 text-center">
+                <div className="relative w-110 h-100 mb-1 select-none">
+                  <Image
+                    src="/images/maskot.webp"
+                    alt="Maskot LARAS"
+                    fill
+                    sizes="112px"
+                    className="object-contain drop-shadow-md"
+                    priority
+                  />
+                </div>
                 <span className="font-black text-on-surface text-lg leading-tight">
-                  Tarsius &amp; Maleo
+                  Maleo
                 </span>
                 <span className="text-xs font-bold text-on-surface-variant mt-1">
                   Teman Belajar Budayamu
