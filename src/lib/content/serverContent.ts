@@ -241,7 +241,7 @@ export async function upsertContentSession(params: {
     payload,
     status: targetStatus,
     version: nextVersion,
-    created_by: created_by || existing?.created_by || "admin@laras.id",
+    created_by: created_by || existing?.created_by || process.env.LARAS_ADMIN_EMAIL || "admin",
     created_at: existing?.created_at || now,
     updated_at: now,
   };

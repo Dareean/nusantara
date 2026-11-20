@@ -51,11 +51,10 @@ export function getEnvVar(key: string): string | undefined {
 export function getAdminEmails(): string[] {
   const adminEnv = getEnvVar('LARAS_ADMIN_EMAIL');
   const juryEnv = getEnvVar('JURY_ADMIN_EMAIL');
-  return [
-    'admin@laras.id',
-    ...(adminEnv ? [adminEnv.toLowerCase().trim()] : []),
-    ...(juryEnv ? [juryEnv.toLowerCase().trim()] : ['juri@laras.id']),
-  ];
+  const list: string[] = [];
+  if (adminEnv) list.push(adminEnv.toLowerCase().trim());
+  if (juryEnv) list.push(juryEnv.toLowerCase().trim());
+  return list;
 }
 
 export function isAdminEmail(email: string | null | undefined): boolean {
@@ -65,7 +64,8 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 
 export function isJuryEmail(email: string | null | undefined): boolean {
   if (!email) return false;
-  const juryEmail = (getEnvVar('JURY_ADMIN_EMAIL') || 'juri@laras.id').toLowerCase().trim();
+  const juryEmail = getEnvVar('JURY_ADMIN_EMAIL')?.toLowerCase().trim();
+  if (!juryEmail) return false;
   return email.toLowerCase().trim() === juryEmail;
 }
 
@@ -75,16 +75,16 @@ export function isJuryReadOnly(session: SessionEntry | null | undefined): boolea
 }
 
 /**
- * Hash kata sandi dengan format salted modern: s1$<salt>$<hash>
+ * Hash kata sandi dengan format modern crypto.scrypt: scrypt$<salt>$<hash>
  */
 export function hashPassword(password: string, customSalt?: string): string {
   const salt = customSalt || crypto.randomBytes(16).toString('hex');
-  const hash = crypto.createHash('sha256').update(salt + ':' + password).digest('hex');
-  return `s1$${salt}$${hash}`;
+  const derivedKey = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `scrypt$${salt}$${derivedKey}`;
 }
 
 /**
- * Verifikasi kata sandi dengan dukungan migrasi transparan dari SHA-256 polos ke salted hash
+ * Verifikasi kata sandi dengan dukungan migrasi transparan dari hash lama (s1$ sha256 & sha256 polos) ke scrypt
  */
 export function verifyPassword(
   password: string,
@@ -94,13 +94,34 @@ export function verifyPassword(
     return { valid: false, needsMigration: false };
   }
 
-  // Format baru: s1$<salt>$<hash>
+  // Format baru: scrypt$<salt>$<hash>
+  if (storedHash.startsWith('scrypt$')) {
+    const parts = storedHash.split('$');
+    if (parts.length === 3) {
+      const [, salt, expectedHash] = parts;
+      try {
+        const derivedKey = crypto.scryptSync(password, salt, 64).toString('hex');
+        const valid = crypto.timingSafeEqual(
+          Buffer.from(derivedKey, 'hex'),
+          Buffer.from(expectedHash, 'hex')
+        );
+        return { valid, needsMigration: false };
+      } catch {
+        return { valid: false, needsMigration: false };
+      }
+    }
+    return { valid: false, needsMigration: false };
+  }
+
+  // Format transisi: s1$<salt>$<hash> (SHA-256 ber-salt)
   if (storedHash.startsWith('s1$')) {
     const parts = storedHash.split('$');
     if (parts.length === 3) {
       const [, salt, expectedHash] = parts;
       const actualHash = crypto.createHash('sha256').update(salt + ':' + password).digest('hex');
-      return { valid: actualHash === expectedHash, needsMigration: false };
+      if (actualHash === expectedHash) {
+        return { valid: true, needsMigration: true };
+      }
     }
     return { valid: false, needsMigration: false };
   }
@@ -117,42 +138,65 @@ export function verifyPassword(
 }
 
 /**
- * Seed accounts are generated from environment variables with safe, canonical fallbacks.
- * This guarantees that even if environment variables are not populated on serverless redeploys,
- * demo, admin, and jury accounts can always authenticate without failure.
+ * Seed accounts are generated exclusively from environment variables.
+ * In production, if LARAS_ADMIN_EMAIL or LARAS_ADMIN_PASSWORD is missing, server fails explicitly.
+ * Demo account uses dev-only fallback credentials.
  */
 export function getSeedUsers(): Record<string, User> {
   const seeds: Record<string, User> = {};
 
-  const demoEmail = (getEnvVar('LARAS_DEMO_EMAIL') || 'demo@gmail.com').toLowerCase().trim();
-  const demoPass = getEnvVar('LARAS_DEMO_PASSWORD') || 'demo123';
-  seeds[demoEmail] = {
-    name: 'Demo User',
-    email: demoEmail,
-    passwordHash: hashPassword(demoPass),
-    isAdmin: false,
-    isJury: false,
-  };
+  const isProd = process.env.NODE_ENV === 'production';
 
-  const adminEmail = (getEnvVar('LARAS_ADMIN_EMAIL') || 'admin@laras.id').toLowerCase().trim();
-  const adminPass = getEnvVar('LARAS_ADMIN_PASSWORD') || 'admin123';
-  seeds[adminEmail] = {
-    name: 'Admin LARAS',
-    email: adminEmail,
-    passwordHash: hashPassword(adminPass),
-    isAdmin: true,
-    isJury: false,
-  };
+  // 1. Demo User: konfigurasi env dengan fallback khusus mode development
+  const demoEmail = (
+    getEnvVar('DEMO_EMAIL') ||
+    getEnvVar('LARAS_DEMO_EMAIL') ||
+    (!isProd ? 'demo@gmail.com' : '')
+  ).toLowerCase().trim();
+  const demoPass =
+    getEnvVar('DEMO_PASSWORD') ||
+    getEnvVar('LARAS_DEMO_PASSWORD') ||
+    (!isProd ? 'demo123' : '');
 
-  const juryEmail = (getEnvVar('JURY_ADMIN_EMAIL') || 'juri@laras.id').toLowerCase().trim();
-  const juryPass = getEnvVar('JURY_ADMIN_PASSWORD') || 'juri-laras-2026';
-  seeds[juryEmail] = {
-    name: 'Admin Juri',
-    email: juryEmail,
-    passwordHash: hashPassword(juryPass),
-    isAdmin: true,
-    isJury: true,
-  };
+  if (demoEmail && demoPass) {
+    seeds[demoEmail] = {
+      name: 'Demo User',
+      email: demoEmail,
+      passwordHash: hashPassword(demoPass),
+      isAdmin: false,
+      isJury: false,
+    };
+  }
+
+  // 2. Admin User: wajib dari env, di produksi gagal eksplisit tanpa fallback literal
+  const adminEmail = getEnvVar('LARAS_ADMIN_EMAIL')?.toLowerCase().trim();
+  const adminPass = getEnvVar('LARAS_ADMIN_PASSWORD');
+  if (adminEmail && adminPass) {
+    seeds[adminEmail] = {
+      name: 'Admin LARAS',
+      email: adminEmail,
+      passwordHash: hashPassword(adminPass),
+      isAdmin: true,
+      isJury: false,
+    };
+  } else if (isProd) {
+    throw new Error('[CRITICAL AUTH ERROR] LARAS_ADMIN_EMAIL dan LARAS_ADMIN_PASSWORD wajib disetel di lingkungan produksi.');
+  }
+
+  // 3. Admin Juri: wajib dari env, di produksi gagal eksplisit tanpa fallback literal
+  const juryEmail = getEnvVar('JURY_ADMIN_EMAIL')?.toLowerCase().trim();
+  const juryPass = getEnvVar('JURY_ADMIN_PASSWORD');
+  if (juryEmail && juryPass) {
+    seeds[juryEmail] = {
+      name: 'Admin Juri',
+      email: juryEmail,
+      passwordHash: hashPassword(juryPass),
+      isAdmin: true,
+      isJury: true,
+    };
+  } else if (isProd) {
+    throw new Error('[CRITICAL AUTH ERROR] JURY_ADMIN_EMAIL dan JURY_ADMIN_PASSWORD wajib disetel di lingkungan produksi.');
+  }
 
   return seeds;
 }

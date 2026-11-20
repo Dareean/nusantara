@@ -60,7 +60,7 @@ function AuthPageContent() {
     import("./authClient").then(({ getSession }) => {
       getSession().then((session) => {
         if (!isMounted || !session) return;
-        const userIsAdmin = Boolean(session.isAdmin || session.email === "admin@laras.id");
+        const userIsAdmin = Boolean(session.isAdmin);
         const safeDestination = resolvePostAuthRedirect(rawRedirect, userIsAdmin);
         // Jika pengguna yang sudah login membuka /auth, langsung antarkan ke tujuan yang aman
         router.replace(safeDestination);
@@ -139,15 +139,14 @@ function AuthPageContent() {
       const res = await fetch("/api/auth/jury-credentials");
       if (res.ok) {
         const data = await res.json();
-        setEmail(data.email || "juri@laras.id");
-        setPassword(data.password || "juri-laras-2026");
-      } else {
-        setEmail("juri@laras.id");
-        setPassword("juri-laras-2026");
+        if (data.email && data.password) {
+          setEmail(data.email);
+          setPassword(data.password);
+          return;
+        }
       }
     } catch {
-      setEmail("juri@laras.id");
-      setPassword("juri-laras-2026");
+      // Fallback network error
     }
   };
 

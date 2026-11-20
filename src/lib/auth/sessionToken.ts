@@ -11,18 +11,21 @@ export type SessionPayload = {
 export const DEFAULT_SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function getAuthSecret(): string {
-  const secret =
-    process.env.LARAS_SESSION_SECRET ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXTAUTH_SECRET;
+  const secret = process.env.LARAS_SESSION_SECRET;
 
   if (!secret) {
-    console.error(
-      "[CRITICAL AUTH ERROR] Secret sesi tidak disetel di variabel lingkungan (LARAS_SESSION_SECRET / SUPABASE_SERVICE_ROLE_KEY / NEXTAUTH_SECRET). Pembuatan & verifikasi sesi ditolak."
-    );
-    throw new Error(
-      "Secret sesi tidak disetel di env. Autentikasi ditolak demi keamanan."
-    );
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "[CRITICAL AUTH ERROR] Variabel lingkungan LARAS_SESSION_SECRET wajib disetel di produksi. Server menolak berjalan tanpa secret sesi yang aman."
+      );
+    }
+    const devFallback = process.env.NEXTAUTH_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!devFallback) {
+      throw new Error(
+        "[CRITICAL AUTH ERROR] Secret sesi tidak disetel di variabel lingkungan (LARAS_SESSION_SECRET). Pembuatan & verifikasi sesi ditolak."
+      );
+    }
+    return devFallback;
   }
 
   return secret;

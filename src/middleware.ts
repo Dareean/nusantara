@@ -4,9 +4,8 @@ import { verifySessionToken } from './lib/auth/sessionToken';
 
 // Daftar email admin (selaras dengan ADMIN_EMAILS di src/app/auth/serverAuth.ts)
 const ADMIN_EMAILS = [
-  'admin@laras.id',
   ...(process.env.LARAS_ADMIN_EMAIL ? [process.env.LARAS_ADMIN_EMAIL.toLowerCase().trim()] : []),
-  ...(process.env.JURY_ADMIN_EMAIL ? [process.env.JURY_ADMIN_EMAIL.toLowerCase().trim()] : ['juri@laras.id']),
+  ...(process.env.JURY_ADMIN_EMAIL ? [process.env.JURY_ADMIN_EMAIL.toLowerCase().trim()] : []),
 ];
 
 export async function middleware(req: NextRequest) {
