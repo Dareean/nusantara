@@ -213,10 +213,11 @@ export async function GET(req: NextRequest) {
     }
 
     if (error) {
-      console.warn("Supabase user_progress query returned error:", error.message);
+      console.warn(`[SYNC GET] Supabase query returned error: ${error.message} (code: ${error.code || 'N/A'})`);
     }
   } catch (err) {
-    console.warn("Supabase user_progress tidak terjangkau, menggunakan store lokal:", err);
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.warn(`[SYNC GET] Supabase tidak terjangkau (${errMsg}), menggunakan store lokal.`);
   }
 
   const local = getLocalProgress(email);
@@ -250,6 +251,8 @@ export async function PUT(req: NextRequest) {
   // Retrieve existing server progress for anti-regression merging (prioritize database)
   let serverProgress: StoredProgress | null = null;
   let remoteFetchError: string | null = null;
+  let isNetworkError = false;
+
   try {
     const { data, error } = await createAdminClient()
       .from("user_progress")
@@ -261,16 +264,26 @@ export async function PUT(req: NextRequest) {
       serverProgress = data.progress as StoredProgress;
     } else if (error) {
       remoteFetchError = error.message;
-      console.warn("Supabase check error during PUT:", error.message);
+      const lower = error.message.toLowerCase();
+      if (
+        lower.includes("fetch failed") ||
+        lower.includes("enotfound") ||
+        lower.includes("econnrefused") ||
+        lower.includes("network") ||
+        lower.includes("connect")
+      ) {
+        isNetworkError = true;
+      }
+      console.warn(`[SYNC PUT] Supabase read error: ${error.message} (isNetworkError: ${isNetworkError})`);
     }
   } catch (err) {
     remoteFetchError = err instanceof Error ? err.message : String(err);
-    console.warn("Supabase fetch exception during PUT:", err);
+    isNetworkError = true;
+    console.warn(`[SYNC PUT] Supabase unreachable (network/offline): ${remoteFetchError}`);
   }
 
-  // CRITICAL PROTECTION:
-  // If database query failed with error, do NOT proceed with blind upsert to avoid wiping data
-  if (remoteFetchError) {
+  // If remote returned an actual database-level error (not network offline), guard against data loss
+  if (remoteFetchError && !isNetworkError) {
     return NextResponse.json(
       {
         ok: false,
@@ -294,8 +307,8 @@ export async function PUT(req: NextRequest) {
       console.warn(`[PUT /api/progress] Menolak overwrite kosong untuk ${email}, mempertahankan progres server`);
       return NextResponse.json({
         ok: true,
-        synced: true,
-        source: "database_protected",
+        synced: !isNetworkError,
+        source: isNetworkError ? "fallback_local" : "database_protected",
         progress: serverProgress,
       });
     }
@@ -307,6 +320,16 @@ export async function PUT(req: NextRequest) {
   // Always save locally as disaster-recovery backup
   saveLocalProgress(email, mergedProgress);
 
+  // If network was unreachable during read, respond with fallback_local (data saved safely locally)
+  if (isNetworkError) {
+    return NextResponse.json({
+      ok: true,
+      synced: false,
+      source: "fallback_local",
+      progress: mergedProgress,
+    });
+  }
+
   // Upsert to Supabase user_progress table
   try {
     const { error: upsertError } = await createAdminClient().from("user_progress").upsert(
@@ -315,16 +338,14 @@ export async function PUT(req: NextRequest) {
     );
 
     if (upsertError) {
-      console.warn("Supabase upsert progress error:", upsertError.message);
+      console.warn(`[SYNC PUT] Supabase upsert error: ${upsertError.message}`);
       return NextResponse.json(
         {
-          ok: false,
+          ok: true,
           synced: false,
           source: "fallback_local",
-          error: `Gagal menyimpan ke database Supabase: ${upsertError.message}`,
           progress: mergedProgress,
-        },
-        { status: 500 }
+        }
       );
     }
 
@@ -337,16 +358,12 @@ export async function PUT(req: NextRequest) {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.warn("Supabase tidak terjangkau:", msg);
-    return NextResponse.json(
-      {
-        ok: false,
-        synced: false,
-        source: "fallback_local",
-        error: `Supabase tidak terjangkau: ${msg}`,
-        progress: mergedProgress,
-      },
-      { status: 500 }
-    );
+    console.warn(`[SYNC PUT] Supabase write unreachable: ${msg}`);
+    return NextResponse.json({
+      ok: true,
+      synced: false,
+      source: "fallback_local",
+      progress: mergedProgress,
+    });
   }
 }
