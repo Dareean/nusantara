@@ -5,6 +5,7 @@ import {
   updateUserProfile,
   createSessionForUser,
   isAdminEmail,
+  isJuryReadOnly,
 } from "@/app/auth/serverAuth";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/authOptions";
@@ -56,6 +57,14 @@ export async function PUT(req: NextRequest) {
     const session = await getAuthenticatedUser(req);
     if (!session?.email) {
       return NextResponse.json({ error: "Sesi tidak ditemukan / belum login" }, { status: 401 });
+    }
+
+    // Jury read-only guard
+    if (isJuryReadOnly(session)) {
+      return NextResponse.json(
+        { error: "Mode demo juri: hanya lihat" },
+        { status: 403 }
+      );
     }
 
     const body = await req.json().catch(() => ({}));

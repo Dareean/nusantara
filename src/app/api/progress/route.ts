@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getSession } from "@/app/auth/serverAuth";
+import { getSession, isJuryReadOnly } from "@/app/auth/serverAuth";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/authOptions";
 
@@ -231,6 +231,16 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   const email = await authenticatedEmail(req);
   if (!email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Jury read-only guard
+  const sessionId = req.cookies.get("laras_session")?.value;
+  const session = getSession(sessionId);
+  if (isJuryReadOnly(session)) {
+    return NextResponse.json(
+      { error: "Mode demo juri: hanya lihat" },
+      { status: 403 }
+    );
+  }
 
   const body = (await req.json()) as ProgressPayload;
   if (!body.progress || typeof body.progress !== "object") {

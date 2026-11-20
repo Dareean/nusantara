@@ -662,6 +662,17 @@ export default function AdminPage() {
           {/* ── SEKSI 1: RINGKASAN ── */}
           {adminTab === "summary" && (
             <div className="space-y-4 max-w-6xl mx-auto">
+              {adminUser.isJury && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-between shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-amber-800 shrink-0" />
+                    <span className="text-xs font-black">Mode Juri — Hanya Lihat</span>
+                    <span className="text-[11px] text-amber-700 font-medium hidden sm:inline">
+                      • Memantau status korpus, sesi game, dan publikasi tanpa izin modifikasi.
+                    </span>
+                  </div>
+                </div>
+              )}
               {/* Baris 4 Kartu Statistik Kecil Sejajar */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {/* Stat 1: Total Entri Korpus */}
@@ -912,6 +923,17 @@ export default function AdminPage() {
           {/* ── SEKSI 3: KORPUS BUDAYA ── */}
           {adminTab === "corpus" && (
             <div className="space-y-3.5 max-w-7xl mx-auto">
+              {adminUser.isJury && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-between shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-amber-800 shrink-0" />
+                    <span className="text-xs font-black">Mode Juri — Hanya Lihat</span>
+                    <span className="text-[11px] text-amber-700 font-medium hidden sm:inline">
+                      • Penambahan, pengubahan status, dan penghapusan entri adat dinonaktifkan.
+                    </span>
+                  </div>
+                </div>
+              )}
               {/* Content Management Matrix Table Card */}
               <div className="rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs overflow-hidden">
                 {/* Toolbar & Filters (Padat, 1 baris responsif) */}

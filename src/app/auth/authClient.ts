@@ -2,6 +2,7 @@ export type ClientSession = {
   email: string;
   name: string;
   isAdmin: boolean;
+  isJury?: boolean;
   avatarUrl?: string;
 };
 
@@ -50,7 +51,7 @@ export async function register(name: string, email: string, password: string) {
 
 export async function login(email: string, password: string) {
   const data = await apiRequest('/api/auth/login', 'POST', { email, password });
-  const sess: ClientSession = { email: data.email, name: data.name, isAdmin: Boolean(data.isAdmin) };
+  const sess: ClientSession = { email: data.email, name: data.name, isAdmin: Boolean(data.isAdmin), isJury: Boolean(data.isJury) };
   cachedSession = sess;
   serverVerified = true;
   persistSession(sess);
@@ -80,6 +81,7 @@ export async function getSession(forceRefresh = false): Promise<ClientSession | 
           email: data.session.email,
           name: data.session.name,
           isAdmin: Boolean(data.session.isAdmin),
+          isJury: Boolean(data.session.isJury),
         };
         const prevEmail = cachedSession?.email;
         cachedSession = verified;
