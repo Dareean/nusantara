@@ -450,7 +450,7 @@ function AuthPageContent() {
       <footer className="relative z-10 w-full py-2 text-center text-[10px] text-white/70 font-medium shrink-0">
         <div className="flex items-center justify-center gap-1.5">
           <BadgeCheck className="w-3.5 h-3.5 text-secondary-fixed" />
-          <span>LARAS Nusantara • Munas IX Permikomnas 2026</span>
+          <span>LARAS Nusantara • Pelestarian Budaya &amp; Bahasa Daerah</span>
         </div>
       </footer>
     </main>

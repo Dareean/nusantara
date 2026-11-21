@@ -1547,20 +1547,6 @@ export default function DashboardPage() {
             </Link>
           </aside>
         </div>
-
-        {/* Strip Logo Munas IX & Permikomnas untuk Mobile */}
-        <div className="mt-12 pt-6 border-t border-outline-variant/30 flex md:hidden flex-col items-center gap-2 text-center">
-          <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-white shadow-xs border border-outline-variant/30">
-            <img
-              src="/logo-munas-ix.png"
-              alt="Logo Munas IX PERMIKOMNAS"
-              className="h-8 w-8 object-contain"
-            />
-          </div>
-          <span className="text-[11px] font-black uppercase tracking-wider text-on-surface-variant">
-            Munas IX • PERMIKOMNAS RI
-          </span>
-        </div>
       </div>
 
       {/* Tur Mini Panduan */}

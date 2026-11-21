@@ -544,7 +544,7 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* ── Footer Lengkap & Bermartabat (Munas IX & Permikomnas) ── */}
+      {/* ── Footer Lengkap & Bermartabat ── */}
       <footer className="relative bg-gradient-to-b from-[#2a0e06] via-[#1f0a04] to-[#140602] text-[#f7eee9] antialiased">
         {/* 1. Pita Tenun di Tepi Atas Footer (Selendang Budaya) */}
         <div className="h-3 w-full bg-[#3c1409] relative overflow-hidden opacity-90 border-b border-primary/20">
@@ -564,21 +564,7 @@ export default function LandingPage() {
         </div>
 
         <div className="max-w-6xl mx-auto px-6 pt-12 pb-8">
-          {/* 2. Strip Resmi Logo Munas IX & Permikomnas */}
-          <div className="mb-12 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-            <span className="text-xs uppercase tracking-wider font-extrabold text-[#e0bfb7] text-center sm:text-left">
-              Diselenggarakan dalam rangka:
-            </span>
-            <div className="flex items-center gap-5 p-3 sm:px-6 rounded-2xl bg-white shadow-md">
-              <img
-                src="/logo-munas-landscape.png"
-                alt="Logo Munas IX PERMIKOMNAS"
-                className="h-10 sm:h-12 w-auto object-contain"
-              />
-            </div>
-          </div>
-
-          {/* 3. Badan Footer 4 Kolom */}
+          {/* Badan Footer 4 Kolom */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 pb-12 border-b border-white/10">
             {/* Kolom 1: Brand */}
             <div className="flex flex-col gap-3">
@@ -662,7 +648,7 @@ export default function LandingPage() {
                 <span className="font-extrabold text-white">Buras Team</span>
                 <span>Universitas Tadulako — Palu, Sulawesi Tengah</span>
                 <span className="mt-1 text-[11px] text-[#bda69f]">
-                  Dibangun untuk Lomba Aplikasi Berbasis Website — Munas IX PERMIKOMNAS di UNIMA.
+                  Platform Pelestarian Bahasa &amp; Budaya Nusantara Berbasis Gamifikasi Interaktif.
                 </span>
               </div>
             </div>
