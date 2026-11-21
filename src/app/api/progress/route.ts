@@ -82,7 +82,7 @@ async function authenticatedEmail(req: NextRequest): Promise<string | null> {
   return null;
 }
 
-export function mergeProgressAntiRegression(
+function mergeProgressAntiRegression(
   serverData: Partial<StoredProgress> | null | undefined,
   incoming: Partial<StoredProgress>
 ): StoredProgress {

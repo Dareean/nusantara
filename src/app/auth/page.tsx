@@ -18,7 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 
-export function resolvePostAuthRedirect(target: string | null | undefined, isAdmin: boolean): string {
+function resolvePostAuthRedirect(target: string | null | undefined, isAdmin: boolean): string {
   const defaultTarget = isAdmin ? "/admin" : "/dashboard";
   if (!target) return defaultTarget;
 

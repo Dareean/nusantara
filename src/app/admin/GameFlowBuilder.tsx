@@ -113,10 +113,10 @@ export const QUESTION_TYPE_GALLERY: {
   {
     type: "true_false",
     name: "Benar / Salah",
-    badge: "Fakta & Mitos",
-    howToAnswer: "Murid menentukan apakah pernyataan bernilai Benar/Fakta atau Salah/Mitos.",
+    badge: "Benar / Salah",
+    howToAnswer: "Murid menentukan apakah pernyataan bernilai Benar atau Salah.",
     exampleMini: "Benar [✓] atau Salah [✗]",
-    description: "Sangat baik untuk meluruskan mitos budaya atau menguji fakta singkat adat.",
+    description: "Sangat baik untuk menguji fakta singkat adat atau meluruskan pemahaman budaya.",
     Icon: CheckSquare,
   },
   {
@@ -764,10 +764,10 @@ export default function GameFlowBuilder({ isReadOnly = false }: { isReadOnly?: b
           id: baseId,
           type: "true_false",
           title: `Soal ${qCount}: Benar atau Salah`,
-          prompt: "Tentukan apakah pernyataan berikut bernilai fakta atau mitos:",
+          prompt: "Tentukan apakah pernyataan berikut bernilai Benar atau Salah:",
           statement: "Tabe hanya boleh diucapkan saat berpamitan pulang.",
           answerBoolean: false,
-          badge: "Mitos & Fakta",
+          badge: "Benar / Salah",
           curatorNote: "Tabe dapat digunakan untuk menyapa, meminta izin, maupun melintas.",
         };
         break;
@@ -2400,7 +2400,7 @@ export default function GameFlowBuilder({ isReadOnly = false }: { isReadOnly?: b
                               : "border-outline-variant/30 bg-surface-container-low text-on-surface hover:bg-surface-container"
                           }`}
                         >
-                          ✓ BENAR (FAKTA)
+                          ✓ BENAR
                         </button>
 
                         <button
@@ -2422,7 +2422,7 @@ export default function GameFlowBuilder({ isReadOnly = false }: { isReadOnly?: b
                               : "border-outline-variant/30 bg-surface-container-low text-on-surface hover:bg-surface-container"
                           }`}
                         >
-                          ✗ SALAH (MITOS)
+                          ✗ SALAH
                         </button>
                       </div>
                     </div>

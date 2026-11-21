@@ -979,8 +979,8 @@ export default function CulturalGameEngine({
 
             <div className="grid grid-cols-2 gap-4 mt-6">
               {[
-                { id: "true", label: "Fakta / Benar" },
-                { id: "false", label: "Mitos / Salah" },
+                { id: "true", label: "Benar" },
+                { id: "false", label: "Salah" },
               ].map((opt) => {
                 const isSelected = selectedOptionId === opt.id;
                 const isLocked = feedbackState !== "idle";

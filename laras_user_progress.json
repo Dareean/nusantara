@@ -118,5 +118,44 @@
     "lastStudyDate": null,
     "cultureConnectionClaimed": false,
     "dailyXpLog": {}
+  },
+  "kacotiktok@gmail.com": {
+    "xp": 45,
+    "streak": 1,
+    "hearts": 3,
+    "completedLessons": [
+      1,
+      2
+    ],
+    "unlockedLessons": [
+      1,
+      2,
+      3
+    ],
+    "badges": [
+      "Pionir Salam",
+      "Penjaga Busana"
+    ],
+    "lastLesson": {
+      "lessonId": 2,
+      "answered": "lesson-session",
+      "correct": true,
+      "score": 100,
+      "xp": 25,
+      "bonusXp": 0,
+      "baseRewardXp": 25,
+      "totalExercises": 5,
+      "correctExercises": 5,
+      "firstAttemptCorrect": 5,
+      "heartsRemaining": 3,
+      "completed": true,
+      "completedAt": "2026-11-20T23:55:31.503Z",
+      "isRepeat": false
+    },
+    "lastStudyDate": "2026-11-20",
+    "cultureConnectionClaimed": false,
+    "dailyXpLog": {
+      "2026-11-20": 45
+    }
   }
 }
